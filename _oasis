@@ -1,0 +1,16 @@
+OASISFormat: 0.4
+Name:        fuzzy-ai 
+Version:     0.1
+License:     GPL
+LicenseFile: LICENSE.txt
+Authors:     Carmelo Piccione
+Synopsis:    Topic Lerning for Fuzzy
+BuildTools:  ocamlbuild
+Plugins: META (0.4)
+
+Library fuzzy_ai
+  Path:               lib
+  Pack:               true
+  Modules:            User, Token, Comment, Discussion, Discussion_comment
+  BuildDepends:       unix, threads, lwt, lwt.preemptive, lwt.syntax, rpclib, ZMQ, lwt-zmq, bigarray, core, riak, pcre, deriving-ocsigen, deriving-ocsigen.syntax_tc, js_of_ocaml.deriving, bin_prot, bin_prot.syntax, ocaml_plugin
+  FindLibName:        fuzzy_ai

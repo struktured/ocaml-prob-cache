@@ -1,0 +1,16 @@
+#!/bin/bash
+echo Cleaning Phase 1..
+oasis setup-clean
+echo Running oasis setup...
+oasis setup
+echo Cleaning Phase 2...
+ocaml setup.ml -clean &&
+echo 
+echo Configuring...
+ocaml setup.ml -configure &&
+echo Building... &&
+ocaml setup.ml -build && 
+echo Installing... && 
+ocaml setup.ml -uninstall &&
+ocaml setup.ml -install &&
+echo Done!
