@@ -1,26 +1,29 @@
+open Core.Std
 open Mpmw
 open Bin_prot
 open Bin_prot.Std
-type topic = string with bin_io
-type 'a key = ELEMENT of ('a * topic) | TOPIC of topic with bin_io
+
+let rec powerset = function
+  | [] -> [[]]
+  | h::t -> List.fold_left (powerset t) ~f:(fun xs t -> ((h::t)::t::xs)) ~init:[] ;;
+
+type 'a key = 'a list with bin_io
 
 type value = int with bin_io
 
+type 'a t = (('a key), value) Cache.t
 
-type 'a t = (('a key), value) Cache.cache
-
-let count (model:'a t) element = 
-  match_lwt Cache.get model element with
+let count (model:'a t) elements = 
+  match_lwt Cache.get model elements with
   Some x -> Lwt.return x
   | None -> Lwt.return 0
  
-let increment (model:'a t) (element:'a key) =
-  lwt cnt = (count model element) in 
-  Cache.put model element (cnt+1)
+let increment ~(model:'a t) ?(weight=1) ~(elements:'a key) =
+  lwt cnt = (count model elements) in 
+  Cache.put model elements (cnt + weight)
 
-let observe (model:'a t) (element:'a) topic =
-  Lwt.ignore_result (increment model (TOPIC topic));
-  Lwt.ignore_result (increment model (ELEMENT (element, topic)))
+let observe (model:'a t) (elements:'a list) =
+  List.iter (powerset elements) (fun set -> Lwt.ignore_result (increment model set));
  
   (* 
   let distance elem elem' model =
