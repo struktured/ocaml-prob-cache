@@ -12,5 +12,5 @@ Library fuzzy_ai
   Path:               lib
   Pack:               true
   Modules:            Model, User, Token, Comment, Discussion, Discussion_comment
-  BuildDepends:       unix, threads, lwt, lwt.preemptive, lwt.syntax, rpclib, ZMQ, lwt-zmq, bigarray, core, riak, pcre, deriving-ocsigen, deriving-ocsigen.syntax_tc, js_of_ocaml.deriving, bin_prot, bin_prot.syntax, ocaml_plugin, mpmw
+  BuildDepends:       unix, threads, lwt, lwt.preemptive, lwt.syntax, rpclib, ZMQ, lwt-zmq, bigarray, core, sexplib, sexplib.syntax, comparelib, comparelib.syntax, riak, pcre, deriving-ocsigen, deriving-ocsigen.syntax_tc, js_of_ocaml.deriving, bin_prot, bin_prot.syntax, ocaml_plugin, mpmw
   FindLibName:        fuzzy_ai
