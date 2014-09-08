@@ -43,8 +43,9 @@ let count ~model ~events =
   Some x -> Lwt.return x
   | None -> Lwt.return 0
 
+(* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probility P(events) *)
 let probability ?(conditioned_on=Events.empty) ~model ~(events:Events.t) =
-  lwt event_count = count model events in
+  lwt event_count = count model (Events.union events conditioned_on) in
   lwt given_cond_count = count model conditioned_on in 
   lwt cond_count = if given_cond_count = 0 && 
     (not (Events.is_empty conditioned_on)) then count ~model ~events:Events.empty else Lwt.return(given_cond_count) in
