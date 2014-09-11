@@ -12,20 +12,24 @@ let rec powerset = function
   | [] -> [[]]
   | h::t -> List.fold_left (powerset t) ~f:(fun xs t -> ((h::t)::t::xs)) ~init:[] ;;
 
-module type EVENT = sig type t with bin_io, compare, sexp end 
+module type EVENT = sig include Set.Elt_binable end 
 
-module Events = functor (Event:EVENT) ->
+module type EVENTS = functor (Event:EVENT) -> 
+sig
+   include Core.Std.Set.S_binable with type Elt.t = Event.t 
+end
+
+
+module Events : EVENTS = functor (Event:EVENT) ->
 struct 
   module EventSet = Core.Std.Set.Make_binable(Event)
   include EventSet
 end
 
 
-module EventCache = functor (Event:EVENT) ->
-  struct
+module EventCache = functor (Events:EVENTS) ->
+struct
 type value = int with bin_io, compare, sexp
-
-module Events = Events(Event)
 
 type t = {name:string;cache:(Events.t, value) Cache.t}
 
