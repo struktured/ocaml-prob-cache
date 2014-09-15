@@ -14,21 +14,22 @@ let rec powerset = function
 
 module type EVENT = sig include Set.Elt_binable end 
 
-module type EVENTS = functor (Event:EVENT) -> 
+module type EVENTS = 
 sig
-   include Core.Std.Set.S_binable with type Elt.t = Event.t 
+   include Core.Std.Set.S_binable
 end
 
 
-module Events : EVENTS = functor (Event:EVENT) ->
-struct 
-  module EventSet = Core.Std.Set.Make_binable(Event)
-  include EventSet
-end
+module Make_Events (Event:EVENT) : (EVENTS with type Elt.t = Event.t) = 
+  struct 
+    module EventSet = Core.Std.Set.Make_binable(Event)
+    include EventSet
+  end
 
-
-module EventCache = functor (Events:EVENTS) ->
+module Make = functor (Event:EVENT) ->
 struct
+  module Events = Make_Events(Event)
+
 type value = int with bin_io, compare, sexp
 
 type t = {name:string;cache:(Events.t, value) Cache.t}
@@ -47,7 +48,7 @@ let count ~model ~events =
   Some x -> Lwt.return x
   | None -> Lwt.return 0
 
-(* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probility P(events) *)
+(* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probability P(events) *)
 let probability ?(conditioned_on=Events.empty) ~model ~(events:Events.t) =
   lwt event_count = count model (Events.union events conditioned_on) in
   lwt given_cond_count = count model conditioned_on in 
