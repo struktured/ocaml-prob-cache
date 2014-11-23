@@ -40,6 +40,7 @@ struct
 
 (* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probability P(events) *)
   let prob ?(cond=Events.empty) (events:Events.t) t =
+    if cond = events then float_of_int 1 else
     let event_count = count (Events.union events cond) t in
     let given_cond_count = count cond t in 
     let cond_count = if given_cond_count = 0 && 
