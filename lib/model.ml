@@ -3,11 +3,12 @@ module type EVENT = sig type t [@@deriving ord, show] end
 module type EVENTS = 
 sig
   module Event : EVENT
-  type t [@@deriving iter, ord, show]
+  type t [@@deriving ord]
   val is_empty : t -> bool
   val empty : t
   val union : t -> t -> t
   val of_list : Event.t list -> t
+  val to_list : t -> Event.t list
 end
 
 
@@ -24,8 +25,9 @@ sig
 end
 
 
-module Make_for_events (Events:EVENTS) : S with module S.Events = Events =
+module Make_for_events (Events:EVENTS) : S with module Events = Events =
 struct
+  module Events = Events
   module Event = Events.Event
   module Cache = CCMultiSet.Make(Events)
 
@@ -36,25 +38,34 @@ struct
   let count events t = Cache.count t.cache events
 
 (* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probability P(events) *)
-  let prob ?(cond=Events.empty) ~(events:Events.t) t =
-    let event_count = count t (Events.union events conditioned_on) in
-    let given_cond_count = count t conditioned_on in 
+  let prob ?(cond=Events.empty) (events:Events.t) t =
+    let event_count = count (Events.union events cond) t in
+    let given_cond_count = count cond t in 
     let cond_count = if given_cond_count = 0 && 
-                        (not (Events.is_empty conditioned_on)) then count Events.empty t else given_cond_count in
-    if (cond_count = 0) then Lwt.return(Float.of_int 0) else
-      (Float.of_int event_count) /. (Float.of_int cond_count)
+                        (not (Events.is_empty cond)) then count Events.empty t else given_cond_count in
+    if (cond_count = 0) then (float_of_int 0) else
+      (float_of_int event_count) /. (float_of_int cond_count)
 
   let rec add_mult ?(cnt=1) s v = 
     if cnt == 0 then s else add_mult ~cnt:(cnt-1) s v
 
-  let increment ?(cnt=1) t ~(events:Events.t) =
-    let cnt = (count model events) in 
-    add_mult ~cnt:(cnt + weight) t.cache events
+  let increment ?(cnt=1) (events:Events.t) t =
+    {name = t.name; cache=add_mult ~cnt t.cache events}
 
-  let observe ?(cnt=1) ~(events:Events.t) t =
-    List.iter (powerset (Events.to_list events)) 
-      (fun set -> increment ?cnt model (Events.of_list set));
+  let observe ?(cnt=1) (events:Events.t) t =
+    let ps = Util.powerset (Events.to_list events) in
+    List.fold_left (fun t set -> increment ~cnt (Events.of_list set) t) t ps
+
+  let name t = t.name
 end
 
-module Make(Event:EVENT) = Make_for_events(CCMultiSet.Make(Event))
+
+module Make_events(Event:EVENT) = 
+  struct
+    module Multiset = CCMultiSet.Make(Event)
+    include Multiset
+    module Event = Event
+  end
+
+module Make(Event:EVENT) = Make_for_events(Make_events(Event))
    

@@ -8,9 +8,9 @@ Synopsis:    Sequence Learning Library for OCaml
 BuildTools:  ocamlbuild
 Plugins: META (0.4)
 
-Library fuzzy_ai
+Library sequence_learning
   Path:               lib
   Pack:               true
-  Modules:            Model, User, Token, Comment, Discussion, Discussion_comment, Topic_model
-  BuildDepends:       zarith, ppx_deriving, ppx_deriving_protobuf  
+  Modules:            Util, Model
+  BuildDepends:       zarith, containers, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf  
   FindLibName:        sequence_learning
