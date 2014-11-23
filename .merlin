@@ -1,10 +1,10 @@
-PKG zarith
 PKG ppx_deriving
 PKG ppx_deriving.show
 PKG ppx_deriving.iter
 PKG ppx_deriving.ord
 PKG ppx_deriving_protobuf
 PKG containers
-S lib
-B _build/lib
+PGK riakc_ppx
+S src/**
+B _build/**
 

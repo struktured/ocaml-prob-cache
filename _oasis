@@ -1,16 +1,33 @@
 OASISFormat: 0.4
-Name:        sequence-learning
+Name:        prob-cache
 Version:     0.1
 License:     GPL
 LicenseFile: LICENSE.txt
 Authors:     Carmelo Piccione
-Synopsis:    Sequence Learning Library for OCaml
+Synopsis:    Probability cache library for OCaml
 BuildTools:  ocamlbuild
 Plugins: META (0.4)
 
-Library sequence_learning
-  Path:               lib
+Library prob_cache_common
+  Path:               src/common
   Pack:               true
-  Modules:            Util, Model
-  BuildDepends:       zarith, containers, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf  
-  FindLibName:        sequence_learning
+  Modules:            Util
+  BuildDepends:       containers, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf 
+  FindLibName:        prob_cache_common
+
+
+Library prob_cache_containers
+  Path:               src/containers
+  Pack:               true
+  Modules:            Model
+  BuildDepends:       prob_cache_common, containers, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf
+  FindLibName:        prob_cache_containers
+
+Library prob_cache_riak
+  Path:               src/riak
+  Pack:               true
+  Modules:            Model
+  BuildDepends:       threads, prob_cache_common, containers, ppx_deriving, ppx_deriving.show, ppx_deriving_protobuf, riakc_ppx
+  FindLibName:        prob_cache_riak
+
+
