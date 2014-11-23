@@ -1,7 +1,7 @@
 # README #
 
-This is a comment suggestion engine for fuzzy written in Ocaml and Riak. 
-
+TODO
+  
 ### What is this repository for? ###
 
 * Quick summary

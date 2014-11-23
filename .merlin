@@ -1,5 +1,7 @@
-PKG lwt lwt.syntax deriving-ocsigen deriving-ocsigen.syntax equeue rpclib netamqp js_of_ocaml.deriving js_of_ocaml.deriving.syntax calendar pa_ounit.syntax oUnit async_parallel async async_extra riak ZMQ lwt-zmq ocaml_plugin mpmw
+PKG zarith
+PKG ppx_deriving
+PKG ppx_deriving_protobuf
+PKG containers
 S lib
 B _build/lib
-EXT deriving-ocsigen.syntax pa_ounit.syntax pa_js.syntax lwt.syntax 
 

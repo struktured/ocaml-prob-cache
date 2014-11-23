@@ -1,82 +1,60 @@
-open Core.Std
-open Mpmw
-open Bin_prot
-open Bin_prot.Std
-open Bin_prot_utils
-open Sexplib
-open Sexplib.Std
-
-
-(* TODO move into some other package *)
-let rec powerset = function
-  | [] -> [[]]
-  | h::t -> List.fold_left (powerset t) ~f:(fun xs t -> ((h::t)::t::xs)) ~init:[] ;;
-
-module type EVENT = sig include Set.Elt_binable end 
+module type EVENT = sig type t [@@deriving ord, show] end
 
 module type EVENTS = 
 sig
-   include Core.Std.Set.S_binable
+  module Event : EVENT
+  type t [@@deriving iter, ord, show]
+  val is_empty : t -> bool
+  val empty : t
+  val union : t -> t -> t
+  val of_list : Event.t list -> t
 end
 
 
-module Make_Events (Event:EVENT) : (EVENTS with type Elt.t = Event.t) = 
-  struct 
-    module EventSet = Core.Std.Set.Make_binable(Event)
-    include EventSet
-  end
+module type S = 
+sig
+  module Events : EVENTS
+  module Event : module type of Events.Event
+  type t
+  val count : Events.t -> t -> int
+  val create : string -> t
+  val observe : ?cnt:int -> Events.t -> t -> t 
+  val prob : ?cond:Events.t -> Events.t -> t -> float
+  val name : t -> string
+end
 
-module Make = functor (Event:EVENT) ->
+
+module Make_for_events (Events:EVENTS) : S with module S.Events = Events =
 struct
-  module Events = Make_Events(Event)
+  module Event = Events.Event
+  module Cache = CCMultiSet.Make(Events)
 
-type value = int with bin_io, compare, sexp
+  type t = {name:string; cache : Cache.t}
 
-type t = {name:string;cache:(Events.t, value) Cache.t}
+  let create name = {name;cache=Cache.empty}
 
-let create name =
-  let key_serializer = Bin_prot_utils.create Events.bin_read_t Events.bin_write_t in
-  let value_serializer = Bin_prot_utils.create bin_read_value bin_write_value in
-  let cache = Cache.create 
-    ~key_serializer
-    ~value_serializer 
-    ~bucket:name 
-    () in {name;cache}
-
-let count ~model ~events = 
-  match_lwt Cache.get model.cache events with
-  Some x -> Lwt.return x
-  | None -> Lwt.return 0
+  let count events t = Cache.count t.cache events
 
 (* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probability P(events) *)
-let probability ?(conditioned_on=Events.empty) ~model ~(events:Events.t) =
-  lwt event_count = count model (Events.union events conditioned_on) in
-  lwt given_cond_count = count model conditioned_on in 
-  lwt cond_count = if given_cond_count = 0 && 
-    (not (Events.is_empty conditioned_on)) then count ~model ~events:Events.empty else Lwt.return(given_cond_count) in
-  if (cond_count = 0) then Lwt.return(Float.of_int 0) else
-  Lwt.return((Float.of_int event_count) /. (Float.of_int cond_count)) 
+  let prob ?(cond=Events.empty) ~(events:Events.t) t =
+    let event_count = count t (Events.union events conditioned_on) in
+    let given_cond_count = count t conditioned_on in 
+    let cond_count = if given_cond_count = 0 && 
+                        (not (Events.is_empty conditioned_on)) then count Events.empty t else given_cond_count in
+    if (cond_count = 0) then Lwt.return(Float.of_int 0) else
+      (Float.of_int event_count) /. (Float.of_int cond_count)
 
-let increment ~model ?(weight=1) ~(events:Events.t) =
-  lwt cnt = (count model events) in 
-  Cache.put model.cache events (cnt + weight)
+  let rec add_mult ?(cnt=1) s v = 
+    if cnt == 0 then s else add_mult ~cnt:(cnt-1) s v
 
-let observe ~model ~(events:Events.t) =
-  List.iter (powerset (Events.to_list events)) 
-    (fun set -> Lwt.ignore_result (increment model (Events.of_list set)));
+  let increment ?(cnt=1) t ~(events:Events.t) =
+    let cnt = (count model events) in 
+    add_mult ~cnt:(cnt + weight) t.cache events
+
+  let observe ?(cnt=1) ~(events:Events.t) t =
+    List.iter (powerset (Events.to_list events)) 
+      (fun set -> increment ?cnt model (Events.of_list set));
 end
 
-  (* 
-  let distance elem elem' model =
-   let numerator = List.fold_left (fun sum discussion -> 
-      let d_c_count = score set:discussion ~element:comment in
-      let d_c'_count = score ~set:discussion ~element:comment' in
-      let d_norm = count ~set:discussion ini
-      let d_c_c'_mse = let diff = (d_c_count - d_c'_count) in 
-     let new_sum = sum + (diff*diff) / (d_norm*d_norm) in new_sum) 0 discussions in
-   let denom = 1 in 
-   numerator / denom
-*)
-
-
+module Make(Event:EVENT) = Make_for_events(CCMultiSet.Make(Event))
    
