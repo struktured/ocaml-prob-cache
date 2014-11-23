@@ -9,6 +9,7 @@ sig
   val union : t -> t -> t
   val of_list : Event.t list -> t
   val to_list : t -> Event.t list
+  val add_mult : ?cnt:int -> t -> Event.t -> t
 end
 
 
@@ -45,9 +46,9 @@ struct
                         (not (Events.is_empty cond)) then count Events.empty t else given_cond_count in
     if (cond_count = 0) then (float_of_int 0) else
       (float_of_int event_count) /. (float_of_int cond_count)
-
-  let rec add_mult ?(cnt=1) s v = 
-    if cnt == 0 then s else add_mult ~cnt:(cnt-1) s v
+  
+  let rec add_mult ?(cnt=1) c v : Cache.t = 
+    if cnt == 0 then c else add_mult ~cnt:(cnt-1) (Cache.add c v) v
 
   let increment ?(cnt=1) (events:Events.t) t =
     {name = t.name; cache=add_mult ~cnt t.cache events}
@@ -61,11 +62,15 @@ end
 
 
 module Make_events(Event:EVENT) = 
-  struct
-    module Multiset = CCMultiSet.Make(Event)
-    include Multiset
-    module Event = Event
-  end
+struct
+  module Multiset = CCMultiSet.Make(Event)
+  include Multiset
+  module Event = Event
+
+  let rec add_mult ?(cnt=1) s v : t = 
+    if cnt == 0 then s else add_mult ~cnt:(cnt-1) (add s v) v
+
+end
 
 module Make(Event:EVENT) = Make_for_events(Make_events(Event))
    
