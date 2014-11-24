@@ -19,14 +19,14 @@ Library prob_cache_common
 Library prob_cache_containers
   Path:               src/containers
   Pack:               true
-  Modules:            Model
+  Modules:            Events_model
   BuildDepends:       prob_cache_common, containers, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf
   FindLibName:        prob_cache_containers
 
 Library prob_cache_riak
   Path:               src/riak
   Pack:               true
-  Modules:            Model
+  Modules:            Events_model
   BuildDepends:       threads, prob_cache_common, containers, ppx_deriving, ppx_deriving.show, ppx_deriving_protobuf, riakc_ppx
   FindLibName:        prob_cache_riak
 
