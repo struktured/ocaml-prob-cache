@@ -29,11 +29,13 @@ sig
   module Cache : module type of Cache.Make(Events)(Int)
   type t
   val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t  
-  val create : string -> Conn.t -> t
  val observe : ?cnt:int -> Events.t -> t -> (('a Cache.Robj.t * Events.t Riakc.Cache.Option.t) list,
             [> Opts.Get.error ]) Deferred.Result.t
   val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
   val name : t -> string
+  val with_model : host:string -> port:int -> bucket:string -> 
+    (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) -> 
+         ('a, 'e) Deferred.Result.t
 end
 
 
@@ -41,13 +43,14 @@ module Make_for_events (Events:EVENTS) : S with module Events = Events =
 struct
   module Events = Events
   module Event = Events.Event
-  module Int = Riakc.Cache.Int
+  module Int = Protobuf_capables.Int
   module Cache = Riakc.Cache.Make(Events)(Int)
-
 
   type t = {cache : Cache.t}
 
-  let create bucket conn = {cache=Cache.create ~conn ~bucket}
+  let create ~conn ~bucket = {cache=Cache.create ~conn ~bucket}
+
+  let with_model ~host ~port ~bucket f = Cache.with_cache ~host ~port ~bucket (fun c -> f {cache=c})
 
   let count (events:Events.t) t : (int, [> Opts.Get.error]) Result.t Deferred.t  = 
   let open Cache.Robj in Cache.get t.cache events >>| function 
