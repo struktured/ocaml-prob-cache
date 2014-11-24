@@ -4,7 +4,9 @@ PKG ppx_deriving.iter
 PKG ppx_deriving.ord
 PKG ppx_deriving_protobuf
 PKG containers
-PGK riakc_ppx
-S src/**
-B _build/**
+PKG riakc_ppx
+S src/common
+S src/containers
+S src/riak
+B _build/src/**
 
