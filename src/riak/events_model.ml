@@ -85,7 +85,7 @@ struct
 end
 
 
-module EventSet(Event:EVENT) : EVENTS with module Event = Event = 
+module Make_events(Event:EVENT) : EVENTS with module Event = Event = 
 struct
   module Event = Event
   module Hashset = Containers_misc.Hashset
@@ -106,10 +106,7 @@ struct
   let from_protobuf d = of_list (event_list_from_protobuf d)
 end
 
-module Make_events(Event:EVENT) = 
-struct
-  module Event = Event
-  type t = Event.t list [@@deriving protobuf]
-end
 
-   
+module Make(Event:EVENT) = Make_for_events(Make_events(Event))
+
+
