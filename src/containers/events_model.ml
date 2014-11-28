@@ -39,11 +39,14 @@ struct
 
   let count events t = Cache.count t.cache events
 
-(* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probability P(events) *)
   let prob ?(cond=Events.empty) (events:Events.t) t =
     if cond = events then float_of_int 1 else
-    let event_count = count (Events.union events cond) t in
-    let given_cond_count = count cond t in 
+    let event_count = count (Events.union events cond) t in 
+    if event_count = 0 then (float_of_int 0) else
+    let given_cond_count = count cond t in
+    (* (a) If the conditional event has never been observed then it has no effect on the probability
+     * (b) If the conditional event was observed we normalize by its frequency count
+     * (c) If the conditional event was empty we normalize by the total frequnecy count (on the empty event set) *)
     let cond_count = if given_cond_count = 0 && 
                         (not (Events.is_empty cond)) then count Events.empty t else given_cond_count in
     if (cond_count = 0) then (float_of_int 0) else
