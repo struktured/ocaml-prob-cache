@@ -135,11 +135,11 @@ struct
 
   let observe ?(cnt=1) (sequence:Sequence.t) (t:t) =
     let seq_as_list = Sequence.to_list sequence in
-    let (_, t) = List.fold_right 
-      (fun e (l, t) -> (e::l, increment ~cnt (Sequence.of_list l) t))
+    let (l, t) = List.fold_right 
+      (fun e (l, t) -> (l@[e], increment ~cnt (Sequence.of_list l) t))
       seq_as_list
       ([], t) 
-    in t
+    in increment ~cnt (Sequence.of_list l) t
 
   let name t = t.name
 end
