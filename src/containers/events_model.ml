@@ -7,10 +7,10 @@ sig
   type t [@@deriving ord]
   val is_empty : t -> bool
   val empty : t
-  val union : t -> t -> t
+  val join : t -> t -> t
   val of_list : Event.t list -> t
   val to_list : t -> Event.t list
-  val add_mult : ?cnt:int -> t -> Event.t -> t
+  val subsets : t -> t list
 end
 
 
@@ -41,7 +41,7 @@ struct
 
   let prob ?(cond=Events.empty) (events:Events.t) t =
     if cond = events then float_of_int 1 else
-    let event_count = count (Events.union events cond) t in 
+    let event_count = count (Events.join events cond) t in 
     if event_count = 0 then (float_of_int 0) else
     let given_cond_count = count cond t in
     (* (a) If the conditional event has never been observed then it has no effect on the probability
@@ -59,8 +59,8 @@ struct
     {name = t.name; cache=add_mult ~cnt t.cache events}
 
   let observe ?(cnt=1) (events:Events.t) t =
-    let ps = Util.powerset (Events.to_list events) in
-    List.fold_left (fun t set -> increment ~cnt (Events.of_list set) t) t ps
+    let ps = Events.subsets events in
+      List.fold_left (fun t set -> increment ~cnt set t) t ps
 
   let name t = t.name
 end
@@ -74,7 +74,8 @@ struct
 
   let rec add_mult ?(cnt=1) s v : t = 
     if cnt = 0 then s else add_mult ~cnt:(cnt-1) (add s v) v
-
+  let join = union
+  let subsets t = List.map of_list (Util.powerset (to_list t))
 end
 
 module Make(Event:EVENT) = Make_for_events(Make_events(Event))

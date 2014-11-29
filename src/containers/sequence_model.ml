@@ -69,10 +69,11 @@ sig
   module Event : EVENT
   type t [@@deriving ord]
   val is_empty : t -> bool
-  val union: t -> t -> t
+  val join: t -> t -> t
   val empty : t
   val of_list : Event.t list -> t
   val to_list : t -> Event.t list
+  val subsets : t -> t list
 end
 
 
@@ -127,19 +128,14 @@ struct
      * (b) If the conditional (possibly empty) sequence has been observed then we normalize by its frequency count 
      *)
     if (cond_count = 0) then (Float.of_int 0) else
-    let full_seq_count = count (Sequence.union cond sequence) t in
+    let full_seq_count = count (Sequence.join cond sequence) t in
     (Float.of_int full_seq_count) /. (Float.of_int cond_count)
   
   let increment ?(cnt=1) (sequence:Sequence.t) (t:t) =
     {name = t.name; cache=Cache.add_mult t.cache sequence cnt}
 
-  let observe ?(cnt=1) (sequence:Sequence.t) (t:t) =
-    let seq_as_list = Sequence.to_list sequence in
-    let (l, t) = List.fold_right 
-      (fun e (l, t) -> (l@[e], increment ~cnt (Sequence.of_list l) t))
-      seq_as_list
-      ([], t) 
-    in increment ~cnt (Sequence.of_list l) t
+  let observe ?(cnt=1) (sequence:Sequence.t) (t:t) : t =
+    List.fold_right (fun l t -> increment ~cnt l t) (Sequence.subsets sequence) t
 
   let name t = t.name
 end
@@ -151,8 +147,15 @@ struct
   type t = Event.t list [@@deriving ord]
   let of_list l = l
   let to_list l = l
-  let union = CCList.append
+  let join = CCList.append
   let empty = CCList.empty
+  let subsets (l:t) = let (accum, _ ) = 
+    List.fold_left 
+      (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l')) 
+      ([], []) 
+      l
+  in
+  []::accum
   let is_empty t = empty = t
   
 end
