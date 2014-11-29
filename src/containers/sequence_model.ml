@@ -95,32 +95,50 @@ sig
   val count : Sequence.t -> t -> int
   (** How many times a particular sequence was observed *)
 
-  val observe : ?cnt:int -> Sequence.t -> t -> t
-  (** Observe a sequence with a default count of 1. The returned model reflects the observation updates
+  val observe : ?cnt:int -> ?exp:float -> Sequence.t -> t -> t
+  (** Observe a sequence with a default count and expectation of 1. 
+   * The returned model reflects the observation updates
    * while the original instance is not guaranteed to be current. *)
 
   val prob : ?cond:Sequence.t -> Sequence.t -> t -> float
-  (** Probability of future sequence given an observed sequence. If a conditional sequence is not specified
-   * then an absolute probability is returned instead *)
+  (** Probability of future sequence given an observed sequence, possibly the empty seqence *)
+
+  val exp : ?cond:Sequence.t -> Sequence.t -> t -> float
+  (** Expectation of future sequence given an observed sequence, possibly the empty sequence *)
 
   val name : t -> string
   (** Gets the name of the given sequence model *)
 
 end
 
+module Data = 
+  struct
+    type t = {cnt:int; exp:float} [@@deriving ord, show]
+
+    let count t = t.cnt
+    let expect t = t.exp
+
+    let update ?(cnt=1) ?(exp=1.0) (t:t option) = CCOpt.get {cnt;exp} (CCOpt.map (fun t -> {cnt=(count t) + cnt;exp=(expect t) +. exp}) t)
+  end
+
 
 module Make_for_sequence (Sequence:SEQUENCE) : S with module Sequence = Sequence =
 struct
   module Sequence = Sequence
   module Event = Sequence.Event
-  module Cache = CCMultiSet.Make(Sequence)
+  module Cache = CCMap.Make(Sequence)
   module Int = CCInt
 
-  type t = {name:string; cache : Cache.t}
+  type t = {name:string; cache : Data.t Cache.t}
 
   let create name = {name;cache=Cache.empty}
 
-  let count (sequence:Sequence.t) (t:t) : int = Cache.count t.cache sequence
+  let count (sequence:Sequence.t) (t:t) : int = 
+    CCOpt.get 0 (CCOpt.map (fun d -> Data.count d) (Cache.get sequence t.cache))
+
+  let exp ?(cond=Sequence.empty) (sequence:Sequence.t) (t:t) : float = 
+    let full_seq = Sequence.join cond sequence in
+    CCOpt.get 0.0 (CCOpt.map (fun d -> Data.expect d) (Cache.get full_seq t.cache))
 
   let prob ?(cond=Sequence.empty) (sequence:Sequence.t) (t:t) =
    let cond_count = count cond t in
@@ -130,12 +148,13 @@ struct
     if (cond_count = 0) then (Float.of_int 0) else
     let full_seq_count = count (Sequence.join cond sequence) t in
     (Float.of_int full_seq_count) /. (Float.of_int cond_count)
-  
-  let increment ?(cnt=1) (sequence:Sequence.t) (t:t) =
-    {name = t.name; cache=Cache.add_mult t.cache sequence cnt}
+ 
+  let increment ?(cnt=1) ?(exp=1.0) (sequence:Sequence.t) (t:t) =
+    let d = Data.update ~cnt ~exp (Cache.get sequence t.cache) in
+    {name = t.name; cache=Cache.add sequence d t.cache}
 
-  let observe ?(cnt=1) (sequence:Sequence.t) (t:t) : t =
-    List.fold_right (fun l t -> increment ~cnt l t) (Sequence.subsets sequence) t
+  let observe ?(cnt=1) ?(exp=1.0) (sequence:Sequence.t) (t:t) : t =
+    List.fold_right (fun l t -> increment ~cnt ~exp l t) (Sequence.subsets sequence) t
 
   let name t = t.name
 end
@@ -157,7 +176,6 @@ struct
   in
   []::accum
   let is_empty t = empty = t
-  
 end
 
 module Make(Event:EVENT) = Make_for_sequence(Make_sequence(Event))
