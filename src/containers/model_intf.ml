@@ -70,11 +70,17 @@ sig
 
   (** The module type representing one event in a sequence *)
   module Event : module type of Events.Event
-  
+
+  (** Provides initial counts to newly observed events *)
+  type prior = Events.t -> int
+
+  (* Defines the update rule for expectations *)
+  type update_rule = Update_rules.Update_fn.t
+
   (** A sequence model cache *)
   type t
   
-  val create : string -> t      
+  val create : ?update_rule:update_rule -> ?prior:prior -> string -> t      
   (** Creates a new sequence model labeled by the given string *)
 
   val count : Events.t -> t -> int
@@ -113,17 +119,29 @@ struct
   module Event = Events.Event
   module Cache = CCMap.Make(Events)
   module Int = CCInt
+  
+  type prior_count = Events.t -> int
+  type prior_exp = Events.t -> float
 
-  type t = {name:string; cache : Data.t Cache.t}
+  type update_rule = Update_rules.Update_fn.t
 
-  let create name = {name;cache=Cache.empty}
+  type t = {name:string; cache : Data.t Cache.t; prior_count:prior_count; prior_exp:prior_exp; update_rule : update_rule}
 
-  let count (sequence:Events.t) (t:t) : int = 
-    CCOpt.get 0 (CCOpt.map (fun d -> Data.count d) (Cache.get sequence t.cache))
+  let default_prior_count (e:Events.t) = 0
+
+  let default_prior_exp (e:Events.t) = 0.0
+
+  let default_update_rule : update_rule = Update_rules.mean
+
+  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count) 
+    ?(prior_exp=default_prior_exp) (name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
+
+  let count (events:Events.t) (t:t) : int =
+    CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get sequence t.cache))
 
   let exp ?(cond=Events.empty) (sequence:Events.t) (t:t) : float = 
     let full_seq = Events.join cond sequence in
-    CCOpt.get 0.0 (CCOpt.map (fun d -> Data.expect d) (Cache.get full_seq t.cache))
+    CCOpt.get_lazy (fun () -> t.prior_exp events) (CCOpt.map (fun d -> Data.expect d) (Cache.get full_seq t.cache))
 
   let prob ?(cond=Events.empty) (sequence:Events.t) (t:t) =
    let cond_count = count cond t in

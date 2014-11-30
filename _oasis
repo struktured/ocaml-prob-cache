@@ -11,7 +11,7 @@ Plugins: META (0.4)
 Library prob_cache_common
   Path:               src/common
   Pack:               true
-  Modules:            Util
+  Modules:            Util, Update_rules
   BuildDepends:       ppx_import, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf 
   FindLibName:        prob_cache_common
 
