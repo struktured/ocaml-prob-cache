@@ -1,14 +1,13 @@
 (** 
  * A cache for sequence oriented probability models 
- * The event type is polymorphic but depends on equality, order? semantics.
- * /// ?
- * Use [@@deriving eq, ord?] to easily support this with your own types.
+ * The event type is polymorphic but depends on order semantics.
+ * Use [@@deriving ord] to easily support this with your own types.
  *
  * Suppose we observe a sequence of events e_0, e_1, e_2, e_3
  * We now want to now the likelihoods of future observations e_4, e_5 or 
  * P(e_4,e_5|e_0, e_1, e_2, e_3) 
  * 
- * More concrete:
+ * More concretely:
    * If we observe RED | GREEN | GREEN | BLUE | RED | GREEN
    * then our universe is the following
    RED - > 2
@@ -41,22 +40,8 @@
         [(RED, 2, [(GREEN, 1, [(RED, 1, [])])]);
         (GREEN, 1, [(RED, 1, [])])]
       The benefit is the key for GREEN | RED and is composed of the KEY for GREEN, which saves space referencing GREEN directly.
-      While the complexity doesn't theoretically change much, in practice this can be a big win.
-
-   Issues:
-
-    Problem 1:
- 
-      When we start up, how do we know what state we are in? 
-    
-    Solution: 
-      
-      Assume we don't, and use probability techniques to figure out what state we started in 
-      as we observe data from the stream. In theory this could also support the notion of 
-      time "shifting" and picking up on the offset without a drastic adjustment
-      to the model weights.
- **)
-
+      While the complexity doesn't theoretically change much, in practice this can be a big win. Currently NOT implemented.
+**)
 open Prob_cache_common
 module Float = CCFloat
 
