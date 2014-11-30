@@ -150,8 +150,6 @@ struct
   include Multiset
   module Event = Event
 
-  let rec add_mult ?(cnt=1) s v : t = 
-    if cnt = 0 then s else add_mult ~cnt:(cnt-1) (add s v) v
   let join = union
   let subsets t = List.map of_list (Util.powerset (to_list t))
 end
