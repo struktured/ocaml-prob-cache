@@ -1,54 +1,10 @@
-(** 
- * A cache for sequence oriented probability models 
- * The event type is polymorphic but depends on order semantics.
- * Use [@@deriving ord] to easily support this with your own types.
- *
- * Suppose we observe a sequence of events e_0, e_1, e_2, e_3
- * We now want to now the likelihoods of future observations e_4, e_5 or 
- * P(e_4,e_5|e_0, e_1, e_2, e_3) 
- * 
- * More concretely:
-   * If we observe RED | GREEN | GREEN | BLUE | RED | GREEN
-   * then our universe is the following
-   RED - > 2
-   RED | GREEN -> 2
-   GREEN -> 3
-   GREEN | GREEN -> 1
-   RED | GREEN | GREEN -> 1
-   BLUE -> 1
-   GREEN | BLUE -> 1
-   GREEN | GREEN | BLUE -> 1
-   RED | GREEN | GREEN | BLUE -> 1
-   BLUE | RED -> 1
-   BLUE | RED | GREEN - > 1
-   RED | GREEN | GREEN | BLUE | RED | GREEN -> 1
-   GREEN | GREEN | BLUE | RED | GREEN -> 1
-   GREEN | GREEN | BLUE | RED -> 1
-   GREEN | BLUE | RED -> 1
-
-   Complexity Overview:
-
-   1) Total number of sequences we have to update given a new sequence of length of L is O(L),
-      A frequency count is maintained for each subsequence of which there are L of them.
-   2) If we cache each sequence independently we would get E^L + E^(L-1) + E^(L-2) .. entries,
-      eg. O(E^L) in the worst case (E is cardinality of the event type). Ideally we would 
-      observe much less than that, but this is also not the most efficient 
-      representation, either.
-
-      We can at least a little more efficiently encode the data by using a graphical representation.
-      For instance, the observation RED | GREEN | RED results in this graphical encoding:
-        [(RED, 2, [(GREEN, 1, [(RED, 1, [])])]);
-        (GREEN, 1, [(RED, 1, [])])]
-      The benefit is the key for GREEN | RED and is composed of the KEY for GREEN, which saves space referencing GREEN directly.
-      While the complexity doesn't theoretically change much, in practice this can be a big win. Currently NOT implemented.
-**)
 open Prob_cache_common
 module Float = CCFloat
 
 (** Represents a single event- must be comparable and showable *)  
 module type EVENT = sig type t [@@deriving ord, show] end
 
-(** Represents a discrete sequence of events *)
+(** Represents an abstract collection of events *)
 module type EVENTS = 
 sig
   module Event : EVENT
@@ -71,17 +27,21 @@ sig
   (** The module type representing one event in a sequence *)
   module Event : module type of Events.Event
 
-  (** Provides initial counts to newly observed events *)
-  type prior = Events.t -> int
-
-  (* Defines the update rule for expectations *)
+  (** Defines the update rule for expectations *)
   type update_rule = Update_rules.Update_fn.t
+
+  (* Defines a prior function in terms of counts with the observed events as input. *)
+  type prior_count = Events.t -> int
+
+  (* Define a prior function in terms of real values with the observed events as input. *)
+  type prior_exp = Events.t -> float
 
   (** A sequence model cache *)
   type t
   
-  val create : ?update_rule:update_rule -> ?prior:prior -> string -> t      
-  (** Creates a new sequence model labeled by the given string *)
+  val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t      
+  (** Creates a new sequence model labeled by the given string. By default, expectations are updated 
+   * using a mean value estimator and all priors are value 0. *)
 
   val count : Events.t -> t -> int
   (** How many times a particular sequence was observed *)
@@ -92,10 +52,10 @@ sig
    * while the original instance is not guaranteed to be current. *)
 
   val prob : ?cond:Events.t -> Events.t -> t -> float
-  (** Probability of future sequence given an observed sequence, possibly the empty seqence *)
+  (** Probability of events given observed events, possibly the empty events *)
 
   val exp : ?cond:Events.t -> Events.t -> t -> float
-  (** Expectation of future sequence given an observed sequence, possibly the empty sequence *)
+  (** Expectation of events given observed events, possibly the empty events *)
 
   val name : t -> string
   (** Gets the name of the given sequence model *)
@@ -125,39 +85,44 @@ struct
 
   type update_rule = Update_rules.Update_fn.t
 
-  type t = {name:string; cache : Data.t Cache.t; prior_count:prior_count; prior_exp:prior_exp; update_rule : update_rule}
+  type t = {
+    name : string; 
+    cache : Data.t Cache.t; 
+    prior_count : prior_count; 
+    prior_exp : prior_exp; 
+    update_rule : update_rule }
 
   let default_prior_count (e:Events.t) = 0
 
-  let default_prior_exp (e:Events.t) = 0.0
+  let default_prior_exp (e:Events.t) = 0.
 
   let default_update_rule : update_rule = Update_rules.mean
 
   let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count) 
-    ?(prior_exp=default_prior_exp) (name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
+    ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
 
   let count (events:Events.t) (t:t) : int =
-    CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get sequence t.cache))
+    CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get events t.cache))
 
-  let exp ?(cond=Events.empty) (sequence:Events.t) (t:t) : float = 
-    let full_seq = Events.join cond sequence in
-    CCOpt.get_lazy (fun () -> t.prior_exp events) (CCOpt.map (fun d -> Data.expect d) (Cache.get full_seq t.cache))
+  let exp ?(cond=Events.empty) (events:Events.t) (t:t) : float = 
+    let joined_events = Events.join cond events in
+    CCOpt.get_lazy (fun () -> t.prior_exp events) (CCOpt.map (fun d -> Data.expect d) (Cache.get joined_events t.cache))
 
-  let prob ?(cond=Events.empty) (sequence:Events.t) (t:t) =
+  let prob ?(cond=Events.empty) (events:Events.t) (t:t) =
    let cond_count = count cond t in
-    (* (a) If the conditional sequence has NOT been observed then probability must be zero
-     * (b) If the conditional (possibly empty) sequence has been observed then we normalize by its frequency count 
+    (* (a) If the conditional probability is zero then is so must been the whole probability 
+     * (b) If the conditional (possibly empty) events have been observed then we normalize by its frequency count 
      *)
     if (cond_count = 0) then (Float.of_int 0) else
-    let full_seq_count = count (Events.join cond sequence) t in
-    (Float.of_int full_seq_count) /. (Float.of_int cond_count)
+    let joined_events_count = count (Events.join cond events) t in
+    (Float.of_int joined_events_count) /. (Float.of_int cond_count)
  
-  let increment ?(cnt=1) ?(exp=1.0) (sequence:Events.t) (t:t) =
-    let d = Data.update ~cnt ~exp (Cache.get sequence t.cache) in
-    {name = t.name; cache=Cache.add sequence d t.cache}
+  let increment ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
+    let d = Data.update ~cnt ~exp (Cache.get events t.cache) in
+    {t with cache=Cache.add events d t.cache}
 
-  let observe ?(cnt=1) ?(exp=1.0) (sequence:Events.t) (t:t) : t =
-    List.fold_right (fun l t -> increment ~cnt ~exp l t) (Events.subsets sequence) t
+  let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =
+    List.fold_right (fun l t -> increment ~cnt ~exp l t) (Events.subsets events) t
 
   let name t = t.name
 end

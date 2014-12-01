@@ -7,7 +7,7 @@ end
 
 module type S = 
 sig
-  val update : t
+  val update : Update_fn.t
 end
 
 module type WEIGHT_PROVIDER = 
