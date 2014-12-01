@@ -6,7 +6,7 @@ LicenseFile: LICENSE.txt
 Authors:     Carmelo Piccione
 Synopsis:    Probability cache library for OCaml
 BuildTools:  ocamlbuild
-Plugins: META (0.4)
+Plugins: META (0.4), DevFiles (0.4)
 
 Library prob_cache_common
   Path:               src/common
@@ -30,4 +30,12 @@ Library prob_cache_riak
   BuildDepends:       ppx_import, threads, prob_cache_common, containers, containers.misc, ppx_deriving, ppx_deriving.show, ppx_deriving_protobuf, riakc_ppx
   FindLibName:        prob_cache_riak
 
-
+AlphaFeatures : ocamlbuild_more_args
+Document "prob_cache_containers"
+  Type: ocamlbuild (0.4)
+  BuildTools: ocamldoc
+  Title: Probability Containers Cache API 
+  XOCamlbuildPath: .
+  XOCamlbuildExtraArgs:
+    "-docflags '-colorize-code -short-functors -charset utf-8'"
+  XOCamlbuildLibraries: prob_cache_containers
