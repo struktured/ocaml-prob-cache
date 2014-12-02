@@ -18,13 +18,13 @@ sig
 end
 
 
-(** A module type provided polymorphic sequence model caches *)
+(** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
 sig
-  (** The module type representing a discrete sequence *)
+  (** The module type representing a collection of events *)
   module Events : EVENTS
 
-  (** The module type representing one event in a sequence *)
+  (** The module type representing one event *)
   module Event : module type of Events.Event
 
   (** Defines the update rule for expectations *)
@@ -58,7 +58,7 @@ sig
   (** Expectation of events given observed events, possibly the empty events *)
 
   val name : t -> string
-  (** Gets the name of the given sequence model *)
+  (** Gets the name of the cache *)
 
 end
 
