@@ -41,15 +41,15 @@ sig
   
   val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t      
   (** Creates a new sequence model labeled by the given string. By default, expectations are updated 
-   * using a mean value estimator and all priors are value 0. *)
+     using a mean value estimator and all priors are value 0. *)
 
   val count : Events.t -> t -> int
   (** How many times a particular sequence was observed *)
 
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> t
   (** Observe a sequence with a default count and expectation of 1. 
-   * The returned model reflects the observation updates
-   * while the original instance is not guaranteed to be current. *)
+    The returned model reflects the observation updates
+    while the original instance is not guaranteed to be current. *)
 
   val prob : ?cond:Events.t -> Events.t -> t -> float
   (** Probability of events given observed events, possibly the empty events *)
@@ -111,7 +111,7 @@ struct
   let prob ?(cond=Events.empty) (events:Events.t) (t:t) =
    let cond_count = count cond t in
     (* (a) If the conditional probability is zero then is so must been the whole probability 
-     * (b) If the conditional (possibly empty) events have been observed then we normalize by its frequency count 
+       (b) If the conditional (possibly empty) events have been observed then we normalize by its frequency count 
      *)
     if (cond_count = 0) then (Float.of_int 0) else
     let joined_events_count = count (Events.join cond events) t in

@@ -1,7 +1,7 @@
 (** 
  * A cache for sequence oriented probability models 
  * The event type is polymorphic but depends on order semantics.
- * Use [@@deriving ord] to easily support this with your own types.
+ * Use \[@@deriving ord\] to easily support this with your own types.
  *
  * Suppose we observe a sequence of events e_0, e_1, e_2, e_3
  * We now want to now the likelihoods of future observations e_4, e_5 or 
@@ -37,8 +37,8 @@
 
       We can at least a little more efficiently encode the data by using a graphical representation.
       For instance, the observation RED | GREEN | RED results in this graphical encoding:
-        [(RED, 2, [(GREEN, 1, [(RED, 1, [])])]);
-        (GREEN, 1, [(RED, 1, [])])]
+        \[(RED, 2, \[(GREEN, 1, \[(RED, 1, \[\])\])\]);
+        (GREEN, 1, \[(RED, 1, \[\])\])\]
       The benefit is the key for GREEN | RED and is composed of the KEY for GREEN, which saves space referencing GREEN directly.
       While the complexity doesn't theoretically change much, in practice this can be a big win. Currently NOT implemented.
 **)

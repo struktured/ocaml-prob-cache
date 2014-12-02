@@ -31,11 +31,12 @@ Library prob_cache_riak
   FindLibName:        prob_cache_riak
 
 AlphaFeatures : ocamlbuild_more_args
+
 Document "prob_cache_containers"
   Type: ocamlbuild (0.4)
   BuildTools: ocamldoc
   Title: Probability Containers Cache API 
   XOCamlbuildPath: .
   XOCamlbuildExtraArgs:
-    "-docflags '-colorize-code -short-functors -charset utf-8'"
+    "-docflags '-colorize-code -html -short-functors -charset utf-8'"
   XOCamlbuildLibraries: prob_cache_containers
