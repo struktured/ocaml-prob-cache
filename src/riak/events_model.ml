@@ -6,38 +6,13 @@ module List = OldList
 
 open Async.Std
 
-module type EVENT = sig type t [@@deriving protobuf] end 
+module type EVENT = Model_intf.EVENT
 
-module type EVENTS = 
-sig
-  module Event : EVENT
-  include Protobuf_capable.S 
-  val is_empty : t -> bool
-  val empty : t
-  val union : t -> t -> t
-  val of_list : Event.t list -> t
-  val to_list : t -> Event.t list
-end
+module type EVENTS =  Model_intf.EVENTS
 
 module Int = Protobuf_capables.Int
 
-
-module type S =
-sig
-  module Events : EVENTS
-  module Event : module type of Events.Event
-  module Cache : module type of Cache.Make(Events)(Int)
-  type t
-  val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t  
- val observe : ?cnt:int -> Events.t -> t -> (('a Cache.Robj.t * Events.t Riakc.Cache.Option.t) list,
-            [> Opts.Get.error ]) Deferred.Result.t
-  val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
-  val name : t -> string
-  val with_model : host:string -> port:int -> bucket:string -> 
-    (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) -> 
-         ('a, 'e) Deferred.Result.t
-end
-
+module type S = Model_intf.S with module type EVENTS = EVENTS
 
 module Make_for_events (Events:EVENTS) : S with module Events = Events =
 struct
@@ -56,7 +31,7 @@ struct
   let open Cache.Robj in Cache.get t.cache events >>| function 
     | Ok robj -> 
         (match robj.contents with  
-      | [] -> Ok 0 
+      | [] -> Ok (t.prior_count events) 
       | [c] -> Ok (Cache.Robj.Content.value c)
       | l -> failwith "should only be one content value")
     | Error e -> Error e
