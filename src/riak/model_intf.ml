@@ -197,7 +197,7 @@ struct
   let empty = of_list []
   let is_empty t = Hashset.cardinal t = 0
 
-  let subsets (t:t) = 
+  let subsets (t:t) : t list = 
     List.map of_list (Util.powerset (to_list t))
 
   let to_protobuf t e =  event_list_to_protobuf (to_list t) e
