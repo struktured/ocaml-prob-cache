@@ -19,7 +19,7 @@ Library prob_cache_common
 Library prob_cache_containers
   Path:               src/containers
   Pack:               true
-  Modules:            Model_intf, Set_model, Sequence_model
+  Modules:            Model_intf, Model_impl, Set_model, Sequence_model
   BuildDepends:       ppx_import, prob_cache_common, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf
   FindLibName:        prob_cache_containers
 
