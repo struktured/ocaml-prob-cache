@@ -17,6 +17,11 @@ sig
   val subsets : t -> t list
 end
 
+module Data = struct
+  module Ord_t = struct type t = {cnt:int;exp:float} [@@deriving show, ord] end
+  include Data.Make(Ord_t)
+  let compare = Ord_t.compare
+end
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
@@ -61,15 +66,3 @@ sig
   (** Gets the name of the cache *)
 
 end
-
-(** Holds statistical data for one observation *)
-module type Data = 
-  sig
-    type t = {cnt:int; exp:float} [@@deriving ord, show]
-  
-    val count:  t -> int 
-    val expect: t -> float
-
-    val update : ?cnt:int -> ?exp:float -> t option -> t 
-  end
-

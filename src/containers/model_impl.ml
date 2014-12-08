@@ -10,15 +10,7 @@ module type EVENTS = Model_intf.EVENTS
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S = Model_intf.S
 
-module Data : Model_intf.Data = 
-  struct
-    type t = {cnt:int; exp:float} [@@deriving ord, show]
-
-    let count t = t.cnt
-    let expect t = t.exp
-
-    let update ?(cnt=1) ?(exp=1.0) (t:t option) = CCOpt.get {cnt;exp} (CCOpt.map (fun t -> {cnt=(count t) + cnt;exp=(expect t) +. exp}) t)
-  end
+module Data = Model_intf.Data
 
 
 module Make_for_events (Events:EVENTS) : S with module Events = Events =
@@ -66,7 +58,8 @@ struct
     (Float.of_int joined_events_count) /. (Float.of_int cond_count)
  
   let increment ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
-    let d = Data.update ~cnt ~exp (Cache.get events t.cache) in
+    let d = Data.update ~cnt ~exp ~update_rule:t.update_rule ~prior_count:t.prior_count
+      ~prior_exp:t.prior_exp events (Cache.get events t.cache) in
     {t with cache=Cache.add events d t.cache}
 
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =
