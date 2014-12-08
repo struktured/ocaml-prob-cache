@@ -9,5 +9,5 @@ module type EVENTS = Model_intf.EVENTS
 module type S = Model_intf.S
 
 (** Creates a concrete instance of an event set model cache for a given Event type *)
-module Make : module type of Model_intf.Make_set
+module Make : functor(Event:EVENT) -> S 
 
