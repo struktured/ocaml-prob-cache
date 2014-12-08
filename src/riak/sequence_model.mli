@@ -1,15 +1,15 @@
+(** A cache for sequence oriented probability models *)
 (** 
- * A cache for sequence oriented probability models 
- * The event type is polymorphic but depends on order semantics.
- * Use \[@@deriving ord\] to easily support this with your own types.
- *
- * Suppose we observe a sequence of events e_0, e_1, e_2, e_3
- * We now want to now the likelihoods of future observations e_4, e_5 or 
- * P(e_4,e_5|e_0, e_1, e_2, e_3) 
- * 
- * More concretely:
-   * If we observe RED | GREEN | GREEN | BLUE | RED | GREEN
-   * then our universe is the following
+  The event type is polymorphic but depends on order semantics.
+  Use \[\@\@deriving ord\] to easily support this with your own types.
+ 
+  Suppose we observe a sequence of events e_0, e_1, e_2, e_3
+  We now want to now the likelihoods of future observations e_4, e_5 or 
+  P(e_4,e_5|e_0, e_1, e_2, e_3) 
+  
+  More concretely:
+    If we observe RED | GREEN | GREEN | BLUE | RED | GREEN
+    then our universe is the following
    RED - > 2
    RED | GREEN -> 2
    GREEN -> 3
@@ -41,7 +41,7 @@
         (GREEN, 1, \[(RED, 1, \[\])\])\]
       The benefit is the key for GREEN | RED and is composed of the KEY for GREEN, which saves space referencing GREEN directly.
       While the complexity doesn't theoretically change much, in practice this can be a big win. Currently NOT implemented.
-**)
+*)
 
 (** The event type for each element of a sequence. *)
 module type EVENT = Model_intf.EVENT
