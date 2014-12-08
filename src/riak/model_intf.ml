@@ -182,13 +182,8 @@ end
 module Make_event_set(Event:EVENT) : EVENTS with module Event = Event = 
 struct
   module Event = Event
-  module Hashset = 
-  struct 
-     type hashset = [%import: Containers_misc.Hashset.t] [@@deriving show]
-     include Containers_misc.Hashset 
-  end
-
-  type t = Event.t Hashset.t [@@deriving show]
+  module Hashset = Containers_misc.Hashset
+  type t = Event.t Hashset.t
 
   let to_list t = CCSequence.to_list (Hashset.to_seq t)
   let of_list l = 
@@ -202,9 +197,15 @@ struct
   let empty = of_list []
   let is_empty t = Hashset.cardinal t = 0
 
-  let subsets = Util.powerset
+  let subsets (t:t) = 
+    List.map of_list (Util.powerset (to_list t))
+
   let to_protobuf t e =  event_list_to_protobuf (to_list t) e
   let from_protobuf d = of_list (event_list_from_protobuf d)
+
+let pp (f:Format.formatter) t = Hashset.iter (fun e -> Event.pp f e) t
+let show t =  Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t 
+
 end
 
 
