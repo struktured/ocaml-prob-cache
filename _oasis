@@ -11,7 +11,7 @@ Plugins: META (0.4), DevFiles (0.4)
 Library prob_cache_common
   Path:               src/common
   Pack:               true
-  Modules:            Util, Update_rules, Events_common
+  Modules:            Util, Update_rules, Data, Events_common
   BuildDepends:       ppx_import, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf 
   FindLibName:        prob_cache_common
 
@@ -27,7 +27,7 @@ Library prob_cache_riak
   Path:               src/riak
   Pack:               true
   Modules:            Model_intf, Set_model, Sequence_model
-  BuildDepends:       ppx_import, threads, prob_cache_common, containers, containers.misc, ppx_deriving, ppx_deriving.show, ppx_deriving_protobuf, riakc_ppx
+  BuildDepends:       threads, ppx_import, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_derivint.iter, ppx_deriving_protobuf, prob_cache_common, core, async, bitstring, riakc_ppx
   FindLibName:        prob_cache_riak
 
 AlphaFeatures : ocamlbuild_more_args

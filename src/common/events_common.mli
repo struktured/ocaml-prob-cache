@@ -5,7 +5,7 @@ module type EVENT = sig type t [@@deriving show] end
 module type EVENTS = 
 sig
   module Event : EVENT
-  type t [@@deriving ord]
+  type t [@@deriving show] 
   val is_empty : t -> bool
   val join: t -> t -> t
   val empty : t

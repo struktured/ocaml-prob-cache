@@ -17,7 +17,7 @@ end
 (** Represents an abstract collection of events, must be protobuf capable *)
 module type EVENTS = 
 sig 
-  type t [@@deriving protobuf]
+  type t [@@deriving protobuf, show]
   module Event : EVENT
   include Events_common.EVENTS with module Event := Event and type t := t
 end
@@ -29,6 +29,11 @@ module Data =
     let empty = create 0 0.0
     let count t = t.cnt
     let expect t = t.exp
+    let update ~cnt ~exp ~(update_rule:Update_rules.Update_fn.t) ~(prior_count:'a -> int) ~(prior_exp:'a -> float) (obs:'a) t_opt = 
+      let t = CCOpt.get_lazy (fun () -> 
+        create ~cnt:(prior_count obs) ~exp:(prior_exp obs)) t_opt in
+      let cnt = t.cnt + cnt in
+      create ~cnt ~exp:(update_rule ~obs:exp ~cnt ~orig:t.exp)
   end
 
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
@@ -67,7 +72,7 @@ sig
 
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> 
     (('a Cache.Robj.t * Events.t Riakc.Cache.Option.t) list, 
-    [> Opts.Get.error ]) Deferred.Result.t
+    [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
   (** Observe a sequence with a default count and expectation of 1. *)
 
   val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
@@ -137,7 +142,6 @@ struct
     let joined_events = Events.join cond events in
     data joined_events t >>| fun d -> CCOpt.get_lazy (fun () -> t.prior_exp events) (CCOpt.map (fun d' -> Data.expect d') d)
 
-(* Computes P(events|conditioned_on) via P(events, conditioned_on) / P(conditioned_on). If conditioned_on is blank it simply becomes the marginal probability P(events) *)
   let prob ?(cond=Events.empty) (events:Events.t) t : (Core.Std.Float.t, [> Opts.Get.error]) Result.t Deferred.t  =
     let open Deferred.Result.Monad_infix in 
     count (Events.join events cond) t >>= 
@@ -148,37 +152,68 @@ struct
       (Float.of_int event_count) /. (Float.of_int cond_count)
 
 
-  let increment ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
-    let d = Data.update ~cnt ~exp (Cache.get events t.cache) in
-    {t with cache=Cache.add events d t.cache}
-
-  let increment ?(cnt=1) ?(exp=1.0) (events:Events.t) t =
+  let update ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
     let open Deferred.Result.Monad_infix in
-    count events t >>=
-    fun event_count -> Cache.put t.cache ~k:events (Cache.Robj.of_value cnt) 
+    let open Cache.Robj in data events t >>= 
+    fun d_opt -> let d = Data.update 
+      ~cnt ~exp 
+      ~update_rule:t.update_rule 
+      ~prior_count:t.prior_count ~prior_exp:t.prior_exp 
+      events 
+      d_opt in
+    Cache.put t.cache ~k:events (Cache.Robj.of_value d)
+
+  let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) t =
+    let ps = Util.powerset (Events.to_list events) in
+    Deferred.Result.all 
+    (CoreList.map ps ~f:(fun set -> ((update ~cnt ~exp (Events.of_list set) t))))
+
+  let with_model ?update_rule ?prior_count
+    ?prior_exp ~host ~port ~(name:string) f =
+      let open Deferred.Result.Monad_infix in
+      create ?prior_count ?update_rule ?prior_exp ~host ~port ~name >>= fun t -> f t
 
 
-  let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =
-    List.fold_right (fun l t -> increment ~cnt ~exp l t) (Events.subsets events) t
+
 
   let name t = t.name
 end
 
-module Make_event_set(Event:EVENT) = 
+module Make_event_set(Event:EVENT) : EVENTS with module Event = Event = 
 struct
-  module Multiset = CCMultiSet.Make(Event)
-  include Multiset
   module Event = Event
+  module Hashset = 
+  struct 
+     type hashset = [%import: Containers_misc.Hashset.t] [@@deriving show]
+     include Containers_misc.Hashset 
+  end
 
-  let join = union
-  let subsets t = List.map of_list (Util.powerset (to_list t))
+  type t = Event.t Hashset.t [@@deriving show]
+
+  let to_list t = CCSequence.to_list (Hashset.to_seq t)
+  let of_list l = 
+    let h = Hashset.empty (CoreList.length l) in 
+    CoreList.iter ~f:(fun e -> Hashset.add h e) l;h 
+
+  module List = OldList
+  type event_list = Event.t list [@@deriving protobuf]
+
+  let join (t:t) (t':t) : t = Hashset.union t t'
+  let empty = of_list []
+  let is_empty t = Hashset.cardinal t = 0
+
+  let subsets = Util.powerset
+  let to_protobuf t e =  event_list_to_protobuf (to_list t) e
+  let from_protobuf d = of_list (event_list_from_protobuf d)
 end
+
 
 
 module Make_event_sequence(Event:EVENT) =
 struct
   module Event = Event
-  type t = Event.t list [@@deriving ord]
+  module List = OldList 
+  type t = Event.t list [@@deriving protobuf, show]
   let of_list l = l
   let to_list l = l
   let join = CCList.append

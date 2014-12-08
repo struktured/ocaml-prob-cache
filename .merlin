@@ -1,3 +1,4 @@
+PKG ppx_import
 PKG ppx_deriving
 PKG ppx_deriving.show
 PKG ppx_deriving.iter
