@@ -75,7 +75,7 @@ struct
   let name t = t.name
 end
 
-module Make_event_set(Event:EVENT) : EVENTS = 
+module Make_event_set(Event:EVENT) : EVENTS with module Event = Event = 
 struct
   module Multiset = CCMultiSet.Make(Event)
   include Multiset
@@ -86,7 +86,7 @@ struct
 end
 
 
-module Make_event_sequence(Event:EVENT) =
+module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
 struct
   module Event = Event
   type t = Event.t list [@@deriving ord]
@@ -103,9 +103,5 @@ struct
   []::accum
   let is_empty t = empty = t
 end
-
-module Make_sequence(Event:EVENT) = Make_for_events(Make_event_sequence(Event))
-module Make_set(Event:EVENT) = Make_for_events(Make_event_set(Event))
-
 
    
