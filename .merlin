@@ -9,6 +9,7 @@ PKG riakc_ppx
 PKG containers.advanced
 PKG sequence
 PKG containers.misc
+PKG containers.data
 S src/common
 S src/containers
 S src/riak
