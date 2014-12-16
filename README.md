@@ -56,9 +56,9 @@ let m = Model.create "toy-model" |>
   fun m -> Model.observe ground_wet m |>
   fun m -> Model.observe ground_not_wet_sprinkler_on m
   
-let ground_wet_given_raining = Model.prob ~cond:raining ground_wet m (* a = 1 *)
-let ground_wet_given_sprinkler_on = Model.prob ~cond:sprinkler_on ground_wet m (* b = .5 *)
-let ground_wet = Model.prob ground_wet m (* b = .75 *)
+let ground_wet_given_raining = Model.prob ~cond:raining ground_wet m (* returns 1 *)
+let ground_wet_given_sprinkler_on = Model.prob ~cond:sprinkler_on ground_wet m (* returns .5 *)
+let ground_wet = Model.prob ground_wet m (* returns .75 *)
 ```
 
 #### Sequence Model
@@ -78,9 +78,9 @@ let m = Model.create "coin-flips" |>
   
 let cnt,exp = Model.count events m, Model.exp events m (* cnt=1, exp = 1. *)
 
-let a = Model.prob heads m (* a = 1. *)
-let b = Model.prob tails m (* b = 0. *)
-let c = Model.prob heads_tails m (* c = 1. *)
+let a = Model.prob heads m (* returns 1. *)
+let b = Model.prob tails m (* returns 0. *)
+let c = Model.prob heads_tails m (* return 1. *)
 ```
 
 
