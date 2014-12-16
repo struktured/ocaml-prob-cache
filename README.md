@@ -41,6 +41,7 @@ opam pin add prob-cache .
  * due to one, both, or none of these events *)
 module Event = struct type t = IS_RAINING | SPRINKLER_ON | GROUND_IS_WET [@@deriving show, ord] end
 module Model = Prob_cache_containers.Set_model.Make(Event)
+
 open Event
 let raining = Model.Events.of_list [IS_RAINING]
 let sprinkler_on = Model.Events.of_list [SPRINKLER_ON]
