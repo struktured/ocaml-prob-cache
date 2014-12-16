@@ -36,7 +36,7 @@ opam pin add prob-cache .
 ### Containers Cache
 
 #### Set Model
-```
+```OCaml
 (* A toy event model where it can be raining, a water sprinkler may be on, and the ground may be wet 
  * due to one, both, or none of these events *)
 module Color = struct type t = IS_RAINING | SPRINKLER_ON | GROUND_IS_WET [@@deriving show, ord] end
@@ -61,7 +61,7 @@ let ground_wet = Model.prob ground_wet m (* b = .75 *)
 ```
 
 #### Sequence Model
-```
+```Ocaml
 (* Models a sequence of coin flips, not necesssarily where each flip is independent *) 
 module Coin = struct type t = HEADS | TAILS [@@deriving show, ord] end
 module Model = Prob_cache_containers.Sequence_model.Make(Coin)
