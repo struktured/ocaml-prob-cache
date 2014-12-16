@@ -32,6 +32,19 @@ Library prob_cache_riak
   BuildDepends:       threads, ppx_import, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, prob_cache_common, core, async, bitstring, riakc_ppx
   FindLibName:        prob_cache_riak
 
+Library prob_cache_examples
+  Path:               src/examples
+  Modules:            Sprinkler, Coin_flip 
+  BuildDepends:       prob_cache_containers
+  FindLibName:        prob_cache_examples
+
+Library prob_cache_riak_examples
+  Path:               src/riak_examples
+  Modules:            Sprinkler, Coin_flip 
+  BuildDepends:       prob_cache_riak
+  FindLibName:        prob_cache_riak_examples
+
+
 AlphaFeatures : ocamlbuild_more_args
 
 Document "prob_cache_common"
