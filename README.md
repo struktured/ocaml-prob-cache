@@ -34,6 +34,8 @@ opam pin add prob-cache .
 # Examples
 
 ### Containers Cache
+
+#### Sequence Model
 ```
 module Coin = struct type t = HEADS | TAILS [@@deriving show, ord] end
 module Model = Prob_cache_containers.Sequence_model.Make(Coin)
@@ -54,6 +56,7 @@ let a = Model.count heads m (* a = 1 *)
 let b = Model.count tails m (* b = 0 *)
 let c = Model.count heads_tails m (* c = 1 *)
 ```
+#### Set Model
 
 ### Riak Cache
 ```
@@ -66,12 +69,11 @@ let c = Model.count heads_tails m (* c = 1 *)
 ## Complexity ##
 
 Both models are brute force oriented in that they make no attempt at efficient encodings or sparse representations. 
+
 The set model is exponential with respect to the number of observed events. It stores 2^N instances per observation containing N events. 
 
 The sequence model is linear with respect to the number of observed events. It stores N events for an observed sequence of length N.
 
-
-The sequence model stores
 ## Contributing ##
 
  * Open an issue on github 
