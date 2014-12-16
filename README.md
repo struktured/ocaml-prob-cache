@@ -82,6 +82,9 @@ let b = Model.prob tails m (* b = 0. *)
 let c = Model.prob heads_tails m (* c = 1. *)
 ```
 
+
+For a complete list of containers examples, see https://github.com/struktured/ocaml-prob-cache/tree/master/src/examples.
+
 ### Riak Cache
 
 See https://github.com/struktured/ocaml-prob-cache/tree/master/src/riak_examples.
