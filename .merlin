@@ -6,6 +6,9 @@ PKG ppx_deriving.ord
 PKG ppx_deriving_protobuf
 PKG containers
 PKG riakc_ppx
+PKG containers.advanced
+PKG sequence
+PKG containers.misc
 S src/common
 S src/containers
 S src/riak

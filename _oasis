@@ -12,7 +12,7 @@ Library prob_cache_common
   Path:               src/common
   Pack:               true
   Modules:            Util, Update_rules, Data, Events_common
-  BuildDepends:       ppx_import, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf 
+  BuildDepends:       ppx_import, containers, containers.misc, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf 
   FindLibName:        prob_cache_common
 
 
@@ -21,7 +21,7 @@ Library prob_cache_containers
   Pack:               true
   Modules:            Model_intf, Set_model, Sequence_model
   InternalModules:    Model_impl
-  BuildDepends:       ppx_import, prob_cache_common, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf
+  BuildDepends:       ppx_import, prob_cache_common, containers, containers.misc, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf
   FindLibName:        prob_cache_containers
 
 Library prob_cache_riak

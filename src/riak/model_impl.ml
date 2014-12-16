@@ -1,11 +1,13 @@
 open Prob_cache_common
 module OldList = List
+module OldSequence = Sequence
 open Core.Std
 module Float = CCFloat (* for pretty printing, ord, etc *)
 module CoreList = List
 module List = CCList
-
 open Async.Std
+
+module Sequence = OldSequence
 
 (** Represents a single event- must be protobuf capable and pretty printable *)  
 module type EVENT = 
@@ -173,7 +175,7 @@ struct
   module Hashset = Containers_misc.Hashset
   type t = Event.t Hashset.t
 
-  let to_list t = CCSequence.to_list (Hashset.to_seq t)
+  let to_list t = Sequence.to_list (Hashset.to_seq t)
   let of_list l = 
     let h = Hashset.empty (CoreList.length l) in 
     CoreList.iter ~f:(fun e -> Hashset.add h e) l;h 
