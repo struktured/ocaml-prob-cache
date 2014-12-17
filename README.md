@@ -110,6 +110,6 @@ The sequence model is linear with respect to the sequence length. It stores N ev
  * Modules for other caching middlewares
  * Sparser representations
  * Distance metrics to estimate distributions on new observations
- * Possible integration with kumbaya
+ * Possible integration with https://github.com/agarwal/future
  * GPU optimizations
 
