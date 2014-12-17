@@ -13,19 +13,17 @@ let heads_tails = Model.Events.of_list [HEADS;TAILS]
 open Core.Std
 open Async.Std
 
-let run ?(host="localhost") ?(port=8087) () = ()
-(* WIP!!
+let run ?(host="localhost") ?(port=8087) () =
+let open Deferred.Result.Monad_infix in 
 Model.with_model ~host ~port ~name:"coin-flips" 
   (fun m -> 
-    let result = Model.observe events m in
-    let a = Model.prob heads m (* a = 1. *) in
-    let b = Model.prob tails m (* b = 0. *) in
-    let c = Model.prob heads_tails m (* c = 1. *) in
-    Async.Std.Print.print_string 
+    Model.observe events m >>=
+    fun _ -> Model.prob heads m (* a = 1. *) >>=
+    fun a -> Model.prob tails m (* b = 0. *) >>=
+    fun b -> Model.prob heads_tails m (* c = 1. *) >>|
+    fun c -> 
+    Print.print_string 
       ("H: " ^ Float.to_string a ^ ", " ^
       "T: " ^ Float.to_string b ^ ", " ^
-      "HT: " ^ Float.to_string c ^ "\n")
-*)
-
-
+      "HT: " ^ Float.to_string c ^ "\n"))
 
