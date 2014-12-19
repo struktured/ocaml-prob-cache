@@ -15,9 +15,9 @@ let ground_not_wet_sprinkler_on = Model.Events.of_list [SPRINKLER_ON]
 open Core.Std
 open Async.Std
 
-let run ?(host="localhost") ?(port=8087) () =
+let run ?(host="localhost") ?(port=8087) ?(name="toy-model") () =
 let open Deferred.Result.Monad_infix in 
-Model.with_model ~host ~port ~name:"toy-model" 
+Model.with_model ~host ~port ~name 
   (fun m -> 
     Model.observe ground_wet_raining m >>=
     fun _ -> Model.observe ground_wet_sprinkler_on m >>=
@@ -31,3 +31,9 @@ Model.with_model ~host ~port ~name:"toy-model"
       ("P(GroundWet|Raining): " ^ Float.to_string a ^ ", " ^
       "P(GroundWet|SprinklerOn): " ^ Float.to_string b ^ ", " ^
       "P(GroundWet): " ^ Float.to_string c ^ "\n"))
+
+let _ = 
+  let host = try Some Sys.argv.(1) with _ -> None in
+  let port = try Some (int_of_string Sys.argv.(2)) with _ -> None in
+  let name = try Some Sys.argv.(3) with _ -> None in
+  let _ = run ?host ?port ?name in Scheduler.go()
