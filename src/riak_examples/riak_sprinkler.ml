@@ -32,8 +32,10 @@ Model.with_model ~host ~port ~name
       "P(GroundWet|SprinklerOn): " ^ Float.to_string b ^ ", " ^
       "P(GroundWet): " ^ Float.to_string c ^ "\n"))
 
-let _ = 
+let () = 
   let host = try Some Sys.argv.(1) with _ -> None in
   let port = try Some (int_of_string Sys.argv.(2)) with _ -> None in
   let name = try Some Sys.argv.(3) with _ -> None in
-  let _ = run ?host ?port ?name in Scheduler.go()
+  ignore(run ?host ?port ?name ());
+  never_returns (Scheduler.go())
+
