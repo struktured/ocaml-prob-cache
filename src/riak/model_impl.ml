@@ -50,12 +50,6 @@ sig
   (** A probability model cache *)
   type t
 
-  val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> 
-    host:string -> port:int -> name:string -> (t, [> Conn.error]) Deferred.Result.t      
-  (** Creates a new model labeled [name] (or bucket, in riak terms) using [host] and [port]. 
-      Connection errors may occur and will be in indicated in the deferred result.
-      By default, expectations are updated using a mean value estimator and all priors values are 0. *)
-
   val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t
   (** How many times [events] was observed for the model cache [t].
       Errors during the riak fetch routine are propogated back in the deferred result. *)
@@ -108,9 +102,8 @@ struct
   let default_update_rule : update_rule = Update_rules.mean
 
   let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count) 
-    ?(prior_exp=default_prior_exp) ~host ~port ~(name:string) =
-      Cache.with_cache ~host ~port ~bucket:name (fun c ->
-      Deferred.return (Result.Ok {name;cache=c;prior_count;prior_exp;update_rule}))
+    ?(prior_exp=default_prior_exp) cache =
+      {cache;prior_count;prior_exp;update_rule;name=Cache.get_bucket cache}
 
   let data events t =
    let open Cache.Robj in Cache.get t.cache events >>| function 
@@ -161,10 +154,8 @@ struct
   let with_model ?update_rule ?prior_count
     ?prior_exp ~host ~port ~(name:string) f =
       let open Deferred.Result.Monad_infix in
-      create ?prior_count ?update_rule ?prior_exp ~host ~port ~name >>= fun t -> f t
-
-
-
+      Cache.with_cache ~host ~port ~bucket:name (fun c -> 
+        let (m:t) = create ?prior_count ?update_rule ?prior_exp c in f m)
 
   let name t = t.name
 end

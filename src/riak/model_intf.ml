@@ -57,12 +57,6 @@ sig
   (** A probability model cache *)
   type t
 
-  val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> 
-    host:string -> port:int -> name:string -> (t, [> Conn.error]) Deferred.Result.t      
-  (** Creates a new model labeled [name] (or bucket, in riak terms) using [host] and [port]. 
-      Connection errors may occur and will be in indicated in the deferred result.
-      By default, expectations are updated using a mean value estimator and all priors values are 0. *)
-
   val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t
   (** How many times [events] was observed for the model cache [t].
       Errors during the riak fetch routine are propogated back in the deferred result. *)
