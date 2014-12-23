@@ -112,6 +112,7 @@ struct
       | [] -> Ok None
       | [d] -> Ok (Some (Content.value d))
       | l -> failwith "should only be one content value")
+    | Error `Notfound -> Ok None 
     | Error e -> Error e
 
   let count (events:Events.t) t : (int, [> Opts.Get.error]) Result.t Deferred.t  = 
