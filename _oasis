@@ -61,7 +61,7 @@ Document "prob_cache_common"
   Type: ocamlbuild (0.4)
   BuildTools: ocamldoc
   Title: Probability Common Cache API 
-  XOCamlbuildPath: .
+  XOCamlbuildPath: src/common
   XOCamlbuildExtraArgs:
     "-docflags '-colorize-code -html -short-functors -charset utf-8'"
   XOCamlbuildLibraries: prob_cache_common
@@ -71,7 +71,7 @@ Document "prob_cache_containers"
   Type: ocamlbuild (0.4)
   BuildTools: ocamldoc
   Title: Probability Containers Cache API 
-  XOCamlbuildPath: .
+  XOCamlbuildPath: src/containers
   XOCamlbuildExtraArgs:
     "-docflags '-colorize-code -html -short-functors -charset utf-8'"
   XOCamlbuildLibraries: prob_cache_containers
@@ -80,7 +80,7 @@ Document "prob_cache_riak"
   Type: ocamlbuild (0.4)
   BuildTools: ocamldoc
   Title: Probability Riak Cache API 
-  XOCamlbuildPath: .
+  XOCamlbuildPath: src/riak
   XOCamlbuildExtraArgs:
     "-docflags '-colorize-code -html -short-functors -charset utf-8'"
   XOCamlbuildLibraries: prob_cache_riak

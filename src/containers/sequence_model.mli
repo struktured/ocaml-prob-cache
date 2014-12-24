@@ -1,7 +1,7 @@
-(**  A cache for sequence oriented probability models *)
+(**  A containers backed cache for sequence oriented probability models *)
 
-(** The event type is polymorphic but depends on order semantics.
-  Use \[\@\@deriving ord\] to easily support this with your own types.
+(** The event type is polymorphic but depends on order semantics (as well as show).
+  Use \[\@\@deriving show, ord\] to easily support this with your own types.
  
   Suppose we observe a sequence of events e_0, e_1, e_2, e_3
   We now want to now the likelihoods of future observations e_4, e_5 or 
@@ -10,20 +10,35 @@
   More concretely:
     If we observe RED | GREEN | GREEN | BLUE | RED | GREEN
     then our universe is the following
+   
    RED - > 2
+
    RED | GREEN -> 2
+   
    GREEN -> 3
+   
    GREEN | GREEN -> 1
+   
    RED | GREEN | GREEN -> 1
+   
    BLUE -> 1
+   
    GREEN | BLUE -> 1
+   
    GREEN | GREEN | BLUE -> 1
+   
    RED | GREEN | GREEN | BLUE -> 1
+   
    BLUE | RED -> 1
+   
    BLUE | RED | GREEN - > 1
+   
    RED | GREEN | GREEN | BLUE | RED | GREEN -> 1
+   
    GREEN | GREEN | BLUE | RED | GREEN -> 1
+   
    GREEN | GREEN | BLUE | RED -> 1
+   
    GREEN | BLUE | RED -> 1
 
    Complexity Overview:

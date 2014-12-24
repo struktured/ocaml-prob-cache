@@ -62,7 +62,7 @@ sig
 
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> 
     (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
-  (** Observe a sequence with a default count and expectation of 1. *)
+  (** Observe events with a default count and expectation of 1. *)
 
   val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
   (** Probability of events given observed events, possibly the empty events *)
@@ -78,7 +78,7 @@ sig
     (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) -> 
          ('a, 'e) Deferred.Result.t
   (** Execute a deferred function for the specified model where [name] corresponds to a riak bucket for
-     the given [host] and [port] *) 
+     the given [host] and [port]. Can optionally specify custom update rules or prior functions. *) 
 end
 
 

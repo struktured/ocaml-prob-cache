@@ -41,18 +41,18 @@ sig
   (* Define a prior function in terms of real values with the observed events as input. *)
   type prior_exp = Events.t -> float
 
-  (** A sequence model cache *)
+  (** An abstract events model cache *)
   type t
   
   val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t      
-  (** Creates a new sequence model labeled by the given string. By default, expectations are updated 
+  (** Creates a new model cache labeled by the given string. By default, expectations are updated 
      using a mean value estimator and all priors are value 0. *)
 
   val count : Events.t -> t -> int
-  (** How many times a particular sequence was observed *)
+  (** How many times some particular events were observed *)
 
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> t
-  (** Observe a sequence with a default count and expectation of 1. 
+  (** Observe events with a default count and expectation of 1. 
     The returned model reflects the observation updates
     while the original instance is not guaranteed to be current. *)
 
