@@ -7,21 +7,20 @@ module List = CCList
 
 open Async.Std
 
-(** Represents a single event- must be protobuf capable and pretty printable *)  
+(** Represents a single event- must be protobuf capable, comparable, and pretty printable *)  
 module type EVENT = 
 sig 
-  type t [@@deriving protobuf, show]
+  type t [@@deriving protobuf, show, ord]
   include Events_common.EVENT with type t := t
 end
 
-(** Represents an abstract collection of events, must be protobuf capable *)
+(** Represents an abstract collection of events, must be protobuf capable and pretty printable *)
 module type EVENTS = 
 sig 
   type t [@@deriving protobuf, show]
   module Event : EVENT
   include Events_common.EVENTS with module Event := Event and type t := t
 end
-
 
 module Data = struct
   module Proto_T = struct type t = {cnt:int [@key 1];exp:float [@key 2]} [@@deriving protobuf, show] end

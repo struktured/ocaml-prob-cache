@@ -9,14 +9,14 @@ open Async.Std
 
 module Sequence = OldSequence
 
-(** Represents a single event- must be protobuf capable and pretty printable *)  
+(** Represents a single event- must be protobuf capable, comparable, and pretty printable *)  
 module type EVENT = 
 sig 
-  type t [@@deriving protobuf, show]
+  type t [@@deriving protobuf, show, ord]
   include Events_common.EVENT with type t := t
 end
 
-(** Represents an abstract collection of events, must be protobuf capable *)
+(** Represents an abstract collection of events, must be protobuf capable and pretty printable *)
 module type EVENTS = 
 sig 
   type t [@@deriving protobuf, show]
@@ -168,7 +168,7 @@ struct
   module Hashset = Containers_misc.Hashset
   type t = Event.t Hashset.t
 
-  let to_list t = Sequence.to_list (Hashset.to_seq t)
+  let to_list t = List.sort_uniq ~cmp:Event.compare (Sequence.to_list (Hashset.to_seq t))
   let of_list l = 
     let h = Hashset.empty (CoreList.length l) in 
     CoreList.iter ~f:(fun e -> Hashset.add h e) l;h 
