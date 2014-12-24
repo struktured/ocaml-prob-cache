@@ -17,3 +17,7 @@ let a = Model.prob heads m (* a = 1. *)
 let b = Model.prob tails m (* b = 0. *)
 let c = Model.prob heads_tails m (* c = 1. *)
 
+let () = 
+  print_endline ("P(HEADS) = " ^ (CCFloat.to_string a));
+  print_endline ("P(TAILS) = " ^ (CCFloat.to_string b));
+  print_endline ("P([HEADS, TAILS]) = " ^ (CCFloat.to_string c))

@@ -13,17 +13,24 @@ let heads_tails = Model.Events.of_list [HEADS;TAILS]
 open Core.Std
 open Async.Std
 
-let run ?(host="localhost") ?(port=8087) () =
+let run ?(host="localhost") ?(port=8087) ?(name="coin-flips") () =
 let open Deferred.Result.Monad_infix in 
-Model.with_model ~host ~port ~name:"coin-flips" 
+Model.with_model ~host ~port ~name
   (fun m -> 
     Model.observe events m >>=
-    fun _ -> Model.prob heads m (* a = 1. *) >>=
+    fun m -> Model.prob heads m (* a = 1. *) >>=
     fun a -> Model.prob tails m (* b = 0. *) >>=
     fun b -> Model.prob heads_tails m (* c = 1. *) >>|
     fun c -> 
     Print.print_string 
-      ("H: " ^ Float.to_string a ^ ", " ^
-      "T: " ^ Float.to_string b ^ ", " ^
-      "HT: " ^ Float.to_string c ^ "\n"))
+      ("P(HEADS) = " ^ Float.to_string a ^ ",\n" ^
+      "P(TAILS) =  " ^ Float.to_string b ^ "\n" ^
+      "P([HEADS,TAILS]) = " ^ Float.to_string c ^ "\n");shutdown 0)
+
+let () = 
+  let host = try Some Sys.argv.(1) with _ -> None in
+  let port = try Some (int_of_string Sys.argv.(2)) with _ -> None in
+  let name = try Some Sys.argv.(3) with _ -> None in
+  ignore(run ?host ?port ?name ());
+  never_returns (Scheduler.go())
 

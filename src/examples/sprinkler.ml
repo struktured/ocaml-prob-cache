@@ -21,3 +21,7 @@ let ground_wet_given_raining = Model.prob ~cond:raining ground_wet m (* a = 1 *)
 let ground_wet_given_sprinkler_on = Model.prob ~cond:sprinkler_on ground_wet m (* b = .5 *)
 let ground_wet = Model.prob ground_wet m (* b = .75 *)
 
+let () = 
+  print_endline ("P(GroundWet|Raining) = " ^ (CCFloat.to_string ground_wet_given_raining));
+  print_endline ("P(GroundWet|SprinklerOn) = " ^ (CCFloat.to_string ground_wet_given_sprinkler_on));
+  print_endline ("P(GroundWet) = " ^ (CCFloat.to_string ground_wet))
