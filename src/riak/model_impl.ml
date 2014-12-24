@@ -55,8 +55,7 @@ sig
       Errors during the riak fetch routine are propogated back in the deferred result. *)
 
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> 
-    (('a Cache.Robj.t * Events.t Riakc.Cache.Option.t) list, 
-    [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
+    (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
   (** Observe a sequence with a default count and expectation of 1. *)
 
   val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
@@ -148,9 +147,11 @@ struct
     Cache.put t.cache ~k:events (Cache.Robj.of_value d)
 
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) t =
-    let ps = Util.powerset (Events.to_list events) in
-    Deferred.Result.all 
-    (CoreList.map ps ~f:(fun set -> ((update ~cnt ~exp (Events.of_list set) t))))
+    let open Deferred.Result.Monad_infix in
+    let subsets = Events.subsets events in
+    List.fold_right 
+    (fun e d -> Deferred.Result.ignore (Deferred.Result.bind d (fun _ -> update ~cnt ~exp e t))) subsets (Deferred.Result.return ())
+    >>| fun (_:unit) -> t
 
   let with_model ?update_rule ?prior_count
     ?prior_exp ~host ~port ~(name:string) f =
@@ -210,6 +211,3 @@ struct
   []::accum
   let is_empty t = empty = t
 end
-
-
-   

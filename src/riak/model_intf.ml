@@ -62,8 +62,7 @@ sig
       Errors during the riak fetch routine are propogated back in the deferred result. *)
 
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> 
-    (('a Cache.Robj.t * Events.t Riakc.Cache.Option.t) list, 
-    [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
+    (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
   (** Observe a sequence with a default count and expectation of 1. *)
 
   val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
