@@ -17,10 +17,10 @@ Flag containers
 
 Flag containers_examples
   Description: Enable/Disable containers api examples
-  Default: false
+  Default: true
 Flag riak_examples
   Description: Enable/Disable riak api examples
-  Default: false
+  Default: true
 
 
 Library prob_cache_common

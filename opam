@@ -7,12 +7,12 @@ homepage: "https://github.com/struktured/ocaml-prob-cache"
 dev-repo: "git://github.com/struktured/ocaml-prob-cache.git#master"
 
 build: [
-  ["./configure"]
-  ["make" "-j2"]
+  ["./configure" "--disable-containers-examples" "--disable-riak-examples"]
+  [make "-j2"]
 ]
 
 install: [
-  ["make" "install"]
+  [make "install"]
 ]
 
 remove: [
