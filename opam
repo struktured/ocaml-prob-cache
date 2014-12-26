@@ -1,0 +1,30 @@
+opam-version: "1.2"
+name: "prob-cache"
+version: "dev"
+author : "Carmelo Piccione carmelo.piccione+prob_cache@gmail.com"
+maintainer: "carmelo.piccione+prob_cache@gmail.com"
+homepage: "https://github.com/struktured/ocaml-prob-cache"
+dev-repo: "git://github.com/struktured/ocaml-prob-cache.git#master"
+
+build: [
+  ["./configure"]
+  ["make" "-j2"]
+]
+
+install: [
+  ["make" "install"]
+]
+
+remove: [
+  ["ocamlfind" "remove" "prob_cache"]
+]
+
+depends: [
+  "ocamlfind"
+  "core" {>= "109.12.00"}
+  "async"
+  "ppx_deriving" {>= "1.1"}
+  "ppx_deriving_protobuf" {>= "2.0"}
+  "riakc_ppx" {>= "3.1.2"}
+  "containers"
+]

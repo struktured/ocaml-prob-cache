@@ -8,6 +8,21 @@ Synopsis:    Probability cache library for OCaml
 BuildTools:  ocamlbuild
 Plugins: META (0.4), DevFiles (0.4)
 
+Flag riak
+  Description: Enable/Disable riak cache backend
+  Default: true
+Flag containers
+  Description: Enable/Disable containers cache backend
+  Default: true
+
+Flag containers_examples
+  Description: Enable/Disable containers api examples
+  Default: false
+Flag riak_examples
+  Description: Enable/Disable riak api examples
+  Default: false
+
+
 Library prob_cache_common
   Path:               src/common
   Pack:               true
@@ -18,6 +33,10 @@ Library prob_cache_common
 
 
 Library prob_cache_containers
+  if flag(containers)
+    Build: true
+  else
+    Build: false
   Path:               src/containers
   Pack:               true
   Modules:            Model_intf, Set_model, Sequence_model
@@ -26,6 +45,10 @@ Library prob_cache_containers
   FindLibName:        prob_cache_containers
 
 Library prob_cache_riak
+  if flag(riak)
+    Build: true
+  else
+    Build: false
   Path:               src/riak
   Pack:               true
   Modules:            Model_intf, Set_model, Sequence_model
@@ -35,21 +58,37 @@ Library prob_cache_riak
 
 
 Executable containers_sprinkler
+  if flag(containers_examples)
+    Build: true
+  else
+    Build: false
   Path:               src/examples
   MainIs:             sprinkler.ml 
   BuildDepends:       prob_cache_containers
 
 Executable containers_coin_flip
+  if flag(containers_examples)
+    Build: true
+  else
+    Build: false
   Path:               src/examples
   MainIs:             coin_flip.ml 
   BuildDepends:       prob_cache_containers
 
 Executable riak_sprinkler
+  if flag(riak_examples)
+    Build: true
+  else
+    Build: false
   Path:               src/riak_examples
   MainIs:             riak_sprinkler.ml
   BuildDepends:       prob_cache_riak
 
 Executable riak_coin_flip
+  if flag(riak_examples)
+    Build: true
+  else
+    Build: false
   Path:               src/riak_examples
   MainIs:             riak_coin_flip.ml
   BuildDepends:       prob_cache_riak
