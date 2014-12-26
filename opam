@@ -31,4 +31,5 @@ depends: [
   "ppx_deriving_protobuf" {>= "2.0"}
   "riakc_ppx" {>= "3.1.2"}
   "containers" 
+  "sequence"
 ]
