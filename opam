@@ -5,6 +5,7 @@ author : "Carmelo Piccione carmelo.piccione+prob_cache@gmail.com"
 maintainer: "carmelo.piccione+prob_cache@gmail.com"
 homepage: "https://github.com/struktured/ocaml-prob-cache"
 dev-repo: "git://github.com/struktured/ocaml-prob-cache.git#master"
+bug-reports: "https://github.com/struktured/ocaml-prob-cache/issues"
 
 build: [
   ["./configure" "--disable-containers-examples" "--disable-riak-examples"]
