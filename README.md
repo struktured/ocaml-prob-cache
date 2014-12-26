@@ -30,6 +30,13 @@ oasis setup
 make install
 opam pin add prob-cache .
 ```
+# Documentation
+
+The API documentation is published on github pages.
+
+ * [common library](https://struktured.github.io/ocaml-prob-cache/prob_cache_common) 
+ * [containers library](https://struktured.github.io/ocaml-prob-cache/prob_cache_containers)
+ * [riak library](https://struktured.github.io/ocaml-prob-cache/prob_cache_riak)
 
 # Examples
 
