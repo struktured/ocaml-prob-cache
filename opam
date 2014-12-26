@@ -8,6 +8,7 @@ dev-repo: "git://github.com/struktured/ocaml-prob-cache.git#master"
 
 build: [
   ["./configure" "--disable-containers-examples" "--disable-riak-examples"]
+  [make "clean"]
   [make "-j2"]
 ]
 
@@ -16,7 +17,9 @@ install: [
 ]
 
 remove: [
-  ["ocamlfind" "remove" "prob_cache"]
+ ["ocamlfind" "remove" "prob_cache_riak"]
+ ["ocamlfind" "remove" "prob_cache_containers"]
+ ["ocamlfind" "remove" "prob_cache_common"]
 ]
 
 depends: [
