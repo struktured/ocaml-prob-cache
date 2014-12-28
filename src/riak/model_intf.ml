@@ -1,6 +1,11 @@
+(** A abstract model, defining the type of events and data structures 
+to maintain their probabilities and expectations.
+*)
 open Prob_cache_common
 module OldList = List
 open Core.Std
+
+(** Floating point convenience module *)
 module Float = CCFloat (* for pretty printing, ord, etc *)
 module CoreList = List
 module List = CCList
