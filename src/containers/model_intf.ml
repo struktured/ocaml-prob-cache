@@ -1,4 +1,9 @@
+(** A abstract model, defining the type of events and data structures 
+to maintain their probabilities and expectations.
+*)
 open Prob_cache_common
+
+(** Floating point convenience module *)
 module Float = CCFloat
 
 (** Represents a single event- must be comparable and showable *)  
