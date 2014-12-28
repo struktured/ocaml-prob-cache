@@ -1,0 +1,20 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Model_intf" rel="Chapter" href="Model_intf.html">
+<link title="Set_model" rel="Chapter" href="Set_model.html">
+<link title="Sequence_model" rel="Chapter" href="Sequence_model.html"><title>Model_intf.Data.Proto_T</title>
+</head>
+<body>
+<code class="code"><span class="keyword">sig</span><br>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;{&nbsp;cnt&nbsp;:&nbsp;int;&nbsp;exp&nbsp;:&nbsp;float;&nbsp;}<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_protobuf&nbsp;:&nbsp;<span class="constructor">Protobuf</span>.<span class="constructor">Decoder</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Model_intf</span>.<span class="constructor">Data</span>.<span class="constructor">Proto_T</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;to_protobuf&nbsp;:&nbsp;<span class="constructor">Model_intf</span>.<span class="constructor">Data</span>.<span class="constructor">Proto_T</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Protobuf</span>.<span class="constructor">Encoder</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;pp&nbsp;:&nbsp;<span class="constructor">Format</span>.formatter&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Model_intf</span>.<span class="constructor">Data</span>.<span class="constructor">Proto_T</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;show&nbsp;:&nbsp;<span class="constructor">Model_intf</span>.<span class="constructor">Data</span>.<span class="constructor">Proto_T</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;string<br>
+<span class="keyword">end</span></code></body></html>

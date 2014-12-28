@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="Up" href="Set_model.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Model_intf" rel="Chapter" href="Model_intf.html">
+<link title="Set_model" rel="Chapter" href="Set_model.html">
+<link title="Sequence_model" rel="Chapter" href="Sequence_model.html"><title>Set_model.Make</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Set_model.html" title="Set_model">Up</a>
+&nbsp;</div>
+<h1>Functor <a href="type_Set_model.Make.html">Set_model.Make</a></h1>
+
+<pre><span class="keyword">module</span> Make <code class="code">(</code><code class="code"><span class="constructor">Event</span></code><code class="code"> : </code><code class="type"><a href="Set_model.EVENT.html">EVENT</a></code><code class="code">) </code>: <code class="type"><a href="Set_model.S.html">S</a></code><code class="type">  with type Events.Event.t = Event.t and module Events.Event = Event</code></pre><div class="info module top">
+Creates a concrete instance of an event set model cache for a given Event type<br>
+</div>
+<table border="0" cellpadding="3" width="100%">
+<tr>
+<td align="left" valign="top" width="1%%"><b>Parameters: </b></td>
+<td>
+<table class="paramstable">
+<tr>
+<td align="center" valign="top" width="15%">
+<code>Event</code></td>
+<td align="center" valign="top">:</td>
+<td><code class="type"><a href="Set_model.EVENT.html">EVENT</a></code>
+</table>
+</td>
+</tr>
+</table>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Model_intf.S.Events.html">Events</a>: <code class="type"><a href="Model_intf.EVENTS.html">Model_intf.EVENTS</a></code><code class="type"> </code></pre><div class="info">
+The module type representing a collection of events
+</div>
+
+<pre><span class="keyword">module</span> <a href="Model_intf.S.Event.html">Event</a>: <code class="type">module type of Events.Event</code></pre><div class="info">
+The module type representing one event
+</div>
+
+<pre><span id="TYPEupdate_rule"><span class="keyword">type</span> <code class="type"></code>update_rule</span> = <code class="type">Prob_cache_common.Update_rules.Update_fn.t</code> </pre>
+<div class="info ">
+Defines the update rule for expectations<br>
+</div>
+
+
+<pre><span id="TYPEprior_count"><span class="keyword">type</span> <code class="type"></code>prior_count</span> = <code class="type">Events.t -> int</code> </pre>
+
+
+<pre><span id="TYPEprior_exp"><span class="keyword">type</span> <code class="type"></code>prior_exp</span> = <code class="type">Events.t -> float</code> </pre>
+
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info ">
+An abstract events model cache<br>
+</div>
+
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?update_rule:<a href="Model_intf.S.html#TYPEupdate_rule">update_rule</a> -><br>       ?prior_count:<a href="Model_intf.S.html#TYPEprior_count">prior_count</a> -><br>       ?prior_exp:<a href="Model_intf.S.html#TYPEprior_exp">prior_exp</a> -> name:string -> <a href="Model_intf.S.html#TYPEt">t</a></code></pre><div class="info ">
+Creates a new model cache labeled by the given string. By default, expectations are updated 
+     using a mean value estimator and all priors are value 0.<br>
+</div>
+
+<pre><span id="VALcount"><span class="keyword">val</span> count</span> : <code class="type">Events.t -> <a href="Model_intf.S.html#TYPEt">t</a> -> int</code></pre><div class="info ">
+How many times some particular events were observed<br>
+</div>
+
+<pre><span id="VALobserve"><span class="keyword">val</span> observe</span> : <code class="type">?cnt:int -> ?exp:float -> Events.t -> <a href="Model_intf.S.html#TYPEt">t</a> -> <a href="Model_intf.S.html#TYPEt">t</a></code></pre><div class="info ">
+Observe events with a default count and expectation of 1. 
+    The returned model reflects the observation updates
+    while the original instance is not guaranteed to be current.<br>
+</div>
+
+<pre><span id="VALprob"><span class="keyword">val</span> prob</span> : <code class="type">?cond:Events.t -> Events.t -> <a href="Model_intf.S.html#TYPEt">t</a> -> float</code></pre><div class="info ">
+Probability of events given observed events, possibly the empty events<br>
+</div>
+
+<pre><span id="VALexp"><span class="keyword">val</span> exp</span> : <code class="type">?cond:Events.t -> Events.t -> <a href="Model_intf.S.html#TYPEt">t</a> -> float</code></pre><div class="info ">
+Expectation of events given observed events, possibly the empty events<br>
+</div>
+
+<pre><span id="VALname"><span class="keyword">val</span> name</span> : <code class="type"><a href="Model_intf.S.html#TYPEt">t</a> -> string</code></pre><div class="info ">
+Gets the name of the cache<br>
+</div>
+</body></html>

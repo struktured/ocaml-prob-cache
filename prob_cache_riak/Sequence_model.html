@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Set_model.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Model_intf" rel="Chapter" href="Model_intf.html">
+<link title="Set_model" rel="Chapter" href="Set_model.html">
+<link title="Sequence_model" rel="Chapter" href="Sequence_model.html"><title>Sequence_model</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Set_model.html" title="Set_model">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Sequence_model.html">Sequence_model</a></h1>
+
+<pre><span class="keyword">module</span> Sequence_model: <code class="code"><span class="keyword">sig</span></code> <a href="Sequence_model.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info module top">
+A distributed riak backed cache for sequence oriented probability models<br>
+</div>
+<hr width="100%">
+<br>
+The event type is polymorphic but depends on protobuf serialization (as well as show and ord).
+  Use [@@deriving protobuf,show,ord] to easily support this with your own types.
+<p>
+
+  Suppose we observe a sequence of events e_0, e_1, e_2, e_3
+  We now want to now the likelihoods of future observations e_4, e_5 or 
+  P(e_4,e_5|e_0, e_1, e_2, e_3) 
+<p>
+
+  More concretely:
+    If we observe RED | GREEN | GREEN | BLUE | RED | GREEN
+    then our universe is the following
+<p>
+
+   RED - &gt; 2
+<p>
+
+   RED | GREEN -&gt; 2
+<p>
+
+   GREEN -&gt; 3
+<p>
+
+   GREEN | GREEN -&gt; 1
+<p>
+
+   RED | GREEN | GREEN -&gt; 1
+<p>
+
+   BLUE -&gt; 1
+<p>
+
+   GREEN | BLUE -&gt; 1
+<p>
+
+   GREEN | GREEN | BLUE -&gt; 1
+<p>
+
+   RED | GREEN | GREEN | BLUE -&gt; 1
+<p>
+
+   BLUE | RED -&gt; 1
+<p>
+
+   BLUE | RED | GREEN - &gt; 1
+<p>
+
+   RED | GREEN | GREEN | BLUE | RED | GREEN -&gt; 1
+<p>
+
+   GREEN | GREEN | BLUE | RED | GREEN -&gt; 1
+<p>
+
+   GREEN | GREEN | BLUE | RED -&gt; 1
+<p>
+
+   GREEN | BLUE | RED -&gt; 1
+<p>
+
+   Complexity Overview:
+<p>
+
+   1) Total number of sequences we have to update given a new sequence of length of L is O(L),
+      A frequency count is maintained for each subsequence of which there are L of them.
+   2) If we cache each sequence independently we would get E^L + E^(L-1) + E^(L-2) .. entries,
+      eg. O(E^L) in the worst case (E is cardinality of the event type). Ideally we would 
+      observe much less than that, but this is also not the most efficient 
+      representation, either.
+<p>
+
+      We can at least a little more efficiently encode the data by using a graphical representation.
+      For instance, the observation RED | GREEN | RED results in this graphical encoding:
+        [(RED, 2, [(GREEN, 1, [(RED, 1, [])])]);
+        (GREEN, 1, [(RED, 1, [])])]
+      The benefit is the key for GREEN | RED and is composed of the KEY for GREEN, which saves space referencing GREEN directly.
+      While the complexity doesn't theoretically change much, in practice this can be a big win. Currently NOT implemented.<br>
+
+<pre><span class="keyword">module type</span> <a href="Sequence_model.EVENT.html">EVENT</a> = <code class="type"><a href="Model_intf.EVENT.html">Model_intf.EVENT</a></code></pre><div class="info">
+The event type for each element of a sequence.
+</div>
+
+<pre><span class="keyword">module type</span> <a href="Sequence_model.EVENTS.html">EVENTS</a> = <code class="type"><a href="Model_intf.EVENTS.html">Model_intf.EVENTS</a></code></pre><div class="info">
+The type holding a sequence of events
+</div>
+
+<pre><span class="keyword">module type</span> <a href="Sequence_model.S.html">S</a> = <code class="type"><a href="Model_intf.S.html">Model_intf.S</a></code></pre><div class="info">
+Represents a polymoprhic cache of sequences mapped to probabilities and expectations
+</div>
+
+<pre><span class="keyword">module</span> <a href="Sequence_model.Make.html">Make</a> <code class="code">(</code><code class="code"><span class="constructor">Event</span></code><code class="code"> : </code><code class="type"><a href="Sequence_model.EVENT.html">EVENT</a></code><code class="code">) </code>: <code class="type"><a href="Sequence_model.S.html">S</a></code><code class="type">  with type Events.Event.t = Event.t and module Events.Event = Event</code></pre><div class="info">
+Creates a concrete instance of a sequence model cache for a given Event type
+</div>
+</body></html>

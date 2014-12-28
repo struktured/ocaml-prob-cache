@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Set_model.EVENTS.html">
+<link rel="Up" href="Set_model.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Model_intf" rel="Chapter" href="Model_intf.html">
+<link title="Set_model" rel="Chapter" href="Set_model.html">
+<link title="Sequence_model" rel="Chapter" href="Sequence_model.html"><title>Set_model.S</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Set_model.EVENTS.html" title="Set_model.EVENTS">Previous</a>
+&nbsp;<a class="up" href="Set_model.html" title="Set_model">Up</a>
+&nbsp;</div>
+<h1>Module type <a href="type_Set_model.S.html">Set_model.S</a></h1>
+
+<pre><span class="keyword">module type</span> S = <code class="type"><a href="Model_intf.S.html">Model_intf.S</a></code></pre><div class="info modtype top">
+Represents a polymoprhic cache of event sets mapped to probabilities and expectations<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Model_intf.S.Events.html">Events</a>: <code class="type"><a href="Model_intf.EVENTS.html">Model_intf.EVENTS</a></code><code class="type"> </code></pre><div class="info">
+The module type representing a collection of events
+</div>
+
+<pre><span class="keyword">module</span> <a href="Model_intf.S.Event.html">Event</a>: <code class="type">module type of Events.Event</code></pre><div class="info">
+The module type representing one event
+</div>
+
+<pre><span class="keyword">module</span> <a href="Model_intf.S.Cache.html">Cache</a>: <code class="type">module type of Cache.Make(Events)(Data)</code></pre><div class="info">
+The riak cache backing the probability model.
+</div>
+
+<pre><span id="TYPEupdate_rule"><span class="keyword">type</span> <code class="type"></code>update_rule</span> = <code class="type">Prob_cache_common.Update_rules.Update_fn.t</code> </pre>
+<div class="info ">
+Defines the update rule for expectations<br>
+</div>
+
+
+<pre><span id="TYPEprior_count"><span class="keyword">type</span> <code class="type"></code>prior_count</span> = <code class="type">Events.t -> int</code> </pre>
+<div class="info ">
+Defines a prior function in terms of counts with the observed events as input.<br>
+</div>
+
+
+<pre><span id="TYPEprior_exp"><span class="keyword">type</span> <code class="type"></code>prior_exp</span> = <code class="type">Events.t -> float</code> </pre>
+<div class="info ">
+Define a prior function in terms of real values with the observed events as input.<br>
+</div>
+
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info ">
+A probability model cache<br>
+</div>
+
+
+<pre><span id="VALcount"><span class="keyword">val</span> count</span> : <code class="type">Events.t -><br>       <a href="Model_intf.S.html#TYPEt">t</a> -> (int, [> Opts.Get.error ]) Async.Std.Deferred.Result.t</code></pre><div class="info ">
+How many times <code class="code">events</code> was observed for the model cache <code class="code">t</code>.
+      Errors during the riak fetch routine are propogated back in the deferred result.<br>
+</div>
+
+<pre><span id="VALobserve"><span class="keyword">val</span> observe</span> : <code class="type">?cnt:int -><br>       ?exp:float -><br>       Events.t -><br>       <a href="Model_intf.S.html#TYPEt">t</a> -><br>       (<a href="Model_intf.S.html#TYPEt">t</a>,<br>        [> `Bad_conn<br>         | `Bad_payload<br>         | `Incomplete_payload<br>         | `Notfound<br>         | `Overflow<br>         | `Protobuf_encoder_error<br>         | `Unknown_type<br>         | `Wrong_type ])<br>       Async.Std.Deferred.Result.t</code></pre><div class="info ">
+Observe events with a default count and expectation of 1.<br>
+</div>
+
+<pre><span id="VALprob"><span class="keyword">val</span> prob</span> : <code class="type">?cond:Events.t -><br>       Events.t -><br>       <a href="Model_intf.S.html#TYPEt">t</a> -> (float, [> Opts.Get.error ]) Async.Std.Deferred.Result.t</code></pre><div class="info ">
+Probability of events given observed events, possibly the empty events<br>
+</div>
+
+<pre><span id="VALexp"><span class="keyword">val</span> exp</span> : <code class="type">?cond:Events.t -><br>       Events.t -><br>       <a href="Model_intf.S.html#TYPEt">t</a> -> (float, [> Opts.Get.error ]) Async.Std.Deferred.Result.t</code></pre><div class="info ">
+Expectation of events given observed events, possibly the empty events<br>
+</div>
+
+<pre><span id="VALname"><span class="keyword">val</span> name</span> : <code class="type"><a href="Model_intf.S.html#TYPEt">t</a> -> string</code></pre><div class="info ">
+Gets the name of the cache<br>
+</div>
+
+<pre><span id="VALwith_model"><span class="keyword">val</span> with_model</span> : <code class="type">?update_rule:<a href="Model_intf.S.html#TYPEupdate_rule">update_rule</a> -><br>       ?prior_count:<a href="Model_intf.S.html#TYPEprior_count">prior_count</a> -><br>       ?prior_exp:<a href="Model_intf.S.html#TYPEprior_exp">prior_exp</a> -><br>       host:string -><br>       port:int -><br>       name:string -><br>       (<a href="Model_intf.S.html#TYPEt">t</a> -> ('a, [> Conn.error ] as 'e) Async.Std.Deferred.Result.t) -><br>       ('a, 'e) Async.Std.Deferred.Result.t</code></pre><div class="info ">
+Execute a deferred function for the specified model where <code class="code">name</code> corresponds to a riak bucket for
+     the given <code class="code">host</code> and <code class="code">port</code>. Can optionally specify custom update rules or prior functions.<br>
+</div>
+</body></html>
