@@ -19,18 +19,18 @@ let rand = string_of_int (CCRandom.run (CCRandom.int 100000))
 let run ?(host="localhost") ?(port=8087) ?(name="toy-model-"^rand) () =
 let open Deferred.Result.Monad_infix in 
 Model.with_model ~host ~port ~name 
-  ( fun m -> Model.observe ground_wet_raining m >>=
-    fun m -> Model.observe ground_wet_sprinkler_on m >>=
-    fun m -> Model.observe ground_wet m >>=
-    fun m -> Model.observe ground_not_wet_sprinkler_on m >>=
-    fun m -> Model.prob ~cond:raining ground_wet m (* a = 1. *) >>=
-    fun a -> Model.prob ~cond:sprinkler_on ground_wet m (* b = 5. *) >>=
-    fun b -> Model.prob ground_wet m (* c = .75 *) >>|
-    fun c -> 
+  (fun m -> Model.observe ground_wet_raining m >>=
+    Model.observe ground_wet_sprinkler_on >>=
+    Model.observe ground_wet >>=
+    Model.observe ground_not_wet_sprinkler_on >>=
+    fun m -> Model.prob ~cond:raining ground_wet m (* returns 1. *) >>=
+    fun p_ground_wet_given_raining -> Model.prob ~cond:sprinkler_on ground_wet m (* returns .5 *) >>=
+    fun p_ground_wet_given_sprinkler_on -> Model.prob ground_wet m (* returns .75 *) >>|
+    fun p_ground_wet -> 
     Print.print_string 
-      ("P(GroundWet|Raining) = " ^ Float.to_string a ^ "\n" ^
-      "P(GroundWet|SprinklerOn) = " ^ Float.to_string b ^ "\n" ^
-      "P(GroundWet) = " ^ Float.to_string c ^ "\n"); shutdown 0)
+      ("P(GroundWet|Raining) = " ^ Float.to_string p_ground_wet_given_raining ^ "\n" ^
+       "P(GroundWet|SprinklerOn) = " ^ Float.to_string p_ground_wet_given_sprinkler_on ^ "\n" ^
+       "P(GroundWet) = " ^ Float.to_string p_ground_wet ^ "\n"); shutdown 0)
 
 let () = 
   let host = try Some Sys.argv.(1) with _ -> None in
