@@ -70,10 +70,10 @@ let ground_wet = Model.Events.of_list [GROUND_IS_WET]
 let ground_not_wet_sprinkler_on = Model.Events.of_list [SPRINKLER_ON] 
 
 let m = Model.create "toy-model" |>
-  fun m -> Model.observe ground_wet_raining m |>
-  fun m -> Model.observe ground_wet_sprinkler_on m |>
-  fun m -> Model.observe ground_wet m |>
-  fun m -> Model.observe ground_not_wet_sprinkler_on m
+  Model.observe ground_wet_raining |>
+  Model.observe ground_wet_sprinkler_on |>
+  Model.observe ground_wet |>
+  Model.observe ground_not_wet_sprinkler_on
   
 let ground_wet_given_raining = Model.prob ~cond:raining ground_wet m (* returns 1 *)
 let ground_wet_given_sprinkler_on = Model.prob ~cond:sprinkler_on ground_wet m (* returns .5 *)
@@ -93,7 +93,7 @@ let tails = Model.Events.of_list [TAILS]
 let heads_tails = Model.Events.of_list [HEADS;TAILS] 
 
 let m = Model.create "coin-flips" |>
-  fun m -> Model.observe events m
+  Model.observe events
   
 let cnt,exp = Model.count events m, Model.exp events m (* cnt=1, exp = 1. *)
 
