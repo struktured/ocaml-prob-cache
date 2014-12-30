@@ -9,7 +9,7 @@ let tails = Model.Events.of_list [TAILS]
 let heads_tails = Model.Events.of_list [HEADS;TAILS] 
 
 let m = Model.create "coin-flips" |>
-  fun m -> Model.observe events m
+  Model.observe events 
   
 let cnt,exp = Model.count events m, Model.exp events m (* cnt=1, exp = 1. *)
 
