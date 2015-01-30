@@ -23,9 +23,9 @@ struct
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
-  type update_rule = Update_rules.Update_fn.t
+  type update_rule = t Update_rules.Update_fn.t
 
-  type t = {
+  and t = {
     name : string; 
     cache : Data.t Cache.t; 
     prior_count : prior_count; 
@@ -59,7 +59,7 @@ struct
  
   let increment ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
     let d = Data.update ~cnt ~exp ~update_rule:t.update_rule ~prior_count:t.prior_count
-      ~prior_exp:t.prior_exp events (Cache.get events t.cache) in
+      ~prior_exp:t.prior_exp events (Cache.get events t.cache) t in
     {t with cache=Cache.add events d t.cache}
 
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =

@@ -36,10 +36,6 @@ sig
 
   (** The module type representing one event *)
   module Event : module type of Events.Event
-
-  (** Defines the update rule for expectations *)
-  type update_rule = Update_rules.Update_fn.t
-
   (* Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
 
@@ -48,7 +44,10 @@ sig
 
   (** An abstract events model cache *)
   type t
-  
+ 
+  (** Defines the update rule for expectations *)
+  type update_rule = t Update_rules.Update_fn.t
+ 
   val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t      
   (** Creates a new model cache labeled by the given string. By default, expectations are updated 
      using a mean value estimator and all priors are value 0. *)

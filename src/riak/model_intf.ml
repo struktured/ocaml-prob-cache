@@ -49,9 +49,6 @@ sig
   (** The riak cache backing the probability model. *)
   module Cache : module type of Cache.Make(Events)(Data)
 
-  (** Defines the update rule for expectations *)
-  type update_rule = Update_rules.Update_fn.t
-
   (** Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
 
@@ -60,6 +57,9 @@ sig
 
   (** A probability model cache *)
   type t
+
+  (** Defines the update rule for expectations *)
+  type update_rule = t Update_rules.Update_fn.t
 
   val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t
   (** How many times [events] was observed for the model cache [t].

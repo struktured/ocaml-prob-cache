@@ -38,9 +38,6 @@ sig
   (** The riak cache backing the probability model. *)
   module Cache : module type of Cache.Make(Events)(Data)
 
-  (** Defines the update rule for expectations *)
-  type update_rule = Update_rules.Update_fn.t
-
   (** Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
 
@@ -49,6 +46,9 @@ sig
 
   (** A probability model cache *)
   type t
+
+  (** Defines the update rule for expectations *)
+  type update_rule = t Update_rules.Update_fn.t
 
   val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t
   (** How many times [events] was observed for the model cache [t].
@@ -85,9 +85,9 @@ struct
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
-  type update_rule = Update_rules.Update_fn.t
+  type update_rule = t Update_rules.Update_fn.t
 
-  type t = {
+  and t = {
     name : string; 
     cache : Cache.t; 
     prior_count : prior_count; 
@@ -143,7 +143,7 @@ struct
       ~update_rule:t.update_rule 
       ~prior_count:t.prior_count ~prior_exp:t.prior_exp 
       events 
-      d_opt in
+      d_opt t in
     Cache.put t.cache ~k:events (Cache.Robj.of_value d)
 
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) t =
