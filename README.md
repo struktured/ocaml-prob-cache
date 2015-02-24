@@ -4,7 +4,7 @@ OCaml Probability Cache Library
   
 ## Introduction ##
 
-This library provides a polymorphic cache for maintaining random events to their observed probabilities and expectations. There are two types of supported probability models- a set model and sequence model, either of which can be used in process (with [containers](https://github.com/c-cube/containers)) or over a distributed riak cache (with [riakc_ppx](https://github.com/struktured/riakc_ppx)). 
+This library provides a polymorphic cache for maintaining random events to their observed probabilities and expectations. There are two types of supported probability models- a set model and sequence model, either of which can be used in process (with [containers](https://github.com/c-cube/ocaml-containers)) or over a distributed riak cache (with [riakc_ppx](https://github.com/struktured/riakc_ppx)). 
 
 ## Dependencies ##
 
