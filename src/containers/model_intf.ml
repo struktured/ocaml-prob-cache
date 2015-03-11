@@ -46,7 +46,7 @@ sig
   type t
  
   (** Defines the update rule for expectations *)
-  type update_rule = t Update_rules.Update_fn.t
+  type update_rule = Events.t Update_rules.Update_fn.t
  
   val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t      
   (** Creates a new model cache labeled by the given string. By default, expectations are updated 

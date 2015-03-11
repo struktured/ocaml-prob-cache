@@ -59,7 +59,7 @@ sig
   type t
 
   (** Defines the update rule for expectations *)
-  type update_rule = t Update_rules.Update_fn.t
+  type update_rule = Events.t Update_rules.Update_fn.t
 
   val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t
   (** How many times [events] was observed for the model cache [t].

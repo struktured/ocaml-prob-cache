@@ -12,8 +12,8 @@ sig
   val create : cnt:int -> exp:float -> t
   val count : t -> int
   val expect : t -> float
-  val update : cnt:int -> exp:float -> update_rule:'b Update_rules.Update_fn.t 
-    -> prior_count:('a -> int) -> prior_exp:('a -> float) -> 'a -> t option -> 'b -> t
+  val update : cnt:int -> exp:float -> update_rule:'a Update_rules.Update_fn.t 
+    -> prior_count:('a -> int) -> prior_exp:('a -> float) -> 'a -> t option -> t
 end
 
 
@@ -26,10 +26,10 @@ struct
   let count t = t.cnt
   let expect t = t.exp
 
-  let update ~cnt ~exp ~(update_rule:'b Update_rules.Update_fn.t) ~(prior_count:'a -> int) 
-    ~(prior_exp:'a -> float) (obs:'a) t_opt cache = 
+  let update ~cnt ~exp ~(update_rule:'a Update_rules.Update_fn.t) ~(prior_count:'a -> int) 
+    ~(prior_exp:'a -> float) (obs:'a) t_opt = 
     let t = CCOpt.get_lazy (fun () -> 
       create ~cnt:(prior_count obs) ~exp:(prior_exp obs)) t_opt in
     let cnt = t.cnt + cnt in
-    create ~cnt ~exp:(update_rule ~obs:exp ~cnt ~orig:t.exp cache)
+    create ~cnt ~exp:(update_rule ~obs ~exp ~cnt ~orig:t.exp)
 end
