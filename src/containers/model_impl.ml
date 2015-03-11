@@ -23,9 +23,9 @@ struct
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
-  type update_rule = Update_rules.Update_fn.t
+  type update_rule = Events.t Update_rules.Update_fn.t
 
-  type t = {
+  and t = {
     name : string; 
     cache : Data.t Cache.t; 
     prior_count : prior_count; 

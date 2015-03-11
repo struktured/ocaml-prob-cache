@@ -12,7 +12,7 @@ sig
   val create : cnt:int -> exp:float -> t
   val count : t -> int
   val expect : t -> float
-  val update : cnt:int -> exp:float -> update_rule:Update_rules.Update_fn.t 
+  val update : cnt:int -> exp:float -> update_rule:'a Update_rules.Update_fn.t 
     -> prior_count:('a -> int) -> prior_exp:('a -> float) -> 'a -> t option -> t
 end
 
