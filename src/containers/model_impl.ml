@@ -12,24 +12,23 @@ module type S = Model_intf.S
 
 module Data = Model_intf.Data
 
-
-module Make_for_events (Events:EVENTS) : S with module Events = Events =
+module Make_for_events (Events:EVENTS) : S with module Event = Events.Event =
 struct
-  module Events = Events
   module Event = Events.Event
+  module Events = Events
   module Cache = CCMap.Make(Events)
   module Int = CCInt
-  
+
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
   type update_rule = Events.t Update_rules.Update_fn.t
 
   and t = {
-    name : string; 
-    cache : Data.t Cache.t; 
-    prior_count : prior_count; 
-    prior_exp : prior_exp; 
+    name : string;
+    cache : Data.t Cache.t;
+    prior_count : prior_count;
+    prior_exp : prior_exp;
     update_rule : update_rule }
 
   let default_prior_count (e:Events.t) = 0

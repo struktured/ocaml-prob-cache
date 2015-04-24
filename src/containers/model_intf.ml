@@ -31,11 +31,13 @@ end
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
 sig
-  (** The module type representing a collection of events *)
-  module Events : EVENTS
 
   (** The module type representing one event *)
-  module Event : module type of Events.Event
+  module Event : EVENT
+
+  (** The module type representing a collection of events *)
+  module Events : EVENTS with module Event = Event
+
   (* Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
 
