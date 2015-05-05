@@ -9,22 +9,22 @@ open Async.Std
 
 module Sequence = OldSequence
 
-(** Represents a single event- must be protobuf capable, comparable, and pretty printable *)  
-module type EVENT = 
+(** Represents a single event- must be protobuf capable, comparable, and pretty printable *)
+module type EVENT =
 sig 
   type t [@@deriving protobuf, show, ord]
   include Events_common.EVENT with type t := t
 end
 
 (** Represents an abstract collection of events, must be protobuf capable and pretty printable *)
-module type EVENTS = 
+module type EVENTS =
 sig 
   type t [@@deriving protobuf, show]
   module Event : EVENT
   include Events_common.EVENTS with module Event := Event and type t := t
 end
 
-module Data = Model_intf.Data 
+module Data = Model_intf.Data
 
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
 module type S =
@@ -58,21 +58,26 @@ sig
     (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
   (** Observe a sequence with a default count and expectation of 1. *)
 
-  val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
-  (** Probability of events given observed events, possibly the empty events *)
-
+  val data : ?cond:Events.t -> Events.t -> t -> (Data.t option, [> Opts.Get.error]) Deferred.Result.t
   val exp : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
   (** Expectation of events given observed events, possibly the empty events *)
+  val var : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val sum : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val max : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val min : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val last : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
 
+  val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  (** Probability of events given observed events, possibly the empty events *)
   val name : t -> string
   (** Gets the name of the cache *)
 
-  val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> 
-    host:string -> port:int -> name:string -> 
-    (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) -> 
+  val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp ->
+    host:string -> port:int -> name:string ->
+    (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) ->
          ('a, 'e) Deferred.Result.t
   (** Execute a deferred function for the specified model where [name] corresponds to a riak bucket for
-     the given [host] and [port] *) 
+     the given [host] and [port] *)
 end
 
 module Make_for_events (Events:EVENTS) : S with module Events = Events =
@@ -81,16 +86,16 @@ struct
   module Event = Events.Event
   module Cache = Cache.Make(Events)(Data)
   module Int = CCInt
-  
+
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
   type update_rule = Events.t Update_rules.Update_fn.t
 
   and t = {
-    name : string; 
-    cache : Cache.t; 
-    prior_count : prior_count; 
+    name : string;
+    cache : Cache.t;
+    prior_count : prior_count;
     prior_exp : prior_exp; 
     update_rule : update_rule }
 
@@ -100,36 +105,57 @@ struct
 
   let default_update_rule : update_rule = Update_rules.mean
 
-  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count) 
+  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
     ?(prior_exp=default_prior_exp) cache =
       {cache;prior_count;prior_exp;update_rule;name=Cache.get_bucket cache}
 
-  let data events t =
-   let open Cache.Robj in Cache.get t.cache events >>| function 
+  let _data events t =
+   let open Cache.Robj in Cache.get t.cache events >>| function
     | Ok robj -> 
-        (match robj.contents with  
+        (match robj.contents with
       | [] -> Ok None
       | [d] -> Ok (Some (Content.value d))
       | l -> failwith "should only be one content value")
     | Error `Notfound -> Ok None 
     | Error e -> Error e
 
-  let count (events:Events.t) t : (int, [> Opts.Get.error]) Result.t Deferred.t  = 
-  let open Cache.Robj in data events t >>| function 
-    | Ok (Some data) -> Ok (Data.count data) 
+  let data ?(cond=Events.empty) events t =
+   let joined_events = Events.join cond events in
+   _data joined_events t 
+
+  let count (events:Events.t) t : (int, [> Opts.Get.error]) Result.t Deferred.t =
+  let open Cache.Robj in data events t >>| function
+    | Ok (Some data) -> Ok (Data.count data)
     | Ok None -> Ok (t.prior_count events)
     | Error e -> Error e
 
-  let exp ?(cond=Events.empty) (events:Events.t) t = 
-    let open Deferred.Result.Monad_infix in 
-    let joined_events = Events.join cond events in
-    data joined_events t >>| fun d -> CCOpt.get_lazy (fun () -> t.prior_exp events) (CCOpt.map (fun d' -> Data.expect d') d)
+  let descriptive_stat ?cond events prior_fn stat_fn t =
+    let open Deferred.Result.Monad_infix in
+    data ?cond events t >>| fun d -> CCOpt.get_lazy (fun () -> prior_fn events) (CCOpt.map stat_fn d)
 
-  let prob ?(cond=Events.empty) (events:Events.t) t : (Core.Std.Float.t, [> Opts.Get.error]) Result.t Deferred.t  =
-    let open Deferred.Result.Monad_infix in 
-    count (Events.join events cond) t >>= 
-    fun event_count -> count cond t >>= 
-    fun given_cond_count -> (if given_cond_count = 0 && (not (Events.is_empty cond)) 
+  let exp ?(cond=Events.empty) (events:Events.t) t =
+    descriptive_stat ~cond events t.prior_exp Data.expect t
+
+  let var ?(cond=Events.empty) (events:Events.t) t =
+    descriptive_stat ~cond events (fun _ -> 0.0) Data.var t
+
+  let max ?(cond=Events.empty) (events:Events.t) t =
+    descriptive_stat ~cond events t.prior_exp Data.max t
+
+  let min ?(cond=Events.empty) (events:Events.t) t =
+    descriptive_stat ~cond events t.prior_exp Data.min t
+
+  let last ?(cond=Events.empty) (events:Events.t) t =
+    descriptive_stat ~cond events t.prior_exp Data.last t
+
+  let sum ?(cond=Events.empty) (events:Events.t) t =
+    descriptive_stat ~cond events (fun _ -> 0.0) Data.sum t
+
+  let prob ?(cond=Events.empty) (events:Events.t) t : (Core.Std.Float.t, [> Opts.Get.error]) Result.t Deferred.t =
+    let open Deferred.Result.Monad_infix in
+    count (Events.join events cond) t >>=
+    fun event_count -> count cond t >>=
+    fun given_cond_count -> (if given_cond_count = 0 && (not (Events.is_empty cond))
                              then count Events.empty t else Deferred.return (Ok given_cond_count))
     >>| fun cond_count -> if (cond_count = 0) then Float.of_int 0 else
       (Float.of_int event_count) /. (Float.of_int cond_count)
@@ -137,12 +163,12 @@ struct
 
   let update ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
     let open Deferred.Result.Monad_infix in
-    let open Cache.Robj in data events t >>= 
-    fun d_opt -> let d = Data.update 
-      ~cnt ~exp 
-      ~update_rule:t.update_rule 
-      ~prior_count:t.prior_count ~prior_exp:t.prior_exp 
-      events 
+    let open Cache.Robj in data events t >>=
+    fun d_opt -> let d = Data.update
+      ~cnt ~exp
+      ~update_rule:t.update_rule
+      ~prior_count:t.prior_count ~prior_exp:t.prior_exp
+      events
       d_opt in
     Cache.put t.cache ~k:events (Cache.Robj.of_value d)
 
@@ -156,7 +182,7 @@ struct
   let with_model ?update_rule ?prior_count
     ?prior_exp ~host ~port ~(name:string) f =
       let open Deferred.Result.Monad_infix in
-      Cache.with_cache ~host ~port ~bucket:name (fun c -> 
+      Cache.with_cache ~host ~port ~bucket:name (fun c ->
         let (m:t) = create ?prior_count ?update_rule ?prior_exp c in f m)
 
   let name t = t.name
@@ -169,9 +195,9 @@ struct
   type t = Event.t Hashset.t
 
   let to_list t = List.sort_uniq ~cmp:Event.compare (Sequence.to_list (Hashset.to_seq t))
-  let of_list l = 
-    let h = Hashset.empty (CoreList.length l) in 
-    CoreList.iter ~f:(fun e -> Hashset.add h e) l;h 
+  let of_list l =
+    let h = Hashset.empty (CoreList.length l) in
+    CoreList.iter ~f:(fun e -> Hashset.add h e) l;h
 
   module List = OldList
   type event_list = Event.t list [@@deriving protobuf]
@@ -181,13 +207,13 @@ struct
   let is_empty t = Hashset.cardinal t = 0
 
   let subsets (t:t) : t list = 
-    List.map of_list (Util.powerset (to_list t))
+    List.map of_list (Powerset.generate (to_list t))
 
   let to_protobuf t e =  event_list_to_protobuf (to_list t) e
   let from_protobuf d = of_list (event_list_from_protobuf d)
 
 let pp (f:Format.formatter) t = Hashset.iter (fun e -> Event.pp f e) t
-let show t =  Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t 
+let show t =  Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
 
 end
 
@@ -196,16 +222,16 @@ end
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
 struct
   module Event = Event
-  module List = OldList 
+  module List = OldList
   type t = Event.t list [@@deriving protobuf, show]
   let of_list l = l
   let to_list l = l
   let join = CCList.append
   let empty = CCList.empty
-  let subsets (l:t) = let (accum, _ ) = 
+  let subsets (l:t) = let (accum, _) =
     List.fold_left 
-      (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l')) 
-      ([], []) 
+      (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l'))
+      ([], [])
       l
   in
   []::accum

@@ -1,7 +1,7 @@
 open Prob_cache_common
 module Float = CCFloat
 
-(** Represents a single event- must be comparable and showable *)  
+(** Represents a single event- must be comparable and showable *)
 module type EVENT = Model_intf.EVENT 
 
 (** Represents an abstract collection of events *)
@@ -37,15 +37,36 @@ struct
 
   let default_update_rule : update_rule = Update_rules.mean
 
-  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count) 
+  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
     ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
 
   let count (events:Events.t) (t:t) : int =
     CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get events t.cache))
 
-  let exp ?(cond=Events.empty) (events:Events.t) (t:t) : float = 
+  let data ?(cond=Events.empty) (events:Events.t) (t:t) : Data.t option =
     let joined_events = Events.join cond events in
-    CCOpt.get_lazy (fun () -> t.prior_exp events) (CCOpt.map (fun d -> Data.expect d) (Cache.get joined_events t.cache))
+    Cache.get joined_events t.cache
+
+  let descriptive_stat ?cond (events:Events.t) t prior_fn stat_fn =
+      CCOpt.get_lazy (fun () -> prior_fn events) (CCOpt.map stat_fn (data ?cond events t))
+
+  let exp ?(cond=Events.empty) (events:Events.t) (t:t) : float =
+    descriptive_stat ~cond events t t.prior_exp Data.expect
+
+  let var ?(cond=Events.empty) (events:Events.t) (t:t) : float =
+    descriptive_stat ~cond events t (fun _ -> 0.0) Data.var
+
+  let sum ?(cond=Events.empty) (events:Events.t) (t:t) : float =
+    descriptive_stat ~cond events t (fun _ -> 0.0) Data.sum
+
+  let max ?(cond=Events.empty) (events:Events.t) (t:t) : float =
+    descriptive_stat ~cond events t t.prior_exp Data.max
+
+  let min ?(cond=Events.empty) (events:Events.t) (t:t) : float =
+    descriptive_stat ~cond events t t.prior_exp Data.min
+
+  let last ?(cond=Events.empty) (events:Events.t) (t:t) : float =
+    descriptive_stat ~cond events t t.prior_exp Data.last
 
   let prob ?(cond=Events.empty) (events:Events.t) (t:t) =
    let cond_count = count cond t in
@@ -55,7 +76,7 @@ struct
     if (cond_count = 0) then (Float.of_int 0) else
     let joined_events_count = count (Events.join cond events) t in
     (Float.of_int joined_events_count) /. (Float.of_int cond_count)
- 
+
   let increment ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
     let d = Data.update ~cnt ~exp ~update_rule:t.update_rule ~prior_count:t.prior_count
       ~prior_exp:t.prior_exp events (Cache.get events t.cache) in
@@ -67,14 +88,14 @@ struct
   let name t = t.name
 end
 
-module Make_event_set(Event:EVENT) : EVENTS with module Event = Event = 
+module Make_event_set(Event:EVENT) : EVENTS with module Event = Event =
 struct
   module Multiset = CCMultiSet.Make(Event)
   include Multiset
   module Event = Event
 
   let join = union
-  let subsets t = List.map of_list (Util.powerset (to_list t))
+  let subsets t = List.map of_list (Powerset.generate (to_list t))
 end
 
 
@@ -86,14 +107,12 @@ struct
   let to_list l = l
   let join = CCList.append
   let empty = CCList.empty
-  let subsets (l:t) = let (accum, _ ) = 
-    List.fold_left 
-      (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l')) 
-      ([], []) 
+  let subsets (l:t) = let (accum, _) =
+    List.fold_left
+      (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l'))
+      ([], [])
       l
   in
   []::accum
   let is_empty t = empty = t
 end
-
-   

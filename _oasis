@@ -27,8 +27,8 @@ Library prob_cache_common
   Path:               src/common
   Pack:               true
   Modules:            Update_rules, Data, Events_common
-  InternalModules:    Util
-  BuildDepends:       containers, containers.misc, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf 
+  InternalModules:    Powerset
+  BuildDepends:       containers, containers.misc, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, oml
   FindLibName:        prob_cache_common
 
 
