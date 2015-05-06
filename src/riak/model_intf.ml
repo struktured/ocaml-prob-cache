@@ -12,23 +12,36 @@ module List = CCList
 
 open Async.Std
 
-(** Represents a single event- must be protobuf capable, comparable, and pretty printable *)  
-module type EVENT = 
-sig 
+(** Represents a single event- must be protobuf capable, comparable, and pretty printable *)
+module type EVENT =
+sig
   type t [@@deriving protobuf, show, ord]
   include Events_common.EVENT with type t := t
 end
 
 (** Represents an abstract collection of events, must be protobuf capable and pretty printable *)
-module type EVENTS = 
-sig 
+module type EVENTS =
+sig
   type t [@@deriving protobuf, show]
   module Event : EVENT
   include Events_common.EVENTS with module Event := Event and type t := t
 end
 
 module Data = struct
-  module Proto_T = struct type t = {cnt:int [@key 1];exp:float [@key 2]} [@@deriving protobuf, show] end
+  module Proto_T =
+    struct
+      (** Compute running statitics using recurrence equations. *)
+      type t = Oml.Running.t = { size : int [@key 1]         (** Number of observations. *)
+      ; last : float [@key 2]       (** Last observation. *)
+      ; max : float [@key 3]       (** Maxiumum. *)
+      ; min : float [@key 4]       (** Minimum. *)
+      ; sum : float [@key 5]       (** Sum . *)
+      ; sum_sq : float [@key 6]    (** Sum of squares. *)
+      ; mean : float [@key 7]      (** Mean. *)
+      ; var : float [@key 8]       (** _Unbiased_ variance. *)
+      } [@@deriving show, protobuf]
+    end
+
   include Data.Make(Proto_T)
 
   let from_protobuf = Proto_T.from_protobuf
@@ -65,29 +78,29 @@ sig
   (** How many times [events] was observed for the model cache [t].
       Errors during the riak fetch routine are propogated back in the deferred result. *)
 
-  val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> 
+  val observe : ?cnt:int -> ?exp:float -> Events.t -> t ->
     (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
   (** Observe events with a default count and expectation of 1. *)
 
-  val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t  
+  val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
   (** Probability of events given observed events, possibly the empty events *)
 
+  val data : ?cond:Events.t -> Events.t -> t -> (Data.t option, [> Opts.Get.error]) Deferred.Result.t
   val exp : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
   (** Expectation of events given observed events, possibly the empty events *)
+  val var : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val sum : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val max : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val min : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val last : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
 
   val name : t -> string
   (** Gets the name of the cache *)
 
-  val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> 
-    host:string -> port:int -> name:string -> 
-    (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) -> 
+  val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp ->
+    host:string -> port:int -> name:string ->
+    (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) ->
          ('a, 'e) Deferred.Result.t
   (** Execute a deferred function for the specified model where [name] corresponds to a riak bucket for
-     the given [host] and [port]. Can optionally specify custom update rules or prior functions. *) 
+     the given [host] and [port]. Can optionally specify custom update rules or prior functions. *)
 end
-
-
-
-
-
-   
