@@ -51,7 +51,7 @@ struct
     let prior_exp = CCOpt.get_lazy (fun () -> fun _ -> 0.0) prior_exp in
     let t = CCOpt.get_lazy (fun () ->
       create ~cnt:(prior_count obs) ~exp:(prior_exp obs)) t_opt in
-    let mean_update ?(size=1) ~n_sum ~n_sum_sq ~n_size t v =
+    let mean_update ~size ~n_sum ~n_sum_sq ~n_size t v =
       update_rule ~obs ~exp:v ~cnt:(int_of_float n_size) ~orig:(expect t) in
     Oml.Running.update ~mean_update ~size:cnt t exp
 end
