@@ -24,6 +24,7 @@ remove: [
 ]
 
 depends: [
+  "oasis" {build}
   "ocamlfind"
   "core" {>= "109.12.00"}
   "async"
