@@ -25,9 +25,9 @@ remove: [
 
 depends: [
   "oasis" {build}
-  "ppx_deriving_protobuf" {>= "2.0"}
   "ocamlfind"
   "ppx_deriving" {>= "1.1"}
+  "ppx_deriving_protobuf" {>= "2.0"}
   "containers" 
   "sequence"
   "oml"
