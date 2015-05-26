@@ -14,6 +14,7 @@ end
 
 module type S =
 sig
+  type 'a update_rule = 'a Update_rules.Update_fn.t
   module T : DATA
   type t = T.t
   val create : cnt:int -> exp:float -> t
@@ -24,9 +25,9 @@ sig
   val min : t -> float
   val sum : t -> float
   val last : t ->  float
-
-  val update : cnt:int -> exp:float -> update_rule:'a Update_rules.Update_fn.t
+    val update : cnt:int -> exp:float -> update_rule:'a update_rule
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) -> 'a -> t option -> t
+  val join : obs:'a -> update_rule:'a update_rule -> t -> t -> t
 end
 
 module Make(Data:DATA) : S with module T = Data
