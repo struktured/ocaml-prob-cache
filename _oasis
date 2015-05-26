@@ -28,7 +28,7 @@ Library prob_cache_common
   Pack:               true
   Modules:            Update_rules, Data, Events_common
   InternalModules:    Powerset
-  BuildDepends:       containers, containers.misc, containers.data, containers.advanced, containers.pervasives, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, oml
+  BuildDepends:       containers, containers.misc, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, oml
 
   FindLibName:        prob_cache_common
 
@@ -42,7 +42,7 @@ Library prob_cache_containers
   Pack:               true
   Modules:            Model_intf, Set_model, Sequence_model
   InternalModules:    Model_impl
-  BuildDepends:       prob_cache_common, containers, containers.misc, containers.data, containers.advanced, containers.pervasives, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf
+  BuildDepends:       prob_cache_common, containers, containers.misc, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf
   FindLibName:        prob_cache_containers
 
 Library prob_cache_riak
@@ -54,7 +54,7 @@ Library prob_cache_riak
   Pack:               true
   Modules:            Model_intf, Set_model, Sequence_model
   InternalModules:    Model_impl
-  BuildDepends:       threads, containers, containers.misc, containers.pervasives, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, prob_cache_common, core, async, bitstring, riakc_ppx
+  BuildDepends:       threads, containers, containers.misc, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, prob_cache_common, core, async, bitstring, riakc_ppx
   FindLibName:        prob_cache_riak
 
 
