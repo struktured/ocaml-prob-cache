@@ -16,7 +16,7 @@ module type S =
 sig
   type 'a update_rule = 'a Update_rules.Update_fn.t
   module T : DATA
-  type t =  T.t
+  type t =  T.t [@@deriving show]
   val create : cnt:int -> exp:float -> t
   val bootstrap : cnt:int -> ?last:float -> ?max:float -> ?min:float ->
     sum:float -> sum_sq:float -> ?mean:float -> ?var:float ->
