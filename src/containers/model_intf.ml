@@ -20,6 +20,7 @@ sig
   val of_list : Event.t list -> t
   val to_list : t -> Event.t list
   val subsets : t -> t list
+  val show : t -> string
 end
 
 module Data = struct
@@ -50,6 +51,8 @@ sig
   (** The module type representing a collection of events *)
   module Events : EVENTS with module Event = Event
 
+  module Data = Data
+
   (* Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
 
@@ -60,7 +63,7 @@ sig
   type t
 
   (** Defines the update rule for expectations *)
-  type update_rule = Events.t Update_rules.Update_fn.t
+  type update_rule = Events.t Data.update_rule
 
   val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
@@ -74,19 +77,36 @@ sig
     The returned model reflects the observation updates
     while the original instance is not guaranteed to be current. *)
 
+  val observe_data : Data.t -> Events.t -> t -> t
+  (** Observe events from a [data] instance of descriptive statistics. This
+    can be used to batch updates, or to load independently generated datasets
+    together in a meaningful way. The returned model reflects the observation
+    updates while the original instance is not guaranteed to be current. *)
+
   val data : ?cond:Events.t -> Events.t -> t -> Data.t option
-
-  val exp : ?cond:Events.t -> Events.t -> t -> float
-  (** Expectation of events given observed events, possibly the empty events *)
-
-  val var : ?cond:Events.t -> Events.t -> t -> float
-  val sum : ?cond:Events.t -> Events.t -> t -> float
-  val max : ?cond:Events.t -> Events.t -> t -> float
-  val min : ?cond:Events.t -> Events.t -> t -> float
-  val last : ?cond:Events.t -> Events.t -> t -> float
+  (** Gets the desscriptive statistics [data] for the given events conditioned
+      on [cond]. Returns [None] if no data exists for the events. *)
 
   val prob : ?cond:Events.t -> Events.t -> t -> float
-  (** Probability of events given observed events, possibly the empty events *)
+  (** Probability of events given [cond], possibly the empty events *)
+
+  val exp : ?cond:Events.t -> Events.t -> t -> float
+  (** Expectation of events given [cond], possibly the empty events *)
+
+  val var : ?cond:Events.t -> Events.t -> t -> float
+  (** Statistical variance of events given [cond], possibly the empty events *)
+
+  val sum : ?cond:Events.t -> Events.t -> t -> float
+  (** Aggregated sum of events given [cond], possibly the empty events *)
+
+  val max : ?cond:Events.t -> Events.t -> t -> float
+  (** Observed maximum of events given [cond], possibly the empty events *)
+
+  val min : ?cond:Events.t -> Events.t -> t -> float
+  (** Observed minimum of events given [cond], possibly the empty events *)
+
+  val last : ?cond:Events.t -> Events.t -> t -> float
+  (** Observed last value of events given [cond], possibly the empty events *)
 
   val name : t -> string
   (** Gets the name of the cache *)

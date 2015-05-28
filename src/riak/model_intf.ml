@@ -9,9 +9,8 @@ open Core.Std
 module Float = CCFloat (* for pretty printing, ord, etc *)
 module CoreList = List
 module List = CCList
-
 open Async.Std
-
+module Result = Deferred.Result
 (** Represents a single event- must be protobuf capable, comparable, and pretty printable *)
 module type EVENT =
 sig
@@ -74,33 +73,49 @@ sig
   (** Defines the update rule for expectations *)
   type update_rule = Events.t Update_rules.Update_fn.t
 
-  val count : Events.t -> t -> (int, [> Opts.Get.error]) Deferred.Result.t
+  val count : Events.t -> t -> (int, [> Opts.Get.error]) Result.t
   (** How many times [events] was observed for the model cache [t].
       Errors during the riak fetch routine are propogated back in the deferred result. *)
 
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t ->
-    (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Deferred.Result.t
+    (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Result.t
   (** Observe events with a default count and expectation of 1. *)
 
-  val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val observe_data : Data.t -> Events.t -> t ->
+    (t, [> Opts.Put.error | Opts.Get.error | Conn.error ]) Result.t
+
+  val data : ?cond:Events.t -> Events.t -> t -> (Data.t option, [> Opts.Get.error]) Result.t
+  (** Gets the desscriptive statistics [data] for the given events conditioned
+      on [cond]. Returns [None] if no data exists for the events. *)
+
+  val prob : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Result.t
   (** Probability of events given observed events, possibly the empty events *)
 
-  val data : ?cond:Events.t -> Events.t -> t -> (Data.t option, [> Opts.Get.error]) Deferred.Result.t
-  val exp : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
-  (** Expectation of events given observed events, possibly the empty events *)
-  val var : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
-  val sum : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
-  val max : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
-  val min : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
-  val last : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Deferred.Result.t
+  val exp : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Result.t
+  (** Expectation of events given [cond], possibly the empty events *)
+
+  val var : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Result.t
+  (** Statistical variance of events given [cond], possibly the empty events *)
+
+  val sum : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Result.t
+  (** Aggregated sum of events given [cond], possibly the empty events *)
+
+  val max : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Result.t
+  (** Observed maximum of events given [cond], possibly the empty events *)
+
+  val min : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Result.t
+  (** Observed minimum of events given [cond], possibly the empty events *)
+
+  val last : ?cond:Events.t -> Events.t -> t -> (float, [> Opts.Get.error]) Result.t
+  (** Observed last value of events given [cond], possibly the empty events *)
 
   val name : t -> string
   (** Gets the name of the cache *)
 
   val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp ->
     host:string -> port:int -> name:string ->
-    (t -> ('a, [> Conn.error] as 'e) Deferred.Result.t) ->
-         ('a, 'e) Deferred.Result.t
+    (t -> ('a, [> Conn.error] as 'e) Result.t) ->
+         ('a, 'e) Result.t
   (** Execute a deferred function for the specified model where [name] corresponds to a riak bucket for
      the given [host] and [port]. Can optionally specify custom update rules or prior functions. *)
 end
