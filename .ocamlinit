@@ -1,0 +1,15 @@
+#require "prob_cache_containers";;
+open Prob_cache_common;;
+open Prob_cache_containers;;
+
+module Example = 
+  struct
+    module E = struct type t = R|B|G [@@deriving show, ord] end
+    module C = Set_model.Make(E)
+    module RB = CCRingBuffer.Make(E)
+    module Events = C.Events
+
+    let cache = C.create "colors"
+    let rb = RB.create ~bounded:true 10
+  end;;
+

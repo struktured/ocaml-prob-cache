@@ -7,10 +7,13 @@ module type EVENT = Model_intf.EVENT
 (** Represents an abstract collection of events *)
 module type EVENTS = Model_intf.EVENTS
 
-(** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
+(** A module type provided polymorphic probability model caches. 
+    Uses in memory models backed by the containers api *)
+
 module type S = Model_intf.S
 
 module Data = Model_intf.Data
+module Fun = CCFun
 
 module Make_for_events (Events:EVENTS) : S with module Event = Events.Event =
 struct
@@ -18,11 +21,11 @@ struct
   module Events = Events
   module Cache = CCMap.Make(Events)
   module Int = CCInt
-
+  module Data = Data
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
-  type update_rule = Events.t Update_rules.Update_fn.t
+  type update_rule = Events.t Data.update_rule
 
   and t = {
     name : string;
@@ -54,10 +57,10 @@ struct
     descriptive_stat ~cond events t t.prior_exp Data.expect
 
   let var ?(cond=Events.empty) (events:Events.t) (t:t) : float =
-    descriptive_stat ~cond events t (fun _ -> 0.0) Data.var
+    descriptive_stat ~cond events t (Fun.const 0.0) Data.var
 
   let sum ?(cond=Events.empty) (events:Events.t) (t:t) : float =
-    descriptive_stat ~cond events t (fun _ -> 0.0) Data.sum
+    descriptive_stat ~cond events t (Fun.const 0.0) Data.sum
 
   let max ?(cond=Events.empty) (events:Events.t) (t:t) : float =
     descriptive_stat ~cond events t t.prior_exp Data.max
@@ -77,13 +80,22 @@ struct
     let joined_events_count = count (Events.join cond events) t in
     (Float.of_int joined_events_count) /. (Float.of_int cond_count)
 
-  let increment ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
+  let _observe ~cnt ~exp (events:Events.t) (t:t) =
     let d = Data.update ~cnt ~exp ~update_rule:t.update_rule ~prior_count:t.prior_count
       ~prior_exp:t.prior_exp events (Cache.get events t.cache) in
     {t with cache=Cache.add events d t.cache}
 
+  let _observe_data data (events:Events.t) (t:t) =
+    let orig_opt = Cache.get events t.cache in
+    CCOpt.maybe (fun orig -> let data' =
+      Data.join ~obs:events ~update_rule:t.update_rule orig data in
+    {t with cache=Cache.add events data' t.cache}) t orig_opt
+
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =
-    List.fold_right (fun l t -> increment ~cnt ~exp l t) (Events.subsets events) t
+    CCList.fold_right (fun l t -> _observe ~cnt ~exp l t) (Events.subsets events) t
+
+  let observe_data data (events:Events.t) (t:t) : t =
+    CCList.fold_right (fun l t -> _observe_data data l t) (Events.subsets events) t
 
   let name t = t.name
 end
@@ -96,6 +108,7 @@ struct
 
   let join = union
   let subsets t = List.map of_list (Powerset.generate (to_list t))
+  let show t = to_list t |> List.map Event.show |> String.concat " & "
 end
 
 
@@ -115,4 +128,5 @@ struct
   in
   []::accum
   let is_empty t = empty = t
+  let show t = t |> List.map Event.show |> String.concat " & "
 end
