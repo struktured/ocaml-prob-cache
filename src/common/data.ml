@@ -31,6 +31,7 @@ sig
   val min : t -> float
   val sum : t -> float
   val last : t -> float
+  val sum_sq : t -> float
   val update : cnt:int -> exp:float -> update_rule:'a update_rule
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) ->
       'a -> t option -> t
@@ -66,6 +67,7 @@ struct
   let max t = t.Oml.Running.max
   let sum t = t.Oml.Running.sum
   let last t = t.Oml.Running.last
+  let sum_sq t = t.Oml.Running.sum_sq
 
   let _mean_update ~(update_rule:'a update_rule)
     ~obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@ 

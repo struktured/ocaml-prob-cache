@@ -27,7 +27,8 @@ sig
   val max : t -> float
   val min : t -> float
   val sum : t -> float
-  val last : t ->  float
+  val last : t -> float
+  val sum_sq : t -> float
   val update : cnt:int -> exp:float -> update_rule:'a update_rule
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) -> 'a -> t option -> t
   val join : obs:'a -> update_rule:'a update_rule -> t -> t -> t
