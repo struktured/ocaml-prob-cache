@@ -109,6 +109,7 @@ struct
   let join = union
   let subsets t = List.map of_list (Powerset.generate (to_list t))
   let show t = to_list t |> List.map Event.show |> String.concat " & "
+  let pp formatter t = Format.fprintf formatter "%s" (show t)
 end
 
 
@@ -129,4 +130,6 @@ struct
   []::accum
   let is_empty t = empty = t
   let show t = t |> List.map Event.show |> String.concat " & "
+  let pp formatter t = Format.fprintf formatter "%s" (show t)
+
 end

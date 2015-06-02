@@ -4,6 +4,7 @@ module type EVENT = sig type t [@@deriving show] end
 (** Represents an abstract collection of events *)
 module type EVENTS = 
 sig
+(*  module type EVENT = EVENT *)
   module Event : EVENT
   type t [@@deriving show] 
   val is_empty : t -> bool

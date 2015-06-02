@@ -7,20 +7,18 @@ open Prob_cache_common
 module Float = CCFloat
 
 (** Represents a single event- must be comparable and showable *)
-module type EVENT = sig type t [@@deriving ord, show] end
+module type EVENT = 
+  sig  
+    type t [@@deriving show, ord]
+    include Events_common.EVENT with type t := t
+  end
 
 (** Represents an abstract collection of events *)
 module type EVENTS =
 sig
+  type t [@@deriving show, ord]
   module Event : EVENT
-  type t [@@deriving ord]
-  val is_empty : t -> bool
-  val join: t -> t -> t
-  val empty : t
-  val of_list : Event.t list -> t
-  val to_list : t -> Event.t list
-  val subsets : t -> t list
-  val show : t -> string
+  include Events_common.EVENTS with module Event := Event and type t := t 
 end
 
 module Data = struct
