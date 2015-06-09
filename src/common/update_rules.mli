@@ -2,7 +2,7 @@ module type WEIGHT = sig val value : float end
 
 module Update_fn :
 sig
-  type 'a t = ?orig:float -> obs:'a -> exp:float -> cnt:int -> float
+  type 'a t = ?orig:float -> ?obs:'a -> exp:float -> cnt:int -> float
 end
 
 module type S =

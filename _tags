@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: d12b5e6c9beeb55858b0f47fe9e2a840)
+# DO NOT EDIT (digest: 2c62d31572cf3c5cb05a1faa2895f994)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -19,6 +19,8 @@ true: annot, bin_annot
 "src/common/update_rules.cmx": for-pack(Prob_cache_common)
 "src/common/data.cmx": for-pack(Prob_cache_common)
 "src/common/events_common.cmx": for-pack(Prob_cache_common)
+"src/common/calculus.cmx": for-pack(Prob_cache_common)
+"src/common/model_common.cmx": for-pack(Prob_cache_common)
 "src/common/powerset.cmx": for-pack(Prob_cache_common)
 <src/common/*.ml{,i,y}>: pkg_containers
 <src/common/*.ml{,i,y}>: pkg_containers.advanced

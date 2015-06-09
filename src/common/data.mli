@@ -31,7 +31,7 @@ sig
   val sum_sq : t -> float
   val update : cnt:int -> exp:float -> update_rule:'a update_rule
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) -> 'a -> t option -> t
-  val join : obs:'a -> update_rule:'a update_rule -> t -> t -> t
+  val join : ?obs:'a -> update_rule:'a update_rule -> t -> t -> t
 end
 
 module Make(Data:DATA) : S with module T = Data

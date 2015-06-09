@@ -3,7 +3,7 @@ module Float = CCFloat
 module type WEIGHT = sig val value : float end
 
 module Update_fn = struct
-  type 'a t = ?orig:float -> obs:'a -> exp:float -> cnt:int -> float
+  type 'a t = ?orig:float -> ?obs:'a -> exp:float -> cnt:int -> float
 end
 
 module type S =
@@ -18,20 +18,20 @@ end
 
 module Mean_weight_provider : WEIGHT_PROVIDER =
 struct
-  let weight ?orig ~obs ~exp ~cnt = 1.0 /. (Float.of_int cnt)
+  let weight ?orig ?obs ~exp ~cnt = 1.0 /. (Float.of_int cnt)
 end
 
 module Constant_weight_provider(Weight:WEIGHT) : WEIGHT_PROVIDER = 
 struct
-  let weight ?orig ~obs ~exp ~cnt = Weight.value
+  let weight ?orig ?obs ~exp ~cnt = Weight.value
 end
 
 module Make_weighted(Weight_provider:WEIGHT_PROVIDER) = 
 struct
   module Weight_provider = Weight_provider
-  let update ?(orig=0.) ~obs ~exp ~cnt = 
+  let update ?(orig=0.) ?obs ~exp ~cnt = 
     if (cnt = 0) then exp else
-      orig +. (exp -. orig) *. Weight_provider.weight ~orig ~obs ~exp ~cnt
+      orig +. (exp -. orig) *. Weight_provider.weight ~orig ?obs ~exp ~cnt
 end
 
 module Constant(Weight:WEIGHT) = Make_weighted(Constant_weight_provider(Weight))

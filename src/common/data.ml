@@ -35,7 +35,7 @@ sig
   val update : cnt:int -> exp:float -> update_rule:'a update_rule
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) ->
       'a -> t option -> t
-  val join : obs:'a -> update_rule:'a update_rule -> t -> t -> t
+  val join : ?obs:'a -> update_rule:'a update_rule -> t -> t -> t
 end
 
 module Fun = CCFun
@@ -70,10 +70,10 @@ struct
   let sum_sq t = t.Oml.Running.sum_sq
 
   let _mean_update ~(update_rule:'a update_rule)
-    ~obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@ 
+    ?obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@ 
       Printf.sprintf "t=\"%s\", size=%d, n_sum=%f, n_sum_sqr=%f, n_size=%f, v=%f" 
         (Data.show t) size n_sum n_sum_sq n_size v;
-      update_rule ~obs ~exp:v ~cnt:(int_of_float n_size) ~orig:(expect t)
+      update_rule ?obs ~exp:v ~cnt:(int_of_float n_size) ~orig:(expect t)
 
   let update ~cnt ~exp ~(update_rule:'a update_rule)
     ?prior_count ?prior_exp (obs:'a) t_opt =
@@ -84,7 +84,7 @@ struct
     let mean_update = _mean_update ~update_rule ~obs in
     Oml.Running.update ~mean_update ~size:cnt t exp
 
-  let join ~obs ~update_rule =
-    let mean_update = _mean_update ~obs ~update_rule in
+  let join ?obs ~update_rule =
+    let mean_update = _mean_update ?obs ~update_rule in
     Oml.Running.join ~mean_update ?var_update:None
 end
