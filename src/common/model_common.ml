@@ -12,12 +12,12 @@ module type MONAD =
     val map :  ('a -> 'b) -> 'a t -> 'b t
     val bind : ('a -> 'b t) -> 'a t -> 'b t
     val return : 'a -> 'a t
-
+    val all : 'a t list -> 'a list t
     module Infix :
-      sig 
-        val (>>|) : ('a -> 'b) -> 'a t -> 'b t
-        val (>|=) : ('a -> 'b) -> 'a t -> 'b t
-        val (>>=) : ('a -> 'b t) -> 'a t -> 'b t
+      sig
+        val (>>|) : 'a t -> ('a -> 'b) -> 'b t
+        val (>|=) : 'a t -> ('a -> 'b) -> 'b t
+        val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
       end
   end
 
@@ -26,6 +26,9 @@ module type RESULT =
     type ('ok, 'err) t = Ok of 'ok | Error of 'err 
     val map : ('ok -> 'res) -> ('ok, 'err) t -> ('res, 'err) t
     val bind : ('ok -> ('res, 'err) t) -> ('ok, 'err) t -> ('res, 'err) t
+    val return: 'ok -> ('ok, 'err) t
+    val all : ('ok, 'err) t list -> ('ok list, 'err) t
+  
     module Monad_infix :
       sig
         val (>>|) : ('ok, 'err) t -> ('ok -> 'res) -> ('res, 'err) t
@@ -52,23 +55,12 @@ sig
   module Data_error : ERROR
   module Events_error : ERROR
 
-  module Or_error :
-  sig
+  module Or_error : MONAD with 
     type 'a t = ('a, 
       [ `Create_error of Create_error.t 
       | `Observe_error of Observe_error.t
       | `Data_error of Data_error.t
       | `Events_error of Events_error.t]) Result.t
-    val map : ('a -> 'b) -> 'a t -> 'b t
-    val bind : ('a -> 'b t) -> 'a t -> 'b t
-    val return : 'a -> 'a t
-    module Monad_infix :
-      sig
-        val (>>|) : 'a t -> ('a -> 'b) -> 'b t
-        val (>|=) : 'a t -> ('a -> 'b) ->  'b t
-        val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
-      end
-  end
   
   (** The module type representing one event *)
   module Event : EVENT
@@ -103,9 +95,13 @@ sig
     together in a meaningful way. The returned model reflects the observation
     updates while the original instance is not guaranteed to be current. *)
 
-  val data : Events.t -> t -> (Data.t option, Data_error.t) Result.t
+  val data_maybe : Events.t -> t -> (Data.t option, Data_error.t) Result.t
   (** Gets the descriptive statistics data for the given events. 
       Returns [None] if no data exists for the events. *)
+
+  val data : Events.t -> t -> (Data.t, Data_error.t) Result.t
+  (** Gets the descriptive statistics data for the given events. 
+      Returns data with count of zero otherwise and other values set to nan. *)
 
   val events : (Events.t -> bool) -> t -> (Events.t, Events_error.t) Result.t
   (** Gets all observed events given a filter function from the model. *)
@@ -125,7 +121,8 @@ sig
       val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> 
         t Or_error.t
       val observe : Data.t -> Events.t -> t -> t Or_error.t
-      val data : Events.t -> t -> Data.t option Or_error.t
+      val data : Events.t -> t -> Data.t Or_error.t
+      val data_maybe : Events.t -> t -> Data.t Or_error.t
       val events : (Events.t -> bool) -> t -> Events.t Or_error.t
       val complement : Events.t -> t -> Events.t Or_error.t
       val name : t -> string

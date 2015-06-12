@@ -36,6 +36,9 @@ sig
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) ->
       'a -> t option -> t
   val join : ?obs:'a -> update_rule:'a update_rule -> t -> t -> t
+  (*val join_maybe : ?obs:'a -> update_rule:'a update_rule -> t option -> t option -> t option*)
+  val empty : t
+  val of_option : t option -> t
 end
 
 module Fun = CCFun
@@ -87,4 +90,16 @@ struct
   let join ?obs ~update_rule =
     let mean_update = _mean_update ?obs ~update_rule in
     Oml.Running.join ~mean_update ?var_update:None
-end
+
+  let empty = Oml.Running.empty
+  let of_option = function 
+    | None -> empty
+    | Some d -> d
+ 
+(* let join_maybe ?obs ~update_rule t t' =
+    function 
+    | None,None -> None
+    | Some t, Some t' -> Some (join ?obs ~update_rule t t')
+    | None, Some t' -> Some t'
+    | Some t, None -> Some t  *)
+  end
