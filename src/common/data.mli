@@ -32,6 +32,7 @@ sig
   val update : cnt:int -> exp:float -> update_rule:'a update_rule
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) -> 'a -> t option -> t
   val join : ?obs:'a -> update_rule:'a update_rule -> t -> t -> t
+  val part : ?obs:'a -> update_rule:'a update_rule -> t -> t -> t
   val empty : t
   val of_option : t option -> t
   end

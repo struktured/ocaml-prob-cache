@@ -13,6 +13,7 @@ module type MONAD =
     val bind : ('a -> 'b t) -> 'a t -> 'b t
     val return : 'a -> 'a t
     val all : 'a t list -> 'a list t
+    val both : 'a t -> 'b t -> ('a * 'b) t
     module Infix :
       sig
         val (>>|) : 'a t -> ('a -> 'b) -> 'b t
@@ -28,6 +29,7 @@ module type RESULT =
     val bind : ('ok -> ('res, 'err) t) -> ('ok, 'err) t -> ('res, 'err) t
     val return: 'ok -> ('ok, 'err) t
     val all : ('ok, 'err) t list -> ('ok list, 'err) t
+    val both : ('ok, 'err) t -> ('ok, 'err) t -> ('ok * 'ok, 'err) t
   
     module Monad_infix :
       sig
