@@ -156,16 +156,25 @@ module Given =
     let empty : t = (Or.empty, Or.empty)
 
     let none o : t = (o, Or.empty)
-     
 
-    let rec breakdown_ors m y (ors:And.t list) = function 
+    (* TODO *)
+    let given_count m y = Or_error.return 0
+    let events_of_ors ors = Events.of_list []
+
+    let rec breakdown_ors m y = function
         | [] -> Or_error.return 1.0
-        | [x::xs] -> 
-            let x_given_y = breakdown_ors m xs
+        | [x] -> And.count m (x & (events_of_ors y)) >>= 
+          fun numer -> given_count m y >>| fun denom ->
+          float numer /. float denom
+        | x::xs ->
+          breakdown_ors m y [x] >>= fun x_given_y ->
+          breakdown_ors m y xs >>= fun xs_given_y ->
+          CCList.fold_right Events.join xs Events.empty |> fun all_events ->
+          breakdown_ors m y [all_events] >>| fun all_given_y ->
+          x_given_y +. xs_given_y -. all_given_y
     let prob m : t -> Derived.t Or_error.t = 
       fun (ors, given) -> 
-        
-        Or.derived m or2 >>| fun derived_or2 -> derived_or2
+        Or.derived m given >>| fun derived_given -> derived_given
 
       (*        P(A + B + C|D) = P(A|D) + P(B + C|D) - P(A & B & C|D)*)
 
