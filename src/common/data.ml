@@ -91,19 +91,12 @@ struct
     let mean_update = _mean_update ?obs ~update_rule in
     Oml.Running.join ~mean_update ?var_update:None
 
-  let part ?obs ~update_rule = 
+  let part ?obs ~update_rule d1 d2 = 
     let mean_update = _mean_update ?obs ~update_rule in
-    Oml.Running.part ~mean_update ?var_update:None 
+    Oml.Running.part ~mean_update ?var_update:None d1 d2
 
   let empty = Oml.Running.empty
   let of_option = function 
     | None -> empty
     | Some d -> d
- 
-(* let join_maybe ?obs ~update_rule t t' =
-    function 
-    | None,None -> None
-    | Some t, Some t' -> Some (join ?obs ~update_rule t t')
-    | None, Some t' -> Some t'
-    | Some t, None -> Some t  *)
-  end
+end

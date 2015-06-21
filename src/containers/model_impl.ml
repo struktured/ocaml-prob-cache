@@ -101,7 +101,7 @@ struct
 end
 
 module Make_event_set(Event:EVENT) : EVENTS with module Event = Event =
-struct
+Events_common.Make(struct
   module Multiset = CCMultiSet.Make(Event)
   include Multiset
   module Event = Event
@@ -110,11 +110,12 @@ struct
   let subsets t = List.map of_list (Powerset.generate (to_list t))
   let show t = to_list t |> List.map Event.show |> String.concat " & "
   let pp formatter t = Format.fprintf formatter "%s" (show t)
-end
+  let filter f l = to_list l |> CCList.filter f |> of_list
+end)
 
 
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
-struct
+Events_common.Make(struct
   module Event = Event
   type t = Event.t list [@@deriving ord]
   let of_list l = l
@@ -132,4 +133,4 @@ struct
   let show t = t |> List.map Event.show |> String.concat " & "
   let pp formatter t = Format.fprintf formatter "%s" (show t)
 
-end
+end)

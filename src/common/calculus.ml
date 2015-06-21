@@ -74,7 +74,7 @@ struct
 end
 
 module M = Model.Or_errors
-module Or_error = Model.Or_error
+module Or_error = M.Or_error
 
 module Literal =
   struct
@@ -176,15 +176,12 @@ module Given =
     let prob m : t -> Derived.t Or_error.t = 
       fun (ors, given) -> 
         Or.derived m given >>| fun derived_given -> derived_given
-
-      (*        P(A + B + C|D) = P(A|D) + P(B + C|D) - P(A & B & C|D)*)
-
   end
 
 module Infix =
 struct
   let (&) = Events.Infix.(&)
-  let (+) x y = Or.to_list y |> List.append (to_list x)
+  let (+) x y = Or.to_list y |> List.append (Or.to_list x)
   let (||) = Given.create
 end
 end

@@ -1,4 +1,4 @@
-(** Represents a single event- must be showable *)
+(** Represents a single event- must be showable *)  
 module type EVENT = sig type t [@@deriving show] end
 
 (** Represents an abstract collection of events *)
@@ -35,5 +35,19 @@ sig
   end
 end
 
-module Make : functor (Events:EVENTS_BASE) -> EVENTS with module Event = Events.Event
+module Make (Events:EVENTS_BASE) = 
+  struct
+   include Events
+   module Infix = 
+   struct
+     let ($) e f = of_list [e] |> f
+     let ($$) l f  = of_list l |> f 
+     let (&) = join
+     let (+=) = add 
+     let (-=) = remove 
+     let (^^) t f = to_list t |> f
+   end
+end
 
+
+ 
