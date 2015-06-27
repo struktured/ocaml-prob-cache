@@ -16,14 +16,15 @@ sig
   val add : t -> Event.t -> t
   val remove : t -> Event.t -> t
   val filter : (Event.t -> bool) -> t -> t
-  val fold : ('acc -> Event.t -> 'acc) -> t -> 'acc -> 'acc
+  val fold : (Event.t -> 'acc -> 'acc) -> t -> 'acc -> 'acc
   val iter : (Event.t -> unit) -> t -> unit
 end
 
 (** Represents an abstract collection of events *)
 module type EVENTS =
 sig
-  include EVENTS_BASE
+  module Events_base : EVENTS_BASE
+  include module type of Events_base
   module Infix :
   sig
    val ($) : Event.t -> (t -> 'a) -> 'a
@@ -35,5 +36,6 @@ sig
   end
 end
 
-module Make : functor (Events:EVENTS_BASE) -> EVENTS with module Event = Events.Event
+module Make : functor (Events:EVENTS_BASE) -> EVENTS
+  with module Event = Events.Event and module Events_base = Events
 

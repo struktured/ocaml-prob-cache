@@ -16,14 +16,15 @@ sig
   val add : t -> Event.t -> t
   val remove : t -> Event.t -> t
   val filter : (Event.t -> bool) -> t -> t
-  val fold : ('acc -> Event.t -> 'acc) -> t -> 'acc -> 'acc
+  val fold : (Event.t -> 'acc -> 'acc) -> t -> 'acc -> 'acc
   val iter : (Event.t -> unit) -> t -> unit
 end
 
 (** Represents an abstract collection of events *)
 module type EVENTS =
 sig
-  include EVENTS_BASE
+  module Events_base : EVENTS_BASE
+  include module type of Events_base
   module Infix :
   sig
    val ($) : Event.t -> (t -> 'a) -> 'a
@@ -37,11 +38,12 @@ end
 
 module Make (Events:EVENTS_BASE) = 
   struct
-   include Events
+   module Events_base = Events
+   include Events_base
    module Infix = 
    struct
      let ($) e f = of_list [e] |> f
-     let ($$) l f  = of_list l |> f 
+     let ($$) l f = of_list l |> f 
      let (&) = join
      let (+=) = add 
      let (-=) = remove 

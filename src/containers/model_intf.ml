@@ -25,7 +25,7 @@ module Data = struct
   module Ord_t =
     struct
       (** Compute running statitics using recurrence equations. *)
-      type t = Oml.Running.t = { size : int         (** Number of observations. *)
+      type t = Running.t = { size : int         (** Number of observations. *)
       ; last : float        (** Last observation. *)
       ; max : float        (** Maxiumum. *)
       ; min : float        (** Minimum. *)

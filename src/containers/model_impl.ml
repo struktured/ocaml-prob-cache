@@ -101,8 +101,9 @@ struct
 end
 
 module Make_event_set(Event:EVENT) : EVENTS with module Event = Event =
-Events_common.Make(struct
+  struct 
   module Multiset = CCMultiSet.Make(Event)
+  include Events_common.Make(struct
   include Multiset
   module Event = Event
 
@@ -111,7 +112,11 @@ Events_common.Make(struct
   let show t = to_list t |> List.map Event.show |> String.concat " & "
   let pp formatter t = Format.fprintf formatter "%s" (show t)
   let filter f l = to_list l |> CCList.filter f |> of_list
-end)
+  let fold f t acc = to_list t |> fun t -> CCList.fold_right f t acc
+  let iter f t = iter t @@ fun _ e -> f e 
+  end) and
+  let compare (t:t) (t':t) = Multiset.compare t t'
+  end
 
 
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =

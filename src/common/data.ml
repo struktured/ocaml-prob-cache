@@ -1,7 +1,8 @@
+
 module type DATA =
 sig
 (** Compute running statitics using recurrence equations. *)
-type t = Oml.Running.t = { size : int         (** Number of observations. *)
+type t = Running.t = { size : int         (** Number of observations. *)
          ; last : float       (** Last observation. *)
          ; max : float        (** Maxiumum. *)
          ; min : float        (** Minimum. *)
@@ -49,7 +50,7 @@ struct
   type t = Data.t [@@deriving show]
   open T
   let create ~cnt ~exp =
-   Oml.Running.init ~size:cnt exp
+   Running.init ~size:cnt exp
 
   let bootstrap ~cnt ?last ?max ?min
     ~sum ~sum_sq ?mean ?var ?stddev =
@@ -63,14 +64,14 @@ struct
           sum_sq -. (sum *. sum) /. cnt_f /. (cnt_f -. 1.0)) stddev) var in
         {size=cnt;last;mean;max;min;var;sum_sq;sum}
 
-  let count t = t.Oml.Running.size
-  let expect t = t.Oml.Running.mean
-  let var t = t.Oml.Running.var
-  let min t = t.Oml.Running.min
-  let max t = t.Oml.Running.max
-  let sum t = t.Oml.Running.sum
-  let last t = t.Oml.Running.last
-  let sum_sq t = t.Oml.Running.sum_sq
+  let count t = t.Running.size
+  let expect t = t.Running.mean
+  let var t = t.Running.var
+  let min t = t.Running.min
+  let max t = t.Running.max
+  let sum t = t.Running.sum
+  let last t = t.Running.last
+  let sum_sq t = t.Running.sum_sq
 
   let _mean_update ~(update_rule:'a update_rule)
     ?obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@ 
@@ -85,17 +86,17 @@ struct
     let t = CCOpt.get_lazy (fun () -> create ~cnt:(prior_count obs) 
       ~exp:(prior_exp obs)) t_opt in
     let mean_update = _mean_update ~update_rule ~obs in
-    Oml.Running.update ~mean_update ~size:cnt t exp
+    Running.update ~mean_update ~size:cnt t exp
 
   let join ?obs ~update_rule =
     let mean_update = _mean_update ?obs ~update_rule in
-    Oml.Running.join ~mean_update ?var_update:None
+    Running.join ~mean_update ?var_update:None
 
   let part ?obs ~update_rule d1 d2 = 
     let mean_update = _mean_update ?obs ~update_rule in
-    Oml.Running.part ~mean_update ?var_update:None d1 d2
+    Running.part ~mean_update ?var_update:None d1 d2
 
-  let empty = Oml.Running.empty
+  let empty = Running.empty
   let of_option = function 
     | None -> empty
     | Some d -> d
