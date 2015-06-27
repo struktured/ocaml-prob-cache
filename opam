@@ -32,7 +32,6 @@ depends: [
   "riakc_ppx" {>= "3.1.2"}
   "containers" 
   "sequence"
-  "oml"
 ]
 available: [ocaml-version >= "4.02.2"]
 
