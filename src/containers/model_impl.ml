@@ -101,41 +101,49 @@ struct
 end
 
 module Make_event_set(Event:EVENT) : EVENTS with module Event = Event =
-  struct 
-  module Multiset = CCMultiSet.Make(Event)
-  include Events_common.Make(struct
+struct 
+  module Multiset = 
+    struct 
+       module Event = Event
+       include CCMultiSet.Make(Event)
+       let show t = to_list t |> List.map Event.show |> String.concat " & "
+       let pp formatter t = Format.fprintf formatter "%s" (show t)
+       let join = union
+       let subsets t = List.map of_list (Powerset.generate (to_list t))
+       let filter f l = to_list l |> CCList.filter f |> of_list
+       let fold f t acc = to_list t |> fun t -> CCList.fold_right f t acc
+       let iter f t = iter t @@ fun _ e -> f e 
+     end
   include Multiset
-  module Event = Event
-
-  let join = union
-  let subsets t = List.map of_list (Powerset.generate (to_list t))
-  let show t = to_list t |> List.map Event.show |> String.concat " & "
-  let pp formatter t = Format.fprintf formatter "%s" (show t)
-  let filter f l = to_list l |> CCList.filter f |> of_list
-  let fold f t acc = to_list t |> fun t -> CCList.fold_right f t acc
-  let iter f t = iter t @@ fun _ e -> f e 
-  end) and
-  let compare (t:t) (t':t) = Multiset.compare t t'
-  end
+  include (Events_common.Make(Multiset) :
+    module type of Events_common.Make(Multiset) with module Event := Event)
+end
 
 
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
-Events_common.Make(struct
-  module Event = Event
-  type t = Event.t list [@@deriving ord]
-  let of_list l = l
-  let to_list l = l
-  let join = CCList.append
-  let empty = CCList.empty
-  let subsets (l:t) = let (accum, _) =
-    List.fold_left
-      (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l'))
-      ([], [])
-      l
-  in
-  []::accum
+struct
+  module OrdList = 
+    struct
+      module Event = Event
+      type t = Event.t list [@@deriving ord]
+      let of_list l = l
+      let to_list l = l
+      let join = CCList.append
+      let empty = CCList.empty
+      let subsets (l:t) = let (accum, _) =
+        List.fold_left
+         (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l'))
+         ([], []) l in []::accum
+     let iter  = List.iter 
+     let fold = CCList.fold_right
+     let filter = CCList.filter
+     let remove (t:t) x = CCList.remove ~x t
+     let add t e = join t [e]
   let is_empty t = empty = t
   let show t = t |> List.map Event.show |> String.concat " & "
   let pp formatter t = Format.fprintf formatter "%s" (show t)
-
-end)
+    end
+  include OrdList
+include (Events_common.Make(OrdList) :
+    module type of Events_common.Make(OrdList) with module Event := Event)
+end

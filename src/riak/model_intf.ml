@@ -30,14 +30,14 @@ module Data = struct
   module Proto_T =
     struct
       (** Compute running statitics using recurrence equations. *)
-      type t = Oml.Running.t = { size : int [@key 1]         (** Number of observations. *)
-      ; last : float [@key 2]       (** Last observation. *)
-      ; max : float [@key 3]       (** Maxiumum. *)
-      ; min : float [@key 4]       (** Minimum. *)
-      ; sum : float [@key 5]       (** Sum . *)
-      ; sum_sq : float [@key 6]    (** Sum of squares. *)
-      ; mean : float [@key 7]      (** Mean. *)
-      ; var : float [@key 8]       (** _Unbiased_ variance. *)
+      type t = Running.t = { size : (int [@key 1])         (** Number of observations. *)
+      ; last : (float [@key 2])       (** Last observation. *)
+      ; max : (float [@key 3])       (** Maxiumum. *)
+      ; min : (float [@key 4])       (** Minimum. *)
+      ; sum : (float [@key 5])   (** Sum . *)
+      ; sum_sq : (float [@key 6])    (** Sum of squares. *)
+      ; mean : (float [@key 7])      (** Mean. *)
+      ; var : (float [@key 8])      (** _Unbiased_ variance. *)
       } [@@deriving show, protobuf]
     end
 

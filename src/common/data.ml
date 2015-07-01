@@ -1,4 +1,3 @@
-
 module type DATA =
 sig
 (** Compute running statitics using recurrence equations. *)
@@ -19,8 +18,7 @@ let debug s = match !debug with true -> print_endline @@ "[data] " ^ s | false -
 module type S =
 sig
   type 'a update_rule = 'a Update_rules.Update_fn.t
-  module T : DATA
-  type t =  T.t [@@deriving show]
+  include DATA
   val create : cnt:int -> exp:float -> t
   val bootstrap : cnt:int -> ?last:float -> ?max:float -> ?min:float ->
     sum:float -> sum_sq:float -> ?mean:float -> ?var:float ->
@@ -46,9 +44,7 @@ module Fun = CCFun
 module Make(Data:DATA) =
 struct
   type 'a update_rule = 'a Update_rules.Update_fn.t
-  module T = Data
-  type t = Data.t [@@deriving show]
-  open T
+  include Data
   let create ~cnt ~exp =
    Running.init ~size:cnt exp
 

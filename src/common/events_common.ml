@@ -4,7 +4,6 @@ module type EVENT = sig type t [@@deriving show] end
 (** Represents an abstract collection of events *)
 module type EVENTS_BASE =
 sig
-(*  module type EVENT = EVENT *)
   module Event : EVENT
   type t [@@deriving show]
   val is_empty : t -> bool
@@ -23,8 +22,7 @@ end
 (** Represents an abstract collection of events *)
 module type EVENTS =
 sig
-  module Events_base : EVENTS_BASE
-  include module type of Events_base
+  include EVENTS_BASE
   module Infix :
   sig
    val ($) : Event.t -> (t -> 'a) -> 'a
@@ -38,8 +36,7 @@ end
 
 module Make (Events:EVENTS_BASE) = 
   struct
-   module Events_base = Events
-   include Events_base
+   include Events
    module Infix = 
    struct
      let ($) e f = of_list [e] |> f

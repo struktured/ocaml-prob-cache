@@ -23,8 +23,7 @@ end
 (** Represents an abstract collection of events *)
 module type EVENTS =
 sig
-  module Events_base : EVENTS_BASE
-  include module type of Events_base
+  include EVENTS_BASE
   module Infix :
   sig
    val ($) : Event.t -> (t -> 'a) -> 'a
@@ -37,5 +36,5 @@ sig
 end
 
 module Make : functor (Events:EVENTS_BASE) -> EVENTS
-  with module Event = Events.Event and module Events_base = Events
+  with module Event = Events.Event and type t := Events.t
 

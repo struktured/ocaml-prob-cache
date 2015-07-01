@@ -11,19 +11,10 @@ module Sequence = OldSequence
 module Fun = CCFun
 
 (** Represents a single event- must be protobuf capable, comparable, and pretty printable *)
-module type EVENT =
-sig
-  type t [@@deriving protobuf, show, ord]
-  include Events_common.EVENT with type t := t
-end
+module type EVENT = Model_intf.EVENT
 
 (** Represents an abstract collection of events, must be protobuf capable and pretty printable *)
-module type EVENTS =
-sig
-  type t [@@deriving protobuf, show]
-  module Event : EVENT
-  include Events_common.EVENTS with module Event := Event and type t := t
-end
+module type EVENTS = Model_intf.EVENTS
 
 module Data = Model_intf.Data
 
@@ -157,13 +148,16 @@ struct
   let name t = t.name
 end
 
-module Make_event_set(Event:EVENT) : EVENTS with module Event = Event = 
-struct
-  module Event = Event
-  module Hashset = Containers_misc.Hashset
-  type t = Event.t Hashset.t
-
-  let to_list t = List.sort_uniq ~cmp:Event.compare (Sequence.to_list (Hashset.to_seq t))
+module Make_event_set(Event:EVENT) : 
+  EVENTS with module Event = Event = 
+    struct
+      open Containers_misc
+  module Set = 
+    struct
+      module Event = Event
+      type t = Event.t Containers_misc.Hashset.t
+  let to_list t = List.sort_uniq ~cmp:Event.compare 
+    (Sequence.to_list (Hashset.to_seq t))
   let of_list l =
     let h = Hashset.empty (CoreList.length l) in
     CoreList.iter ~f:(fun e -> Hashset.add h e) l;h
@@ -181,10 +175,13 @@ struct
   let to_protobuf t e = event_list_to_protobuf (to_list t) e
   let from_protobuf d = of_list (event_list_from_protobuf d)
 
-let pp (f:Format.formatter) t = Hashset.iter (Event.pp f) t
-let show t =  Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
-
+  let pp (f:Format.formatter) t = Hashset.iter (Event.pp f) t
+  let show t =  Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
 end
+  include Set
+  include (Events_common.Make(Set) : 
+    module type of Events_common.Make(Set) with module Event := Event)
+    end
 
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
 struct
