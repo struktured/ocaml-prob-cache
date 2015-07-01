@@ -148,15 +148,15 @@ struct
   let name t = t.name
 end
 
-module Make_event_set(Event:EVENT) : 
-  EVENTS with module Event = Event = 
+module Make_event_set(Event:EVENT) :
+  EVENTS with module Event = Event =
     struct
       open Containers_misc
-  module Set = 
+  module Set =
     struct
       module Event = Event
       type t = Event.t Containers_misc.Hashset.t
-  let to_list t = List.sort_uniq ~cmp:Event.compare 
+  let to_list t = List.sort_uniq ~cmp:Event.compare
     (Sequence.to_list (Hashset.to_seq t))
   let of_list l =
     let h = Hashset.empty (CoreList.length l) in
@@ -175,16 +175,23 @@ module Make_event_set(Event:EVENT) :
   let to_protobuf t e = event_list_to_protobuf (to_list t) e
   let from_protobuf d = of_list (event_list_from_protobuf d)
 
+  let iter = Hashset.iter
+  let fold f t acc = Hashset.fold (fun acc e -> f e acc) acc t
+  let filter f t = Hashset.filter f t; t
+  let remove t e = Hashset.remove t e; t
+  let add t e = Hashset.add t e; t
   let pp (f:Format.formatter) t = Hashset.iter (Event.pp f) t
-  let show t =  Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
+  let show t = Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
 end
   include Set
-  include (Events_common.Make(Set) : 
+  include (Events_common.Make(Set) :
     module type of Events_common.Make(Set) with module Event := Event)
-    end
+end
 
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
 struct
+  module Seq =
+struct  
   module Event = Event
   module List = OldList
   type t = Event.t list [@@deriving protobuf, show]
@@ -200,4 +207,13 @@ struct
   in
   []::accum
   let is_empty t = empty = t
+  let iter = List.iter
+  let filter = CCList.filter
+  let remove t x = CCList.remove ~x t
+  let fold = CCList.fold_right
+  let add t x = CCList.append t [x]
+end
+  include Seq
+  include (Events_common.Make(Seq) :
+    module type of Events_common.Make(Seq) with module Event := Event)
 end
