@@ -76,6 +76,11 @@ sig
   val create : Create_error.t create
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
      using a mean value estimator and all priors are value 0. *)
+
+  val name : t -> string
+  (** Gets the name of the cache *)
+
+
 end
 
 module type OBSERVE_FUN =
@@ -165,13 +170,13 @@ sig
     module Data := Data and
     type t := t
 
-  include OBSERVE_FUN with
+  include DATA_FUN with
     module Events := Events and
     module Result := Result and
     module Data := Data and
     type t := t
 
-  include DATA_FUN with
+  include OBSERVE_FUN with
     module Events := Events and
     module Result := Result and
     module Data := Data and
@@ -183,10 +188,7 @@ sig
     module Data := Data and
     type t := t
 
-  val name : t -> string
-  (** Gets the name of the cache *)
-
-  (** Simpler interface that unifies the error type *)
+    (** Simpler interface that unifies the error type *)
   module Or_errors :
     sig
       module Or_error : MONAD with type 'a t = ('a,
@@ -208,19 +210,47 @@ module Make
   (Result : RESULT)
   (Events : EVENTS)
   (Data : Data.S)
-  (Create_fun : CREATE_FUN)
-  (Observe_fun : OBSERVE_FUN)
-  (Data_fun : DATA_FUN)
-  (Find_fun : FIND_FUN)
+  (Create_fun :
+    CREATE_FUN with 
+      module Result := Result and 
+      module Events := Events and
+      module Data := Data)
+  (Observe_fun : OBSERVE_FUN with
+      module Result := Result and
+      module Events := Events and
+      module Data := Data and
+      type t := Create_fun.t)
+  (Data_fun : DATA_FUN with
+      module Result := Result and
+      module Events := Events and
+      module Data := Data and
+      type t := Create_fun.t)
+  (Find_fun : FIND_FUN with
+      module Result := Result and
+      module Events := Events and
+      module Data := Data and
+      type t := Create_fun.t)
  : S =
 struct
-  include Create_fun
+  module Result = Result
+  module Events = Events
   module Event = Events.Event
-  include (Data_fun : DATA_FUN with
-    type t := t and
-    module Result := Result and
+  module Data = Data
+  include Create_fun
+  include (Observe_fun : OBSERVE_FUN with
     module Events := Events and
-    module Data := Data)
-
+    module Result := Result and
+    module Data := Data and
+    type t := t)
+  include (Data_fun : DATA_FUN with
+    module Events := Events and
+    module Result := Result and
+    module Data := Data and
+    type t := t) 
+  include (Find_fun : FIND_FUN with
+    module Events := Events and
+    module Result := Result and
+    module Data := Data and
+    type t := t) 
 end
 
