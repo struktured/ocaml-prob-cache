@@ -1,11 +1,14 @@
-(** A abstract model, defining the type of events and data structures
-to maintain their probabilities and expectations.
-*)
+(** An abstract model, defining the type of events and data structures
+    to maintain their probabilities and expectations. *)
+
+(** Common Interfaces and Functors for creating models *)
 
 (** Floating point convenience module *)
 module Float = CCFloat
+
 open Events_common
 
+(** Monadic api with infix operators *)
 module type MONAD =
   sig
     type 'a t
@@ -22,6 +25,7 @@ module type MONAD =
       end
   end
 
+(** Result module, in spirit of Core.Std.Result *)
 module type RESULT =
   sig
     type ('ok, 'err) t = Ok of 'ok | Error of 'err 
@@ -29,7 +33,7 @@ module type RESULT =
     val bind : ('ok -> ('res, 'err) t) -> ('ok, 'err) t -> ('res, 'err) t
     val return: 'ok -> ('ok, 'err) t
     val all : ('ok, 'err) t list -> ('ok list, 'err) t
-    val both : ('ok, 'err) t -> ('ok, 'err) t -> ('ok * 'ok, 'err) t
+    val both : ('a, 'err) t -> ('b, 'err) t -> ('a * 'b, 'err) t
 
     module Monad_infix :
       sig
@@ -187,15 +191,23 @@ sig
     module Result := Result and
     module Data := Data and
     type t := t
-
     (** Simpler interface that unifies the error type *)
   module Or_errors :
-    sig
-      module Or_error : MONAD with type 'a t = ('a,
-      [ `Create_error of Create_error.t
-      | `Observe_error of Observe_error.t
-      | `Data_error of Data_error.t
-      | `Find_error of Find_error.t]) Result.t
+  sig
+      module Error :
+      sig
+        type t = 
+          [ `Create_error of Create_error.t
+          | `Observe_error of Observe_error.t
+          | `Data_error of Data_error.t
+          | `Find_error of Find_error.t]
+      end
+
+      module Or_error :
+      sig
+        include MONAD with type 'a t = ('a, Error.t) Result.t
+        val of_result : ('a, Error.t) Result.t -> 'a t
+      end
 
       val update_rule : t -> update_rule
       val create : t Or_error.t create
@@ -252,5 +264,52 @@ struct
     module Result := Result and
     module Data := Data and
     type t := t) 
+
+  module Or_errors = struct 
+      module Error = 
+      struct
+        type t = 
+          [ `Create_error of Create_error.t
+          | `Observe_error of Observe_error.t
+          | `Data_error of Data_error.t
+          | `Find_error of Find_error.t] 
+      end
+      
+      module Or_error (*: MONAD with type 'a t = ('a, Error.t) Result.t *) = 
+      struct
+        type 'a t = ('a, Error.t) Result.t
+        let return x : 'a t = Result.return x
+        let all x : 'a list t = Result.all x
+        let bind f x : 'b t = Result.bind f x
+        let map f x : 'b t = Result.map f x
+        let both (x:'a t) (y: 'b t) : ('a * 'b) t = Result.both x y
+        module Infix = 
+          struct
+            let (>>|) = Result.Monad_infix.(>>|)
+            let (>|=) = Result.Monad_infix.(>|=)
+            let (>>=) = Result.Monad_infix.(>>=)
+          end
+        let of_result (r: ('a, Error.t) Result.t) : 'a t = r
+        end
+
+
+
+  let create ?update_rule ?prior_count ?prior_exp ~name =
+  Or_error.of_result (create ?update_rule ?prior_count ?prior_exp ~name)
+    
+(*
+  val create : Create_error.t create
+  (** Creates a new model cache labeled by the given string. By default, expectations are updated
+     using a mean value estimator and all priors are value 0. *)
+*)
+       
+      let update_rule = update_rule
+(*      let create : t Or_error.t create
+      let observe : t Or_error.t observe
+      let data : t Or_error.t data
+      let find : t Or_error.t find*)
+      let name = name
+  end
+
 end
 
