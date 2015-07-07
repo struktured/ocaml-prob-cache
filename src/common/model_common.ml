@@ -125,7 +125,7 @@ sig
   type 'err data = Events.t -> t -> (Data.t, 'err) Result.t
 
   val data : Data_error.t data
-  (** Gets the descriptive statistics data for the given events. 
+  (** Gets the descriptive statistics data for the given events.
       Returns data with count of zero otherwise and other values set to nan. *)
 
 end
@@ -143,7 +143,7 @@ sig
   (** Container for the descriptive statistics **)
   module Data : Data.S
 
-  type 'err find = (Events.t -> bool) -> t -> (Events.t, Find_error.t) Result.t
+  type 'err find = (Events.t -> bool) -> t -> (Events.t, 'err) Result.t
   (** Gets all observed events given a filter function from the model. *)
 
   val find : Find_error.t find
@@ -196,11 +196,16 @@ sig
   sig
       module Error :
       sig
-        type t = 
+        type t =
           [ `Create_error of Create_error.t
           | `Observe_error of Observe_error.t
           | `Data_error of Data_error.t
           | `Find_error of Find_error.t]
+        include ERROR with type t:= t
+        val of_create : Create_error.t -> t
+        val of_observe : Observe_error.t -> t
+        val of_data : Data_error.t -> t
+        val of_find : Find_error.t -> t
       end
 
       module Or_error :
@@ -210,10 +215,10 @@ sig
       end
 
       val update_rule : t -> update_rule
-      val create : t Or_error.t create
-      val observe : t Or_error.t observe
-      val data : t Or_error.t data
-      val find : t Or_error.t find
+      val create : Error.t create
+      val observe : Error.t observe
+      val data : Error.t data
+      val find : Error.t find
       val name : t -> string
   end
 end
@@ -258,24 +263,41 @@ struct
     module Events := Events and
     module Result := Result and
     module Data := Data and
-    type t := t) 
+    type t := t)
   include (Find_fun : FIND_FUN with
     module Events := Events and
     module Result := Result and
     module Data := Data and
-    type t := t) 
+    type t := t)
 
-  module Or_errors = struct 
-      module Error = 
+  module Or_errors = struct
+      module Error =
       struct
-        type t = 
+        type t =
           [ `Create_error of Create_error.t
           | `Observe_error of Observe_error.t
           | `Data_error of Data_error.t
-          | `Find_error of Find_error.t] 
+          | `Find_error of Find_error.t]
+
+        let of_create e = `Create_error e
+        let of_observe e = `Observe_error e
+        let of_data e = `Data_error e
+        let of_find e = `Find_error e
+        let to_string_hum = function
+          | `Create_error e -> Create_error.to_string_hum e
+          | `Observe_error e -> Observe_error.to_string_hum e
+          | `Data_error e -> Data_error.to_string_hum e
+          | `Find_error e -> Find_error.to_string_hum e
+
+        let to_string_mach = function
+          | `Create_error e -> Create_error.to_string_mach e
+          | `Observe_error e -> Observe_error.to_string_mach e
+          | `Data_error e -> Data_error.to_string_mach e
+          | `Find_error e -> Find_error.to_string_mach e
+
       end
-      
-      module Or_error (*: MONAD with type 'a t = ('a, Error.t) Result.t *) = 
+
+      module Or_error =
       struct
         type 'a t = ('a, Error.t) Result.t
         let return x : 'a t = Result.return x
@@ -292,23 +314,22 @@ struct
         let of_result (r: ('a, Error.t) Result.t) : 'a t = r
         end
 
-
-
   let create ?update_rule ?prior_count ?prior_exp ~name =
-  Or_error.of_result (create ?update_rule ?prior_count ?prior_exp ~name)
-    
-(*
-  val create : Create_error.t create
-  (** Creates a new model cache labeled by the given string. By default, expectations are updated
-     using a mean value estimator and all priors are value 0. *)
-*)
-       
-      let update_rule = update_rule
-(*      let create : t Or_error.t create
-      let observe : t Or_error.t observe
-      let data : t Or_error.t data
-      let find : t Or_error.t find*)
-      let name = name
+    create ?update_rule ?prior_count ?prior_exp ~name |> function
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_create e) |>
+    Or_error.of_result
+
+  let observe data events t = observe data events t |> function
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_observe e)
+
+  let data events t = data events t |> function
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_data e)
+
+  let find f t = find f t |> function
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_find e)
+
+  let update_rule = update_rule
+  let name = name
   end
 
 end
