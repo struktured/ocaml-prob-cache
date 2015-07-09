@@ -7,7 +7,7 @@ open Prob_cache_common
 module Float = CCFloat
 
 (** Represents a single event- must be comparable and showable *)
-module type EVENT = 
+module type EVENT =
   sig  
     type t [@@deriving show, ord]
     include Events_common.EVENT with type t := t
@@ -42,7 +42,7 @@ end
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
 sig
-
+(*
   (** The module type representing one event *)
   module Event : EVENT
 
@@ -66,15 +66,16 @@ sig
   val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
      using a mean value estimator and all priors are value 0. *)
+*)
 
   val count : Events.t -> t -> int
   (** How many times some particular events were observed *)
-
+(*
   val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> t
   (** Observe events with a default count and expectation of 1.
     The returned model reflects the observation updates
     while the original instance is not guaranteed to be current. *)
-
+*)
   val observe_data : Data.t -> Events.t -> t -> t
   (** Observe events from a [data] instance of descriptive statistics. This
     can be used to batch updates, or to load independently generated datasets

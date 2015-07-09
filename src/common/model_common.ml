@@ -151,13 +151,67 @@ sig
 
 end
 
+module type DATA_EXTRA_POLY = 
+sig
+  type t
+  module Events : EVENTS
+  module Result : RESULT
+  type 'err prob = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t 
+  (** Probability of events given [cond], possibly the empty events *)
+
+  type 'err exp = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Expectation of events given [cond], possibly the empty events *)
+
+  type 'err var = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Statistical variance of events given [cond], possibly the empty events *)
+
+  type 'err sum = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Aggregated sum of events given [cond], possibly the empty events *)
+
+  type 'err max = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Observed maximum of events given [cond], possibly the empty events *)
+
+  type 'err min = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Observed minimum of events given [cond], possibly the empty events *)
+
+  type 'err last = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Observed last value of events given [cond], possibly the empty events *)
+end
+
+module type DATA_EXTRA_FUNCTOR = functor(Error : sig type t end) -> 
+sig
+  module Error = Error
+  include DATA_EXTRA_POLY
+  val prob : (*?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t *)
+    Error.t prob
+  (** Probability of events given [cond], possibly the empty events *)
+
+  (** TODO .... **)
+  type 'err exp : (* ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t *)
+  (** Expectation of events given [cond], possibly the empty events *)
+
+  type 'err var = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Statistical variance of events given [cond], possibly the empty events *)
+
+  type 'err sum = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Aggregated sum of events given [cond], possibly the empty events *)
+
+  type 'err max = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Observed maximum of events given [cond], possibly the empty events *)
+
+  type 'err min = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Observed minimum of events given [cond], possibly the empty events *)
+
+  type 'err last = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  (** Observed last value of events given [cond], possibly the empty events *)
+end
+
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
 sig
 
   module Result : RESULT
-
   (** The module type representing one event *)
   module Event : EVENT
 
@@ -219,6 +273,8 @@ sig
       val observe : Error.t observe
       val data : Error.t data
       val find : Error.t find
+
+
       val name : t -> string
   end
 end
