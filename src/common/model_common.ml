@@ -182,27 +182,25 @@ module type DATA_EXTRA_FUNCTOR = functor(Error : sig type t end) ->
 sig
   module Error = Error
   include DATA_EXTRA_POLY
-  val prob : (*?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t *)
-    Error.t prob
+  val prob : Error.t prob
   (** Probability of events given [cond], possibly the empty events *)
 
-  (** TODO .... **)
-  type 'err exp : (* ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t *)
+  val exp : Error.t exp
   (** Expectation of events given [cond], possibly the empty events *)
 
-  type 'err var = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  val var : Error.t var
   (** Statistical variance of events given [cond], possibly the empty events *)
 
-  type 'err sum = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  val sum : Error.t sum
   (** Aggregated sum of events given [cond], possibly the empty events *)
 
-  type 'err max = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  val max : Error.t max
   (** Observed maximum of events given [cond], possibly the empty events *)
 
-  type 'err min = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  val min : Error.t min
   (** Observed minimum of events given [cond], possibly the empty events *)
 
-  type 'err last = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+  val last : Error.t last
   (** Observed last value of events given [cond], possibly the empty events *)
 end
 
