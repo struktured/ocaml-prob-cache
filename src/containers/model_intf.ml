@@ -4,7 +4,7 @@ to maintain their probabilities and expectations.
 open Prob_cache_common
 
 (** Floating point convenience module *)
-module Float = CCFloat
+module Float = Model_common.Float
 
 (** Represents a single event- must be comparable and showable *)
 module type EVENT =
@@ -39,75 +39,37 @@ module Data = struct
   let compare = Ord_t.compare
 end
 
+module Result : Model_common.RESULT = 
+struct
+  type ('ok, 'err) t = Ok of 'ok | Error of 'err
+  let map f x = match x with (Error _) as e -> e | Ok y -> Ok (f y)
+  let bind f x = match x with (Error _) as e -> e | Ok y -> (f y)
+  let return x = Ok x
+  let all elems = CCList.fold_while (fun l x -> match x with
+      | Ok o -> 
+          begin match l with (Error _ ) as e -> e | Ok l' -> Ok (o::l') end, 
+        `Continue 
+      | (Error _) as e -> e, `Stop) (Ok []) elems
+  let both x y = match x,y with 
+    | ((Error _) as e), _ -> e
+    | _, ((Error _) as e') -> e'
+    | Ok x, Ok y -> Ok (x, y)
+  
+  module Monad_infix = 
+  struct
+    let (>>=) x f = bind f x
+    let (>>|) x f = map f x
+    let (>|=) x f = map f x
+  end
+end
+
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
 sig
-(*
-  (** The module type representing one event *)
+  module Events : EVENTS
   module Event : EVENT
-
-  (** The module type representing a collection of events *)
-  module Events : EVENTS with module Event = Event
-
-  module Data = Data
-
-  (* Defines a prior function in terms of counts with the observed events as input. *)
-  type prior_count = Events.t -> int
-
-  (* Define a prior function in terms of real values with the observed events as input. *)
-  type prior_exp = Events.t -> float
-
-  (** An abstract events model cache *)
-  type t
-
-  (** Defines the update rule for expectations *)
-  type update_rule = Events.t Data.update_rule
-
-  val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t
-  (** Creates a new model cache labeled by the given string. By default, expectations are updated
-     using a mean value estimator and all priors are value 0. *)
-*)
-
-  val count : Events.t -> t -> int
-  (** How many times some particular events were observed *)
-(*
-  val observe : ?cnt:int -> ?exp:float -> Events.t -> t -> t
-  (** Observe events with a default count and expectation of 1.
-    The returned model reflects the observation updates
-    while the original instance is not guaranteed to be current. *)
-*)
-  val observe_data : Data.t -> Events.t -> t -> t
-  (** Observe events from a [data] instance of descriptive statistics. This
-    can be used to batch updates, or to load independently generated datasets
-    together in a meaningful way. The returned model reflects the observation
-    updates while the original instance is not guaranteed to be current. *)
-
-  val data : ?cond:Events.t -> Events.t -> t -> Data.t option
-  (** Gets the desscriptive statistics [data] for the given events conditioned
-      on [cond]. Returns [None] if no data exists for the events. *)
-
-  val prob : ?cond:Events.t -> Events.t -> t -> float
-  (** Probability of events given [cond], possibly the empty events *)
-
-  val exp : ?cond:Events.t -> Events.t -> t -> float
-  (** Expectation of events given [cond], possibly the empty events *)
-
-  val var : ?cond:Events.t -> Events.t -> t -> float
-  (** Statistical variance of events given [cond], possibly the empty events *)
-
-  val sum : ?cond:Events.t -> Events.t -> t -> float
-  (** Aggregated sum of events given [cond], possibly the empty events *)
-
-  val max : ?cond:Events.t -> Events.t -> t -> float
-  (** Observed maximum of events given [cond], possibly the empty events *)
-
-  val min : ?cond:Events.t -> Events.t -> t -> float
-  (** Observed minimum of events given [cond], possibly the empty events *)
-
-  val last : ?cond:Events.t -> Events.t -> t -> float
-  (** Observed last value of events given [cond], possibly the empty events *)
-
-  val name : t -> string
-  (** Gets the name of the cache *)
-
+  include Model_common.S with 
+    module Result = Result and
+    module Events = Events and
+    module Event = Event
 end

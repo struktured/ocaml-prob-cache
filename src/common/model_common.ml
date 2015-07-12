@@ -5,7 +5,7 @@
 
 (** Floating point convenience module *)
 module Float = CCFloat
-
+module type DATA = Data.S
 open Events_common
 
 (** Monadic api with infix operators *)
@@ -86,8 +86,7 @@ sig
 
 
 end
-
-module type OBSERVE_FUN =
+module type OBSERVE_DATA_FUN =
 sig
 
   type t
@@ -98,11 +97,11 @@ sig
   module Events : EVENTS
 
   (** Container for the descriptive statistics **)
-  module Data : Data.S
+  module Data : DATA
 
-  type 'err observe = Data.t -> Events.t -> t -> (t, 'err) Result.t
+  type 'err observe_data = Data.t -> Events.t -> t -> (t, 'err) Result.t
 
-  val observe : Observe_error.t observe
+  val observe_data : Observe_error.t observe_data
   (** Observe events from a [data] instance of descriptive statistics. This
     can be used to batch updates, or to load independently generated datasets
     together in a meaningful way. The returned model reflects the observation
@@ -120,7 +119,7 @@ sig
   module Events : EVENTS
 
   (** Container for the descriptive statistics **)
-  module Data : Data.S
+  module Data : DATA
 
   type 'err data = Events.t -> t -> (Data.t, 'err) Result.t
 
@@ -151,37 +150,57 @@ sig
 
 end
 
-module type DATA_EXTRA_POLY = 
+module type EXTRA_POLY = 
 sig
   type t
   module Events : EVENTS
   module Result : RESULT
   type 'err prob = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t 
-  (** Probability of events given [cond], possibly the empty events *)
 
   type 'err exp = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
-  (** Expectation of events given [cond], possibly the empty events *)
 
   type 'err var = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
-  (** Statistical variance of events given [cond], possibly the empty events *)
 
   type 'err sum = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
-  (** Aggregated sum of events given [cond], possibly the empty events *)
 
   type 'err max = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
-  (** Observed maximum of events given [cond], possibly the empty events *)
 
   type 'err min = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
-  (** Observed minimum of events given [cond], possibly the empty events *)
 
   type 'err last = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
-  (** Observed last value of events given [cond], possibly the empty events *)
+
+  type 'err observe = ?cnt: int -> ?exp:float -> Events.t -> t -> (t, 'err) Result.t
 end
 
-module type DATA_EXTRA_FUNCTOR = functor(Error : sig type t end) -> 
+module Make_extra_poly(Data_fun : DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN) : EXTRA_POLY with 
+  module Events = Data_fun.Events and 
+  module Result = Data_fun.Result and
+  type t = Data_fun.t = 
+struct
+  include Data_fun
+  type 'err prob = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t 
+
+  type 'err exp = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+
+  type 'err var = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+
+  type 'err sum = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+
+  type 'err max = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+
+  type 'err min = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+
+  type 'err last = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
+
+  type 'err observe = ?cnt: int -> ?exp:float -> Events.t -> t -> (t, 'err) Result.t
+end
+
+module type EXTRA_FUNCTOR = functor(Error : sig type t end) -> 
 sig
-  module Error = Error
-  include DATA_EXTRA_POLY
+  module Error : module type of Error
+  module Extra_poly : EXTRA_POLY
+
+  open Extra_poly
   val prob : Error.t prob
   (** Probability of events given [cond], possibly the empty events *)
 
@@ -202,8 +221,55 @@ sig
 
   val last : Error.t last
   (** Observed last value of events given [cond], possibly the empty events *)
+ 
+  val observe : Error.t observe 
+
 end
 
+module Make_extra (Data_fun:DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with 
+  type t = Data_fun.t and 
+  module Result = Data_fun.Result and 
+  module Events = Data_fun.Events and
+  module Data = Data_fun.Data) : 
+  EXTRA_FUNCTOR = functor(Error : sig type t end) -> 
+struct
+  module Extra_poly = Make_extra_poly(Data_fun)(Observe_fun)
+  include Data_fun
+  include (Observe_fun : OBSERVE_DATA_FUN with 
+    type t := t and 
+    module Events := Events and
+    module Result := Result and
+    module Data := Data)
+
+  module Error = Error
+  open Extra_poly
+  let prob ?cond events t  = 
+     failwith("NYI")
+
+   let _data_map ?(cond=Events.empty) events t f : (float, 'err) Result.t = 
+     Result.map f (data (Events.join cond events) t)
+
+   let exp ?cond events t = 
+     _data_map ?cond events t Data.expect
+
+   let var ?cond events t =
+     _data_map ?cond events t Data.var
+
+   let sum ?cond events t =
+     _data_map ?cond events t Data.sum
+
+   let max ?cond events t =
+     _data_map ?cond events t Data.max
+
+   let min ?cond events t =
+     _data_map ?cond events t Data.min
+
+   let last ?cond events t =
+     _data_map ?cond events t Data.last
+
+   let observe ?(cnt=1) ?(exp=1.0) events t : (t, 'err) Result.t = 
+     Observe_fun.observe_data (Observe_fun.Data.create ~cnt ~exp) events t
+end
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
@@ -216,7 +282,7 @@ sig
   (** The module type representing a collection of events *)
   module Events : EVENTS with module Event = Event
 
-  module Data : Data.S
+  module Data : DATA
     (** An abstract events model cache *)
   type t
 
@@ -232,7 +298,7 @@ sig
     module Data := Data and
     type t := t
 
-  include OBSERVE_FUN with
+  include OBSERVE_DATA_FUN with
     module Events := Events and
     module Result := Result and
     module Data := Data and
@@ -268,7 +334,7 @@ sig
 
       val update_rule : t -> update_rule
       val create : Error.t create
-      val observe : Error.t observe
+      val observe_data : Error.t observe_data
       val data : Error.t data
       val find : Error.t find
 
@@ -280,13 +346,13 @@ end
 module Make
   (Result : RESULT)
   (Events : EVENTS)
-  (Data : Data.S)
+  (Data : DATA)
   (Create_fun :
     CREATE_FUN with 
       module Result := Result and 
       module Events := Events and
       module Data := Data)
-  (Observe_fun : OBSERVE_FUN with
+  (Observe_fun : OBSERVE_DATA_FUN with
       module Result := Result and
       module Events := Events and
       module Data := Data and
@@ -308,7 +374,7 @@ struct
   module Event = Events.Event
   module Data = Data
   include Create_fun
-  include (Observe_fun : OBSERVE_FUN with
+  include (Observe_fun : OBSERVE_DATA_FUN with
     module Events := Events and
     module Result := Result and
     module Data := Data and
@@ -373,7 +439,7 @@ struct
     (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_create e) |>
     Or_error.of_result
 
-  let observe data events t = observe data events t |> function
+  let observe_data data events t = observe_data data events t |> function
     (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_observe e)
 
   let data events t = data events t |> function
