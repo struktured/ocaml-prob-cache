@@ -50,6 +50,15 @@ sig
   val to_string_mach : t -> string
 end
 
+module type OR_ERROR =
+ sig
+   module Error : ERROR
+   module Result : RESULT
+   include MONAD with type 'a t = ('a, Error.t) Result.t
+   val of_result : ('a, Error.t) Result.t -> 'a t
+end
+
+
 module type CREATE_FUN =
 sig
 
@@ -195,44 +204,63 @@ struct
   type 'err observe = ?cnt: int -> ?exp:float -> Events.t -> t -> (t, 'err) Result.t
 end
 
-module type EXTRA_FUNCTOR = functor(Error : sig type t end) -> 
+module type EXTRA_FUNCTOR = functor
+  (Data_error : ERROR)
+  (Observe_error : ERROR)
+-> 
 sig
-  module Error : module type of Error
   module Extra_poly : EXTRA_POLY
 
   open Extra_poly
-  val prob : Error.t prob
+  val prob : Data_error.t prob
   (** Probability of events given [cond], possibly the empty events *)
 
-  val exp : Error.t exp
+  val exp : Data_error.t exp
   (** Expectation of events given [cond], possibly the empty events *)
 
-  val var : Error.t var
+  val var : Data_error.t var
   (** Statistical variance of events given [cond], possibly the empty events *)
 
-  val sum : Error.t sum
+  val sum : Data_error.t sum
   (** Aggregated sum of events given [cond], possibly the empty events *)
 
-  val max : Error.t max
+  val max : Data_error.t max
   (** Observed maximum of events given [cond], possibly the empty events *)
 
-  val min : Error.t min
+  val min : Data_error.t min
   (** Observed minimum of events given [cond], possibly the empty events *)
 
-  val last : Error.t last
+  val last : Data_error.t last
   (** Observed last value of events given [cond], possibly the empty events *)
  
-  val observe : Error.t observe 
+  val observe : Observe_error.t observe 
 
 end
+
+module type ERROR_CONVERTER =
+  sig
+     module Error_in : ERROR
+     module Error_out : ERROR
+     val convert : Error_in.t -> Error_out.t
+  end
+
+module Identity_error_converter(Error_in:ERROR) : ERROR_CONVERTER with 
+  module Error_in = Error_in and module Error_out = Error_in =
+  struct
+     module Error_in = Error_in
+     module Error_out = Error_in
+     let convert (e:Error_in.t) : Error_out.t = e
+  end
 
 module Make_extra (Data_fun:DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with 
   type t = Data_fun.t and 
   module Result = Data_fun.Result and 
   module Events = Data_fun.Events and
   module Data = Data_fun.Data) : 
-  EXTRA_FUNCTOR = functor(Error : sig type t end) -> 
-struct
+  EXTRA_FUNCTOR = functor
+    (Data_error_converter : ERROR_CONVERTER with module Error_in = Data_fun.Data_error)
+    (Observe_error_converter: ERROR_CONVERTER with module Error_in = Observe_fun.Observe_error)
+  -> struct
   module Extra_poly = Make_extra_poly(Data_fun)(Observe_fun)
   include Data_fun
   include (Observe_fun : OBSERVE_DATA_FUN with 
@@ -243,7 +271,7 @@ struct
 
   module Error = Error
   open Extra_poly
-  let prob ?cond events t  = 
+  let prob ?cond events t = 
      failwith("NYI")
 
    let _data_map ?(cond=Events.empty) events t f : (float, 'err) Result.t = 
@@ -314,23 +342,15 @@ sig
   sig
       module Error :
       sig
-        type t =
-          [ `Create_error of Create_error.t
-          | `Observe_error of Observe_error.t
-          | `Data_error of Data_error.t
-          | `Find_error of Find_error.t]
-        include ERROR with type t:= t
+        include ERROR
         val of_create : Create_error.t -> t
         val of_observe : Observe_error.t -> t
         val of_data : Data_error.t -> t
         val of_find : Find_error.t -> t
       end
 
-      module Or_error :
-      sig
-        include MONAD with type 'a t = ('a, Error.t) Result.t
-        val of_result : ('a, Error.t) Result.t -> 'a t
-      end
+      module Or_error : OR_ERROR with
+        module Error = Error and module Result = Result
 
       val update_rule : t -> update_rule
       val create : Error.t create
@@ -338,13 +358,58 @@ sig
       val data : Error.t data
       val find : Error.t find
 
-
       val name : t -> string
   end
 end
 
+module Create_error_converter 
+  (Error_in : ERROR)
+  (Error_out : sig include ERROR val of_create : Error_in.t -> t end) : ERROR_CONVERTER with 
+    module Error_in = Error_in and 
+    module Error_out = Error_out =
+  struct
+     module Error_in = Error_in
+     module Error_out = Error_out
+     let convert (e:Error_in.t) = Error_out.of_create e
+  end
+
+module Observe_error_conveter
+  (Error_in : ERROR)
+  (Error_out : sig include ERROR val of_observe : Error_in.t -> t end) : ERROR_CONVERTER with 
+    module Error_in = Error_in and
+    module Error_out = Error_out =
+  struct
+     module Error_in = Error_in
+     module Error_out = Error_out
+     let convert (e:Error_in.t) = Error_out.of_observe e
+  end
+
+module Data_error_converter
+  (Error_in : ERROR)
+  (Error_out : sig include ERROR val of_data : Error_in.t -> t end) : ERROR_CONVERTER with 
+    module Error_in = Error_in and
+    module Error_out = Error_out =
+  struct
+     module Error_in = Error_in
+     module Error_out = Error_out
+     let convert (e:Error_in.t) = Error_out.of_data e
+  end
+
+module Find_error_converter
+  (Error_in : ERROR)
+  (Error_out : sig include ERROR val of_find : Error_in.t -> t end) : ERROR_CONVERTER with 
+    module Error_in = Error_in and
+    module Error_out = Error_out =
+  struct
+     module Error_in = Error_in
+     module Error_out = Error_out
+     let convert (e:Error_in.t) = Error_out.of_find e
+  end
+
 module Make
   (Result : RESULT)
+  (Error : ERROR)
+  (Or_error : OR_ERROR)
   (Events : EVENTS)
   (Data : DATA)
   (Create_fun :
@@ -391,48 +456,8 @@ struct
     type t := t)
 
   module Or_errors = struct
-      module Error =
-      struct
-        type t =
-          [ `Create_error of Create_error.t
-          | `Observe_error of Observe_error.t
-          | `Data_error of Data_error.t
-          | `Find_error of Find_error.t]
-
-        let of_create e = `Create_error e
-        let of_observe e = `Observe_error e
-        let of_data e = `Data_error e
-        let of_find e = `Find_error e
-        let to_string_hum = function
-          | `Create_error e -> Create_error.to_string_hum e
-          | `Observe_error e -> Observe_error.to_string_hum e
-          | `Data_error e -> Data_error.to_string_hum e
-          | `Find_error e -> Find_error.to_string_hum e
-
-        let to_string_mach = function
-          | `Create_error e -> Create_error.to_string_mach e
-          | `Observe_error e -> Observe_error.to_string_mach e
-          | `Data_error e -> Data_error.to_string_mach e
-          | `Find_error e -> Find_error.to_string_mach e
-
-      end
-
-      module Or_error =
-      struct
-        type 'a t = ('a, Error.t) Result.t
-        let return x : 'a t = Result.return x
-        let all x : 'a list t = Result.all x
-        let bind f x : 'b t = Result.bind f x
-        let map f x : 'b t = Result.map f x
-        let both (x:'a t) (y: 'b t) : ('a * 'b) t = Result.both x y
-        module Infix = 
-          struct
-            let (>>|) = Result.Monad_infix.(>>|)
-            let (>|=) = Result.Monad_infix.(>|=)
-            let (>>=) = Result.Monad_infix.(>>=)
-          end
-        let of_result (r: ('a, Error.t) Result.t) : 'a t = r
-        end
+      module Error = Error
+      module Or_error = Or_error
 
   let create ?update_rule ?prior_count ?prior_exp ~name =
     create ?update_rule ?prior_count ?prior_exp ~name |> function

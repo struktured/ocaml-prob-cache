@@ -63,6 +63,64 @@ struct
   end
 end
 
+module Base_error(T:sig type t [@@deriving show] end) : Model_common.ERROR with type t = T.t = struct
+  include T
+  let to_string_mach t = show t
+  let to_string_hum t = show t
+end
+
+module Create_error = Base_error(struct type t = [`Create_error of string] [@@deriving show] end)
+module Data_error = Base_error(struct type t = [`Data_error of string] [@@deriving show] end)
+module Find_error = Base_error(struct type t = [`Find_error of string] [@@deriving show] end)
+module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@deriving show] end)
+
+module Or_errors = 
+struct
+  module Error =
+      struct
+        type t =
+          [ `Create_error of Create_error.t
+          | `Observe_error of Observe_error.t
+          | `Data_error of Data_error.t
+          | `Find_error of Find_error.t]
+
+        let of_create e = `Create_error e
+        let of_observe e = `Observe_error e
+        let of_data e = `Data_error e
+        let of_find e = `Find_error e
+
+        let to_string_hum = function
+          | `Create_error e -> Create_error.to_string_hum e
+          | `Observe_error e -> Observe_error.to_string_hum e
+          | `Data_error e -> Data_error.to_string_hum e
+          | `Find_error e -> Find_error.to_string_hum e
+
+        let to_string_mach = function
+          | `Create_error e -> Create_error.to_string_mach e
+          | `Observe_error e -> Observe_error.to_string_mach e
+          | `Data_error e -> Data_error.to_string_mach e
+          | `Find_error e -> Find_error.to_string_mach e
+
+      end
+      module Or_error =
+      struct
+        type 'a t = ('a, Error.t) Result.t
+        let return x : 'a t = Result.return x
+        let all x : 'a list t = Result.all x
+        let bind f x : 'b t = Result.bind f x
+        let map f x : 'b t = Result.map f x
+        let both (x:'a t) (y: 'b t) : ('a * 'b) t = Result.both x y
+        module Infix = 
+          struct
+            let (>>|) = Result.Monad_infix.(>>|)
+            let (>|=) = Result.Monad_infix.(>|=)
+            let (>>=) = Result.Monad_infix.(>>=)
+          end
+        let of_result (r: ('a, Error.t) Result.t) : 'a t = r
+        end
+end
+
+
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
 sig
