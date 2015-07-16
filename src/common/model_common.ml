@@ -70,7 +70,7 @@ sig
   module Events : EVENTS
 
   (** Container for the descriptive statistics **)
-  module Data : Data.S
+  module Data : DATA
 
   (* Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
@@ -149,7 +149,7 @@ sig
   module Events : EVENTS
 
   (** Container for the descriptive statistics **)
-  module Data : Data.S
+  module Data : DATA
 
   type 'err find = (Events.t -> bool) -> t -> (Events.t, 'err) Result.t
   (** Gets all observed events given a filter function from the model. *)
@@ -201,16 +201,25 @@ struct
 
   type 'err last = ?cond:Events.t -> Events.t -> t -> (float, 'err) Result.t
 
-  type 'err observe = ?cnt: int -> ?exp:float -> Events.t -> t -> (t, 'err) Result.t
+  type 'err observe = ?cnt:int -> ?exp:float -> Events.t -> t -> (t, 'err) Result.t
+end
+
+
+module type ERROR_CONVERTER =
+sig
+  module Error_in : ERROR
+  module Error_out : ERROR
+  val convert : Error_in.t -> Error_out.t
 end
 
 module type EXTRA_FUNCTOR = functor
-  (Data_error : ERROR)
-  (Observe_error : ERROR)
+  (Data_error_converter : ERROR_CONVERTER)
+  (Observe_error_converter : ERROR_CONVERTER)
 -> 
 sig
   module Extra_poly : EXTRA_POLY
-
+  module Data_error : module type of Data_error_converter.Error_out 
+  module Observe_error : module type of Observe_error_converter.Error_out
   open Extra_poly
   val prob : Data_error.t prob
   (** Probability of events given [cond], possibly the empty events *)
@@ -234,15 +243,8 @@ sig
   (** Observed last value of events given [cond], possibly the empty events *)
  
   val observe : Observe_error.t observe 
-
+  
 end
-
-module type ERROR_CONVERTER =
-  sig
-     module Error_in : ERROR
-     module Error_out : ERROR
-     val convert : Error_in.t -> Error_out.t
-  end
 
 module Identity_error_converter(Error_in:ERROR) : ERROR_CONVERTER with 
   module Error_in = Error_in and module Error_out = Error_in =
@@ -256,10 +258,12 @@ module Make_extra (Data_fun:DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with
   type t = Data_fun.t and 
   module Result = Data_fun.Result and 
   module Events = Data_fun.Events and
-  module Data = Data_fun.Data) : 
-  EXTRA_FUNCTOR = functor
-    (Data_error_converter : ERROR_CONVERTER with module Error_in = Data_fun.Data_error)
-    (Observe_error_converter: ERROR_CONVERTER with module Error_in = Observe_fun.Observe_error)
+  module Data = Data_fun.Data) (*: 
+EXTRA_FUNCTOR*) = functor
+  (Data_error_converter : ERROR_CONVERTER with 
+    module Error_in = Data_fun.Data_error and type Error_in.t = Data_fun.Data_error.t)
+  (Observe_error_converter: ERROR_CONVERTER with 
+    module Error_in = Observe_fun.Observe_error and type Error_in.t = Observe_fun.Observe_error.t)
   -> struct
   module Extra_poly = Make_extra_poly(Data_fun)(Observe_fun)
   include Data_fun
@@ -269,13 +273,16 @@ module Make_extra (Data_fun:DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with
     module Result := Result and
     module Data := Data)
 
-  module Error = Error
   open Extra_poly
   let prob ?cond events t = 
      failwith("NYI")
 
-   let _data_map ?(cond=Events.empty) events t f : (float, 'err) Result.t = 
-     Result.map f (data (Events.join cond events) t)
+    
+   let _data_map ?(cond=Events.empty) events t f : (float, Data_error_converter.Error_out.t) Result.t = 
+     let open Result in
+     match Result.map f (data (Events.join cond events) t) with
+     | (Ok _ as o) -> o
+     | Error e -> Error (Data_error_converter.convert e)
 
    let exp ?cond events t = 
      _data_map ?cond events t Data.expect
@@ -295,8 +302,13 @@ module Make_extra (Data_fun:DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with
    let last ?cond events t =
      _data_map ?cond events t Data.last
 
-   let observe ?(cnt=1) ?(exp=1.0) events t : (t, 'err) Result.t = 
-     Observe_fun.observe_data (Observe_fun.Data.create ~cnt ~exp) events t
+   let observe ?(cnt=1) ?(exp=1.0) events t =
+     let open Result in
+     let result = Observe_fun.observe_data 
+      (Observe_fun.Data.create ~cnt ~exp) events t in
+     match result with
+     | (Ok _ as o) -> o
+     | Error e -> (Error (Observe_error_converter.convert e))
 end
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
@@ -316,6 +328,7 @@ sig
 
   include CREATE_FUN with
     module Events := Events and
+
     module Result := Result and
     module Data := Data and
     type t := t
@@ -373,7 +386,7 @@ module Create_error_converter
      let convert (e:Error_in.t) = Error_out.of_create e
   end
 
-module Observe_error_conveter
+module Observe_error_converter
   (Error_in : ERROR)
   (Error_out : sig include ERROR val of_observe : Error_in.t -> t end) : ERROR_CONVERTER with 
     module Error_in = Error_in and
@@ -408,8 +421,6 @@ module Find_error_converter
 
 module Make
   (Result : RESULT)
-  (Error : ERROR)
-  (Or_error : OR_ERROR)
   (Events : EVENTS)
   (Data : DATA)
   (Create_fun :
@@ -432,6 +443,8 @@ module Make
       module Events := Events and
       module Data := Data and
       type t := Create_fun.t)
+  (Or_error : OR_ERROR)
+
  : S =
 struct
   module Result = Result
@@ -456,7 +469,7 @@ struct
     type t := t)
 
   module Or_errors = struct
-      module Error = Error
+      module Error = Or_error.Error
       module Or_error = Or_error
 
   let create ?update_rule ?prior_count ?prior_exp ~name =
