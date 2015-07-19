@@ -277,14 +277,13 @@ EXTRA_FUNCTOR*) = functor
   let prob ?cond events t = 
      failwith("NYI")
 
-    
-   let _data_map ?(cond=Events.empty) events t f : (float, Data_error_converter.Error_out.t) Result.t = 
+  let _data_map ?(cond=Events.empty) events t f : (float, Data_error_converter.Error_out.t) Result.t = 
      let open Result in
      match Result.map f (data (Events.join cond events) t) with
      | (Ok _ as o) -> o
      | Error e -> Error (Data_error_converter.convert e)
 
-   let exp ?cond events t = 
+  let exp ?cond events t = 
      _data_map ?cond events t Data.expect
 
    let var ?cond events t =
@@ -356,10 +355,10 @@ sig
       module Error :
       sig
         include ERROR
-        val of_create : Create_error.t -> t
+(*        val of_create : Create_error.t -> t
         val of_observe : Observe_error.t -> t
         val of_data : Data_error.t -> t
-        val of_find : Find_error.t -> t
+        val of_find : Find_error.t -> t*)
       end
 
       module Or_error : OR_ERROR with
@@ -444,8 +443,10 @@ module Make
       module Data := Data and
       type t := Create_fun.t)
   (Or_error : OR_ERROR)
-
- : S =
+  (Data_error_converter : ERROR_CONVERTER with module Error_in = Data_fun.Data_error)
+  (Create_error_converter : ERROR_CONVERTER with module Error_in = Create_fun.Create_error and module Error_out = Data_error_converter.Error_out)
+  (Observe_error_converter : ERROR_CONVERTER with module Error_in = Observe_fun.Observe_error and module Error_out = Data_error_converter.Error_out)
+ :  S =
 struct
   module Result = Result
   module Events = Events
@@ -474,7 +475,7 @@ struct
 
   let create ?update_rule ?prior_count ?prior_exp ~name =
     create ?update_rule ?prior_count ?prior_exp ~name |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_create e) |>
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Create_error_converter.convert e) |>
     Or_error.of_result
 
   let observe_data data events t = observe_data data events t |> function
