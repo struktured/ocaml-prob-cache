@@ -327,7 +327,6 @@ sig
 
   include CREATE_FUN with
     module Events := Events and
-
     module Result := Result and
     module Data := Data and
     type t := t
@@ -422,9 +421,8 @@ module Make
   (Result : RESULT)
   (Events : EVENTS)
   (Data : DATA)
-  (Create_fun :
-    CREATE_FUN with 
-      module Result := Result and 
+  (Create_fun : CREATE_FUN with
+      module Result := Result and
       module Events := Events and
       module Data := Data)
   (Observe_fun : OBSERVE_DATA_FUN with
@@ -442,11 +440,17 @@ module Make
       module Events := Events and
       module Data := Data and
       type t := Create_fun.t)
-  (Or_error : OR_ERROR)
-  (Data_error_converter : ERROR_CONVERTER with module Error_in = Data_fun.Data_error)
-  (Create_error_converter : ERROR_CONVERTER with module Error_in = Create_fun.Create_error and module Error_out = Data_error_converter.Error_out)
-  (Observe_error_converter : ERROR_CONVERTER with module Error_in = Observe_fun.Observe_error and module Error_out = Data_error_converter.Error_out)
- :  S =
+  (Or_error : OR_ERROR with module Result = Result)
+  (Data_error_converter : ERROR_CONVERTER with
+    module Error_in = Data_fun.Data_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
+  (Create_error_converter : ERROR_CONVERTER with
+    module Error_in = Create_fun.Create_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
+  (Observe_error_converter : ERROR_CONVERTER with
+    module Error_in = Observe_fun.Observe_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
+  (Find_error_converter : ERROR_CONVERTER with
+    module Error_in = Find_fun.Find_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
+
+ (* : S *) = 
 struct
   module Result = Result
   module Events = Events
@@ -457,16 +461,19 @@ struct
     module Events := Events and
     module Result := Result and
     module Data := Data and
+    module Observe_error = Observe_fun.Observe_error and
     type t := t)
   include (Data_fun : DATA_FUN with
     module Events := Events and
     module Result := Result and
     module Data := Data and
+    module Data_error = Data_fun.Data_error and
     type t := t)
   include (Find_fun : FIND_FUN with
     module Events := Events and
     module Result := Result and
     module Data := Data and
+    module Find_error = Find_fun.Find_error and
     type t := t)
 
   module Or_errors = struct
@@ -479,13 +486,16 @@ struct
     Or_error.of_result
 
   let observe_data data events t = observe_data data events t |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_observe e)
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Observe_error_converter.convert e) |>
+    Or_error.of_result
 
   let data events t = data events t |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_data e)
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Data_error_converter.convert e) |>
+    Or_error.of_result
 
   let find f t = find f t |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Error.of_find e)
+    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Find_error_converter.convert e) |>
+    Or_error.of_result
 
   let update_rule = update_rule
   let name = name
