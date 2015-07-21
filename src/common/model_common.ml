@@ -429,17 +429,17 @@ module Make
       module Result := Result and
       module Events := Events and
       module Data := Data and
-      type t := Create_fun.t)
+      type t = Create_fun.t)
   (Data_fun : DATA_FUN with
-      module Result := Result and
+      module Result = Result and
       module Events := Events and
       module Data := Data and
-      type t := Create_fun.t)
+      type t = Create_fun.t)
   (Find_fun : FIND_FUN with
       module Result := Result and
       module Events := Events and
       module Data := Data and
-      type t := Create_fun.t)
+      type t = Create_fun.t)
   (Or_error : OR_ERROR with module Result = Result)
   (Data_error_converter : ERROR_CONVERTER with
     module Error_in = Data_fun.Data_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
@@ -450,7 +450,7 @@ module Make
   (Find_error_converter : ERROR_CONVERTER with
     module Error_in = Find_fun.Find_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
 
- (* : S *) = 
+ : S  = 
 struct
   module Result = Result
   module Events = Events
@@ -501,5 +501,13 @@ struct
   let name = name
   end
 
+  module Extra = Make_extra(Data_fun)(Observe_fun)(Data_error_converter)(Observe_error_converter)
+  
+ (* :DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with 
+  type t = Data_fun.t and 
+  module Result = Data_fun.Result and 
+  module Events = Data_fun.Events and
+  module Data = Data_fun.Data) (*: 
+*)
 end
 
