@@ -426,19 +426,19 @@ module Make
       module Events := Events and
       module Data := Data)
   (Observe_fun : OBSERVE_DATA_FUN with
-      module Result := Result and
-      module Events := Events and
-      module Data := Data and
+      module Result = Result and
+      module Events = Events and
+      module Data = Data and
       type t = Create_fun.t)
   (Data_fun : DATA_FUN with
       module Result = Result and
-      module Events := Events and
-      module Data := Data and
+      module Events = Events and
+      module Data = Data and
       type t = Create_fun.t)
   (Find_fun : FIND_FUN with
-      module Result := Result and
-      module Events := Events and
-      module Data := Data and
+      module Result = Result and
+      module Events = Events and
+      module Data = Data and
       type t = Create_fun.t)
   (Or_error : OR_ERROR with module Result = Result)
   (Data_error_converter : ERROR_CONVERTER with
@@ -503,11 +503,11 @@ struct
 
   module Extra = Make_extra(Data_fun)(Observe_fun)(Data_error_converter)(Observe_error_converter)
   
- (* :DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with 
+ (* : DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with
   type t = Data_fun.t and 
   module Result = Data_fun.Result and 
   module Events = Data_fun.Events and
-  module Data = Data_fun.Data) (*: 
+  module Data = Data_fun.Data)
 *)
 end
 
