@@ -39,23 +39,23 @@ module Data = struct
   let compare = Ord_t.compare
 end
 
-module Result : Model_common.RESULT = 
+module Result : Model_common.RESULT =
 struct
   type ('ok, 'err) t = Ok of 'ok | Error of 'err
   let map f x = match x with (Error _) as e -> e | Ok y -> Ok (f y)
   let bind f x = match x with (Error _) as e -> e | Ok y -> (f y)
   let return x = Ok x
   let all elems = CCList.fold_while (fun l x -> match x with
-      | Ok o -> 
-          begin match l with (Error _ ) as e -> e | Ok l' -> Ok (o::l') end, 
-        `Continue 
+      | Ok o ->
+          begin match l with (Error _ ) as e -> e | Ok l' -> Ok (o::l') end,
+        `Continue
       | (Error _) as e -> e, `Stop) (Ok []) elems
-  let both x y = match x,y with 
+  let both x y = match x,y with
     | ((Error _) as e), _ -> e
     | _, ((Error _) as e') -> e'
     | Ok x, Ok y -> Ok (x, y)
   
-  module Monad_infix = 
+  module Monad_infix =
   struct
     let (>>=) x f = bind f x
     let (>>|) x f = map f x
@@ -125,9 +125,7 @@ end
 module type S =
 sig
   module Events : EVENTS
-  module Event : EVENT
   include Model_common.S with 
     module Result = Result and
-    module Events = Events and
-    module Event = Event
+    module Events := Events 
 end

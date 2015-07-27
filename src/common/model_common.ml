@@ -95,6 +95,7 @@ sig
 
 
 end
+
 module type OBSERVE_DATA_FUN =
 sig
 
@@ -212,14 +213,14 @@ sig
   val convert : Error_in.t -> Error_out.t
 end
 
-module type EXTRA_FUNCTOR = functor
+module type EXTRA = (*functor
   (Data_error_converter : ERROR_CONVERTER)
   (Observe_error_converter : ERROR_CONVERTER)
--> 
+-> *)
 sig
   module Extra_poly : EXTRA_POLY
-  module Data_error : module type of Data_error_converter.Error_out 
-  module Observe_error : module type of Observe_error_converter.Error_out
+  module Data_error : ERROR (*= Data_error_converter.Error_out *)
+  module Observe_error : ERROR (* Observe_error_converter.Error_out *)
   open Extra_poly
   val prob : Data_error.t prob
   (** Probability of events given [cond], possibly the empty events *)
@@ -241,12 +242,12 @@ sig
 
   val last : Data_error.t last
   (** Observed last value of events given [cond], possibly the empty events *)
- 
+
   val observe : Observe_error.t observe 
-  
+
 end
 
-module Identity_error_converter(Error_in:ERROR) : ERROR_CONVERTER with 
+module Identity_error_converter(Error_in:ERROR) : ERROR_CONVERTER with
   module Error_in = Error_in and module Error_out = Error_in =
   struct
      module Error_in = Error_in
@@ -254,32 +255,40 @@ module Identity_error_converter(Error_in:ERROR) : ERROR_CONVERTER with
      let convert (e:Error_in.t) : Error_out.t = e
   end
 
+  (** ..._converter.Error_out is the actual error of interest. The identity
+ * converter is used to create the Error_in versions *)
 module Make_extra (Data_fun:DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with 
   type t = Data_fun.t and 
   module Result = Data_fun.Result and 
   module Events = Data_fun.Events and
-  module Data = Data_fun.Data) (*: 
-EXTRA_FUNCTOR*) = functor
-  (Data_error_converter : ERROR_CONVERTER with 
-    module Error_in = Data_fun.Data_error and type Error_in.t = Data_fun.Data_error.t)
-  (Observe_error_converter: ERROR_CONVERTER with 
-    module Error_in = Observe_fun.Observe_error and type Error_in.t = Observe_fun.Observe_error.t)
-  -> struct
+  module Data = Data_fun.Data) 
+  (Data_error_converter : ERROR_CONVERTER with
+    module Error_in = Data_fun.Data_error)
+  (Observe_error_converter : ERROR_CONVERTER with
+    module Error_in = Observe_fun.Observe_error) : EXTRA with 
+    module Data_error = Data_error_converter.Error_out and
+    module Observe_error = Observe_error_converter.Error_out
+  = struct
+  
+  module Data_error = Data_error_converter.Error_out
+  module Observe_error = Observe_error_converter.Error_out
+
   module Extra_poly = Make_extra_poly(Data_fun)(Observe_fun)
-  include Data_fun
+  (*include (Data_fun : DATA_FUN with
   include (Observe_fun : OBSERVE_DATA_FUN with 
     type t := t and 
     module Events := Events and
     module Result := Result and
-    module Data := Data)
+    module Data := Data)*)
 
+  module Data = Data_fun.Data
   open Extra_poly
-  let prob ?cond events t = 
-     failwith("NYI")
+  let prob ?(cond:Events.t option) (events:Events.t) (t:t) :
+    (float, Data_error_converter.Error_out.t) Result.t = failwith("NYI")
 
   let _data_map ?(cond=Events.empty) events t f : (float, Data_error_converter.Error_out.t) Result.t = 
      let open Result in
-     match Result.map f (data (Events.join cond events) t) with
+     match Result.map f (Data_fun.data (Events.join cond events) t) with
      | (Ok _ as o) -> o
      | Error e -> Error (Data_error_converter.convert e)
 
@@ -315,11 +324,12 @@ module type S =
 sig
 
   module Result : RESULT
-  (** The module type representing one event *)
-  module Event : EVENT
 
   (** The module type representing a collection of events *)
-  module Events : EVENTS with module Event = Event
+  module Events : EVENTS
+
+  (** The module type representing one event *)
+  module Event = Events.Event
 
   module Data : DATA
     (** An abstract events model cache *)
@@ -351,14 +361,7 @@ sig
     (** Simpler interface that unifies the error type *)
   module Or_errors :
   sig
-      module Error :
-      sig
-        include ERROR
-(*        val of_create : Create_error.t -> t
-        val of_observe : Observe_error.t -> t
-        val of_data : Data_error.t -> t
-        val of_find : Find_error.t -> t*)
-      end
+      module Error : ERROR
 
       module Or_error : OR_ERROR with
         module Error = Error and module Result = Result
@@ -368,15 +371,14 @@ sig
       val observe_data : Error.t observe_data
       val data : Error.t data
       val find : Error.t find
-
       val name : t -> string
   end
 end
 
-module Create_error_converter 
+module Create_error_converter
   (Error_in : ERROR)
   (Error_out : sig include ERROR val of_create : Error_in.t -> t end) : ERROR_CONVERTER with 
-    module Error_in = Error_in and 
+    module Error_in = Error_in and
     module Error_out = Error_out =
   struct
      module Error_in = Error_in
@@ -450,7 +452,7 @@ module Make
   (Find_error_converter : ERROR_CONVERTER with
     module Error_in = Find_fun.Find_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
 
- : S  = 
+ : sig include S include EXTRA with module Data_error := Data_error and module Observe_error := Observe_error end =
 struct
   module Result = Result
   module Events = Events
@@ -499,13 +501,26 @@ struct
 
   let update_rule = update_rule
   let name = name
+
+  module Extra_or_error : 
+      EXTRA with module Data_error = Data_error_converter.Error_out and module Observe_error = Observe_error_converter.Error_out 
+    = Make_extra(Data_fun)(Observe_fun)(Data_error_converter)(Observe_error_converter)
+  include Extra_or_error 
   end
 
-  module Extra = Make_extra(Data_fun)(Observe_fun)(Data_error_converter)(Observe_error_converter)
+  module Extra : EXTRA with 
+    module Data_error := Data_fun.Data_error and 
+    module Observe_error := Observe_fun.Observe_error = Make_extra
+    (Data_fun)(Observe_fun)
+    (Identity_error_converter(Data_fun.Data_error))
+    (Identity_error_converter(Observe_fun.Observe_error))
   
+  include Extra
+  
+(*  include (Extra : EXTRA_POLY with type t := t)*)
  (* : DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with
-  type t = Data_fun.t and 
-  module Result = Data_fun.Result and 
+  type t = Data_fun.t and
+  module Result = Data_fun.Result and
   module Events = Data_fun.Events and
   module Data = Data_fun.Data)
 *)
