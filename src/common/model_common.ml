@@ -320,7 +320,7 @@ module Make_extra (Data_fun:DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with
 end
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
-module type S =
+module type S_BASE =
 sig
 
   module Result : RESULT
@@ -358,21 +358,23 @@ sig
     module Result := Result and
     module Data := Data and
     type t := t
-    (** Simpler interface that unifies the error type *)
-  module Or_errors :
-  sig
-      module Error : ERROR
+end
 
-      module Or_error : OR_ERROR with
-        module Error = Error and module Result = Result
+module type OR_ERRORS =
+sig
+  module Error : ERROR
+  include S_BASE with module Create_error := Error and module Observe_error := Error and module Find_error := Error
+  module Or_error : OR_ERROR with module Error = Error and module Result = Result
+end
 
-      val update_rule : t -> update_rule
-      val create : Error.t create
-      val observe_data : Error.t observe_data
-      val data : Error.t data
-      val find : Error.t find
-      val name : t -> string
-  end
+(** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
+module type S =
+sig 
+  include S_BASE
+  module Or_errors : OR_ERRORS with 
+   module Result = Result and 
+   module Events = Events and
+   module Data = Data
 end
 
 module Create_error_converter
@@ -451,8 +453,12 @@ module Make
     module Error_in = Observe_fun.Observe_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
   (Find_error_converter : ERROR_CONVERTER with
     module Error_in = Find_fun.Find_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
-
- : sig include S include EXTRA with module Data_error := Data_error and module Observe_error := Observe_error end =
+ : sig 
+     include S
+     include EXTRA with module Data_error := Data_error and module Observe_error := Observe_error
+   end 
+  
+ =
 struct
   module Result = Result
   module Events = Events
@@ -479,9 +485,26 @@ struct
     type t := t)
 
   module Or_errors = struct
+      type t = Data_fun.t
+  (* Defines a prior function in terms of counts with the observed events as input. *)
+  type prior_count = Create_fun.prior_count
+
+  (* Define a prior function in terms of real values with the observed events as input. *)
+  type prior_exp = Create_fun.prior_exp
+
+  (** Defines the update rule for expectations *)
+  type update_rule = Create_fun.update_rule 
+
+  type 'a observe_data = 'a Observe_fun.observe_data
+  type 'a data = 'a Data_fun.data
+  type 'a find = 'a Find_fun.find
+  type 'a create = 'a Create_fun.create
+      module Result = Result
+      module Events = Events
+      module Event = Event
       module Error = Or_error.Error
       module Or_error = Or_error
-
+      module Data = Data
   let create ?update_rule ?prior_count ?prior_exp ~name =
     create ?update_rule ?prior_count ?prior_exp ~name |> function
     (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Create_error_converter.convert e) |>
@@ -517,12 +540,5 @@ struct
   
   include Extra
   
-(*  include (Extra : EXTRA_POLY with type t := t)*)
- (* : DATA_FUN) (Observe_fun : OBSERVE_DATA_FUN with
-  type t = Data_fun.t and
-  module Result = Data_fun.Result and
-  module Events = Data_fun.Events and
-  module Data = Data_fun.Data)
-*)
 end
 
