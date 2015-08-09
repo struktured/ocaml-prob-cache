@@ -375,12 +375,12 @@ sig
 end
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
-module S_EXTRA(Extra_poly:EXTRA_POLY) =
+module S_BASE_EXTRA(Extra_poly:EXTRA_POLY) =
 struct module type S =
 sig 
   include S_BASE
   include EXTRA(Extra_poly).S with module Data_error := Data_error and module Observe_error := Observe_error
-  module Or_errors :
+(*  module Or_errors :
     sig
       include OR_ERRORS with 
         module Result = Result and 
@@ -388,10 +388,39 @@ sig
         module Data = Data 
       include EXTRA(Extra_poly).S with 
         module Data_error := Data_error and module Observe_error := Observe_error
-    end
+    end *)
 end
 end
 
+module OR_ERRORS_EXTRA(Extra_poly:EXTRA_POLY) = 
+struct 
+  module type S =
+    sig
+      module Error : ERROR
+      include S_BASE_EXTRA(Extra_poly).S with 
+        module Create_error := Error and 
+        module Observe_error := Error and 
+        module Find_error := Error
+      module Or_error : OR_ERROR with module Error = Error and module Result = Result
+    end
+end
+
+module S_EXTRA(Extra_poly:EXTRA_POLY) =
+struct module type S =
+sig 
+  include S_BASE
+  include EXTRA(Extra_poly).S with module Data_error := Data_error and module Observe_error := Observe_error
+  module Or_errors :
+    sig
+      include OR_ERRORS_EXTRA(Extra_poly).S with 
+        module Result = Result and 
+        module Events = Events and
+        module Data = Data 
+      include EXTRA(Extra_poly).S with 
+        module Data_error := Data_error and module Observe_error := Observe_error
+    end 
+end
+end
 
 module Create_error_converter
   (Error_in : ERROR)
@@ -469,9 +498,9 @@ module Make
     module Error_in = Observe_fun.Observe_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
   (Find_error_converter : ERROR_CONVERTER with
     module Error_in = Find_fun.Find_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
- : S_EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with 
-  module Result = Result and 
-  module Events = Events and 
+ : S_EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with
+  module Result = Result and
+  module Events = Events and
   module Data = Data and
   module Or_errors.Error = Or_error.Error and
   module Or_errors.Or_error = Or_error =
@@ -499,55 +528,57 @@ struct
     module Data := Data and
     module Find_error = Find_fun.Find_error and
     type t := t)
-  module Or_errors : OR_ERRORS with 
-   module Result = Result and 
-   module Events = Events and
-   module Data = Data = struct
-  type t = Data_fun.t
-  (* Defines a prior function in terms of counts with the observed events as input. *)
-  type prior_count = Create_fun.prior_count
+  module Or_errors : OR_ERRORS_EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with
+    module Result = Result and 
+    module Or_error = Or_error and
+    module Events = Events and
+    module Data = Data =
+  struct
+    type t = Data_fun.t
+    (** Defines a prior function in terms of counts with the observed events as input. *)
+    type prior_count = Create_fun.prior_count
 
-  (* Define a prior function in terms of real values with the observed events as input. *)
-  type prior_exp = Create_fun.prior_exp
+    (** Define a prior function in terms of real values with the observed events as input. *)
+    type prior_exp = Create_fun.prior_exp
 
-  (** Defines the update rule for expectations *)
-  type update_rule = Create_fun.update_rule 
+    (** Defines the update rule for expectations *)
+    type update_rule = Create_fun.update_rule 
 
-  type 'a observe_data = 'a Observe_fun.observe_data
-  type 'a data = 'a Data_fun.data
-  type 'a find = 'a Find_fun.find
-  type 'a create = 'a Create_fun.create
-      module Result = Result
-      module Events = Events
-      module Event = Event
-      module Error = Or_error.Error
-      module Or_error = Or_error
-      module Data = Data
-  let create ?update_rule ?prior_count ?prior_exp ~name =
-    create ?update_rule ?prior_count ?prior_exp ~name |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Create_error_converter.convert e) |>
-    Or_error.of_result
+    type 'a observe_data = 'a Observe_fun.observe_data
+    type 'a data = 'a Data_fun.data
+    type 'a find = 'a Find_fun.find
+    type 'a create = 'a Create_fun.create
+    module Result = Result
+    module Events = Events
+    module Event = Event
+    module Error = Or_error.Error
+    module Or_error = Or_error
+    module Data = Data
+    let create ?update_rule ?prior_count ?prior_exp ~name =
+      create ?update_rule ?prior_count ?prior_exp ~name |> function
+      (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Create_error_converter.convert e) |>
+      Or_error.of_result
 
-  let observe_data data events t = observe_data data events t |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Observe_error_converter.convert e) |>
-    Or_error.of_result
+    let observe_data data events t = observe_data data events t |> function
+      (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Observe_error_converter.convert e) |>
+      Or_error.of_result
 
-  let data events t = data events t |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Data_error_converter.convert e) |>
-    Or_error.of_result
+    let data events t = data events t |> function
+      (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Data_error_converter.convert e) |>
+      Or_error.of_result
 
-  let find f t = find f t |> function
-    (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Find_error_converter.convert e) |>
-    Or_error.of_result
+    let find f t = find f t |> function
+      (Result.Ok _) as o -> o | Result.Error e -> Result.Error (Find_error_converter.convert e) |>
+      Or_error.of_result
 
-  let update_rule = update_rule
-  let name = name
+    let update_rule = update_rule
+    let name = name
 
-  module Extra_or_error : 
+    module Extra_or_error : 
       EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S 
       with module Data_error = Data_error_converter.Error_out and module Observe_error = Observe_error_converter.Error_out 
-    = Make_extra(Data_fun)(Observe_fun)(Data_error_converter)(Observe_error_converter)
-  include Extra_or_error 
+      = Make_extra(Data_fun)(Observe_fun)(Data_error_converter)(Observe_error_converter)
+    include Extra_or_error 
   end
 
   module Extra : EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with 
