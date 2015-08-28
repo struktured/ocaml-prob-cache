@@ -467,6 +467,7 @@ module Find_error_converter
   end
 
 module Make
+  (Error : ERROR) (** Todo possibly remove this *)
   (Result : RESULT)
   (Events : EVENTS)
   (Data : DATA)
@@ -489,21 +490,21 @@ module Make
       module Events = Events and
       module Data = Data and
       type t = Create_fun.t)
-  (Or_error : OR_ERROR with module Result = Result)
+  (Or_error : OR_ERROR with module Result = Result and module Error = Error)
   (Data_error_converter : ERROR_CONVERTER with
-    module Error_in = Data_fun.Data_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
+    module Error_in = Data_fun.Data_error and module Error_out = Error)
   (Create_error_converter : ERROR_CONVERTER with
-    module Error_in = Create_fun.Create_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
+    module Error_in = Create_fun.Create_error and module Error_out = Error)
   (Observe_error_converter : ERROR_CONVERTER with
-    module Error_in = Observe_fun.Observe_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
+    module Error_in = Observe_fun.Observe_error and module Error_out = Error)
   (Find_error_converter : ERROR_CONVERTER with
-    module Error_in = Find_fun.Find_error and module Error_out = Or_error.Error and type Error_out.t = Or_error.Error.t)
- : S_EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with
+    module Error_in = Find_fun.Find_error and module Error_out = Error)
+ (* : S_EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with
   module Result = Result and
   module Events = Events and
   module Data = Data and
   module Or_errors.Error = Or_error.Error and
-  module Or_errors.Or_error = Or_error =
+  module Or_errors.Or_error = Or_error *) =
 struct
   module Result = Result
   module Events = Events
@@ -528,8 +529,10 @@ struct
     module Data := Data and
     module Find_error = Find_fun.Find_error and
     type t := t)
-  module Or_errors : OR_ERRORS_EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with
+  module Or_errors_extra = OR_ERRORS_EXTRA(Make_extra_poly(Data_fun)(Observe_fun))
+  module Or_errors : Or_errors_extra.S with
     module Result = Result and 
+    module Error = Error and
     module Or_error = Or_error and
     module Events = Events and
     module Data = Data =
