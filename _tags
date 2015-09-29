@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 86faa2860288075f1f003daed2d9bfe4)
+# DO NOT EDIT (digest: af527b6f20dc8f467b601011809d23bc)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -21,12 +21,17 @@ true: annot, bin_annot
 "src/common/data.cmx": for-pack(Prob_cache_common)
 "src/common/events_common.cmx": for-pack(Prob_cache_common)
 "src/common/calculus.cmx": for-pack(Prob_cache_common)
+"src/common/create_fun.cmx": for-pack(Prob_cache_common)
+"src/common/observe_data_fun.cmx": for-pack(Prob_cache_common)
+"src/common/find_fun.cmx": for-pack(Prob_cache_common)
+"src/common/extra_types.cmx": for-pack(Prob_cache_common)
 "src/common/model_common.cmx": for-pack(Prob_cache_common)
 "src/common/powerset.cmx": for-pack(Prob_cache_common)
 <src/common/*.ml{,i,y}>: pkg_containers
 <src/common/*.ml{,i,y}>: pkg_containers.advanced
 <src/common/*.ml{,i,y}>: pkg_containers.data
 <src/common/*.ml{,i,y}>: pkg_containers.misc
+<src/common/*.ml{,i,y}>: pkg_or_errors
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving.iter
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving.ord
@@ -43,6 +48,7 @@ true: annot, bin_annot
 <src/containers/*.ml{,i,y}>: pkg_containers.advanced
 <src/containers/*.ml{,i,y}>: pkg_containers.data
 <src/containers/*.ml{,i,y}>: pkg_containers.misc
+<src/containers/*.ml{,i,y}>: pkg_or_errors
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving.iter
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving.ord
@@ -63,6 +69,7 @@ true: annot, bin_annot
 <src/riak/*.ml{,i,y}>: pkg_containers.data
 <src/riak/*.ml{,i,y}>: pkg_containers.misc
 <src/riak/*.ml{,i,y}>: pkg_core
+<src/riak/*.ml{,i,y}>: pkg_or_errors
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving.iter
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving.ord
@@ -77,6 +84,7 @@ true: annot, bin_annot
 "src/examples/sprinkler.byte": pkg_containers.advanced
 "src/examples/sprinkler.byte": pkg_containers.data
 "src/examples/sprinkler.byte": pkg_containers.misc
+"src/examples/sprinkler.byte": pkg_or_errors
 "src/examples/sprinkler.byte": pkg_ppx_deriving
 "src/examples/sprinkler.byte": pkg_ppx_deriving.iter
 "src/examples/sprinkler.byte": pkg_ppx_deriving.ord
@@ -90,6 +98,7 @@ true: annot, bin_annot
 "src/examples/coin_flip.byte": pkg_containers.advanced
 "src/examples/coin_flip.byte": pkg_containers.data
 "src/examples/coin_flip.byte": pkg_containers.misc
+"src/examples/coin_flip.byte": pkg_or_errors
 "src/examples/coin_flip.byte": pkg_ppx_deriving
 "src/examples/coin_flip.byte": pkg_ppx_deriving.iter
 "src/examples/coin_flip.byte": pkg_ppx_deriving.ord
@@ -102,6 +111,7 @@ true: annot, bin_annot
 <src/examples/*.ml{,i,y}>: pkg_containers.advanced
 <src/examples/*.ml{,i,y}>: pkg_containers.data
 <src/examples/*.ml{,i,y}>: pkg_containers.misc
+<src/examples/*.ml{,i,y}>: pkg_or_errors
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving.iter
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving.ord
@@ -118,6 +128,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_sprinkler.byte": pkg_containers.data
 "src/riak_examples/riak_sprinkler.byte": pkg_containers.misc
 "src/riak_examples/riak_sprinkler.byte": pkg_core
+"src/riak_examples/riak_sprinkler.byte": pkg_or_errors
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving.iter
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving.ord
@@ -136,6 +147,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_coin_flip.byte": pkg_containers.data
 "src/riak_examples/riak_coin_flip.byte": pkg_containers.misc
 "src/riak_examples/riak_coin_flip.byte": pkg_core
+"src/riak_examples/riak_coin_flip.byte": pkg_or_errors
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving.iter
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving.ord
@@ -153,6 +165,7 @@ true: annot, bin_annot
 <src/riak_examples/*.ml{,i,y}>: pkg_containers.data
 <src/riak_examples/*.ml{,i,y}>: pkg_containers.misc
 <src/riak_examples/*.ml{,i,y}>: pkg_core
+<src/riak_examples/*.ml{,i,y}>: pkg_or_errors
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving.iter
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving.ord

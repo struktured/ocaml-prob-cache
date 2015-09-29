@@ -9,6 +9,7 @@ PKG containers.advanced
 PKG sequence
 PKG containers.misc
 PKG containers.data
+PKG or_errors
 S src/common
 S src/containers
 S src/riak
