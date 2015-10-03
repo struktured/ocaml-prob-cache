@@ -68,66 +68,21 @@ sig
     type t := t
 end
 
-module type OR_ERRORS =
-sig
-  module Error : ERROR
-  include S_KERNEL with module Create_error := Error and module Observe_error := Error and module Find_error := Error
-  module Or_error : OR_ERROR with module Error = Error and module Result = Result
-end
 
-(** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
-module type S =
-sig 
-  include S_KERNEL
-  module Or_errors : OR_ERRORS with
-   module Result = Result and
-   module Events = Events and
-   module Data = Data
-end
-
-(** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
-module S_KERNEL_EXTRA(Model_decorator:Model_decorator.S) =
-struct module type S =
-sig 
-  include S_KERNEL
-  include EXTRA(Model_decorator).S with module Data_error := Data_error and module Observe_error := Observe_error
-(*  module Or_errors :
-    sig
-      include OR_ERRORS with 
-        module Result = Result and 
-        module Events = Events and
-        module Data = Data 
-      include EXTRA(Model_decorator_poly).S with 
-        module Data_error := Data_error and module Observe_error := Observe_error
-    end *)
-end
-end
-
-module OR_ERRORS_EXTRA(Model_decorator:MODEL_DECORATOR) =
-struct
-  module type S =
-    sig
-      module Error : ERROR
-      include S_KERNEL_EXTRA(Model_decorator).S with
-        module Create_error := Error and
-        module Observe_error := Error and
-        module Find_error := Error
-      module Or_error : OR_ERROR with module Error = Error and module Result = Result
-    end
-end
-
-module S_EXTRA(Model_decorator:MODEL_DECORATOR) =
+module S_DECORATOR(Model_decorator:MODEL_DECORATOR) =
 struct module type S =
 sig
   include S_KERNEL
-  include EXTRA(Model_decorator).S with module Data_error := Data_error and module Observe_error := Observe_error
+  include MODEL_DECORATOR with 
+    module Data_or_error := Data_or_error and 
+    module Observe_data_or_rerror := Observe_data_or_error
   module Or_errors :
     sig
-      include OR_ERRORS_EXTRA(Model_decorator).S with
+      include OR_ERRORS_DECORATOR(Model_decorator).S with
         module Result = Result and
         module Events = Events and
         module Data = Data
-      include EXTRA(Model_decorator).S with
+      include DECORATOR(Model_decorator).S with
         module Data_error := Data_error and module Observe_error := Observe_error
     end
 end
@@ -164,7 +119,7 @@ module Make
     module Error_in = Observe_fun.Observe_data_or_error.Error and module Error_out = Or_error.Error)
   (Find_error_converter : ERROR_CONVERTER with
     module Error_in = Find_fun.Find_or_error.Error and module Error_out = Or_error.Error)
- (* : S_EXTRA(Make_extra_poly(Data_fun)(Observe_fun)).S with
+ (* : S_DECORATOR(Make_extra_poly(Data_fun)(Observe_fun)).S with
   module Result = Result and
   module Events = Events and
   module Data = Data and
@@ -194,7 +149,7 @@ struct
     module Data := Data and
     module Find_error = Find_fun.Find_error and
     type t := t)
-  module Or_errors_extra = OR_ERRORS_EXTRA(Make_extra_poly(Data_fun)(Observe_fun))
+  module Or_errors_extra = OR_ERRORS_DECORATOR(Make_extra_poly(Data_fun)(Observe_fun))
   module Or_errors : Or_errors_extra.S with
     module Result = Result and 
     module Error = Error and
