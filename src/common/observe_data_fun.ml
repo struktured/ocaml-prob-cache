@@ -6,7 +6,7 @@ module type S =
 
   type t
 
-  module Observe_data_or_error : OR_ERROR
+  module Or_error : OR_ERROR
 
   (** The module type representing a collection of events *)
   module Events : EVENTS
@@ -14,7 +14,7 @@ module type S =
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  type observe_data = Data.t -> Events.t -> t -> t Observe_data_or_error.t
+  type observe_data = Data.t -> Events.t -> t -> t Or_error.t
 
   val observe_data : observe_data
   (** Observe events from a [data] instance of descriptive statistics. This
@@ -22,3 +22,14 @@ module type S =
     together in a meaningful way. The returned model reflects the observation
     updates while the original instance is not guaranteed to be current. *)
 end
+
+module Observe_error_converter
+  (Error_in : ERROR)
+  (Error_out : sig include ERROR val of_observe : Error_in.t -> t end) : ERROR_CONVERTER with
+    module Error_in = Error_in and
+    module Error_out = Error_out =
+  struct
+     module Error_in = Error_in
+     module Error_out = Error_out
+     let convert (e:Error_in.t) = Error_out.of_observe e
+  end

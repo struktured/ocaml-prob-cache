@@ -1,10 +1,10 @@
 open Or_errors.Std
 open Events_common
 module type DATA = Data.S
-module type S = 
+module type S =
   sig
 type t
-  module Create_or_error : OR_ERROR
+  module Or_error : OR_ERROR
 
   (** The module type representing a collection of events *)
   module Events : EVENTS
@@ -24,7 +24,7 @@ type t
 
   type create =
     ?update_rule:update_rule -> ?prior_count:prior_count ->
-      ?prior_exp:prior_exp -> name:string -> t Create_or_error.t
+      ?prior_exp:prior_exp -> name:string -> t Or_error.t
 
   val create : create
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
@@ -34,3 +34,14 @@ type t
   (** Gets the name of the cache *)
 
 end
+
+module Create_error_converter
+  (Error_in : ERROR)
+  (Error_out : sig include ERROR val of_create : Error_in.t -> t end) : ERROR_CONVERTER with 
+    module Error_in = Error_in and
+    module Error_out = Error_out =
+  struct
+     module Error_in = Error_in
+     module Error_out = Error_out
+     let convert (e:Error_in.t) = Error_out.of_create e
+  end
