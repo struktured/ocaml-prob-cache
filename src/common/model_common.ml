@@ -23,10 +23,7 @@ module type S_KERNEL = Model_kernel.S
 module S_DECORATOR(Model_decorator:MODEL_DECORATOR) =
 struct module type S =
 sig
-  include S_KERNEL
   include MODEL_DECORATOR with 
-    module Data_or_error := Data_or_error and 
-    module Observe_data_or_rerror := Observe_data_or_error
   module Or_errors :
     sig
       include OR_ERRORS_DECORATOR(Model_decorator).S with

@@ -89,11 +89,10 @@ module Make
     module Result := Result and
     module Data := Data)*)
 
-  module Data = Data_fun.Data
   let prob ?(cond:Events.t option) (events:Events.t) (t:t) = failwith("NYI")
 
   let _data_map ?(cond=Events.empty) events t f =
-    Data_or_error.map f (Data_fun.data (Events.join cond events) t)
+    Data_or_error.map f (data (Events.join cond events) t)
 
   let exp ?cond events t =
     _data_map ?cond events t Data.expect
@@ -114,7 +113,7 @@ module Make
      _data_map ?cond events t Data.last
 
    let observe ?(cnt=1) ?(exp=1.0) events t =
-     Observe_data_fun.observe_data
-      (Observe_data_fun.Data.create ~cnt ~exp) events t
+     observe_data
+      (Data.create ~cnt ~exp) events t
 end
 

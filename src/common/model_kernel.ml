@@ -8,8 +8,6 @@ module type DATA_FUN = Data_fun.S
 
 module type FIND_FUN = Find_fun.S
 
-module type MODEL_DECORATOR = Model_decorator.S
-
 module type S =
 sig
 
