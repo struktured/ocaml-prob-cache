@@ -1,6 +1,6 @@
 open Events_common
 
-module Make(Model:Model_common.S) = struct
+module Make(Model:Model_decorator.S) = struct
 module Events = Model.Events
 module Data = Model.Data
 module Result = Model.Result
@@ -73,7 +73,7 @@ struct
   let empty = create ~prob:0. ~data:Data.empty
 end
 
-module M = Model.Or_errors
+module M = Model
 module Or_error = M.Or_error
 
 module Literal =

@@ -26,7 +26,7 @@ Flag riak_examples
 Library prob_cache_common
   Path:               src/common
   Pack:               true
-  Modules:            Update_rules, Running, Data, Events_common, Calculus, Create_fun, Observe_data_fun, Data_fun, Find_fun, Model_decorator, Model_kernel, Model_common
+  Modules:            Update_rules, Running, Data, Events_common, Calculus, Create_fun, Observe_data_fun, Data_fun, Find_fun, Model_decorator, Model_kernel 
   InternalModules:    Powerset
   BuildDepends:       containers, containers.misc, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, or_errors
 
