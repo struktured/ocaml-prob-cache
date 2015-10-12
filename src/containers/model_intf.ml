@@ -119,11 +119,17 @@ module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@
         end
 
 
+module type S_KERNEL =
+  sig
+  module Events : EVENTS
+  include Model_kernel.S with 
+    module Result = Result and
+    module Events := Events
+  end
+
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
-sig
-  module Events : EVENTS
-  include Model_decorator.S with 
-    module Result = Result and
-    module Events := Events 
-end
+  sig
+    module Model_kernel : S_KERNEL
+    include Model_decorator.S with module Model_kernel := Model_kernel
+  end

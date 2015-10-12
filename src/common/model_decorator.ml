@@ -5,7 +5,8 @@ module type DATA_FUN = Data_fun.S
 module type OBSERVE_DATA_FUN = Observe_data_fun.S
 module type S =
 sig
-  include Model_kernel.S
+  module Model_kernel : Model_kernel.S
+  include module type of Model_kernel
 
   type prob = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
@@ -48,19 +49,11 @@ sig
 
 end
 
-module Make 
-  (*(Data_fun:DATA_FUN) 
-  (Observe_data_fun : OBSERVE_DATA_FUN with
-  type t = Data_fun.t and
-  module Or_error.Result = Data_fun.Or_error.Result and
-  module Events = Data_fun.Events and
-  module Data = Data_fun.Data) *)
-
+module Make
   (Model_kernel : Model_kernel.S)
-   : S (* with
-    module Observe_error_converterData_error = Data_error_converter.Error_out and
-      module Observe_error = Observe_error_converter.Error_out *)
+   : S
   = struct
+  module Model_kernel = Model_kernel
   include Model_kernel
   type prob = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
@@ -77,14 +70,6 @@ module Make
   type last = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
   type observe = ?cnt: int -> ?exp:float -> Events.t -> t -> t Or_error.t
-
-
-  (*include (Data_fun : DATA_FUN with
-  include (Observe_fun : OBSERVE_DATA_FUN with 
-    type t := t and 
-    module Events := Events and
-    module Result := Result and
-    module Data := Data)*)
 
   let prob ?(cond:Events.t option) (events:Events.t) (t:t) = failwith("NYI")
 

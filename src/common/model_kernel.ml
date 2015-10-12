@@ -24,39 +24,27 @@ sig
   type t
 
   module Or_error : OR_ERROR
-(*  module Create_or_error : OR_ERROR
-
-  module Data_or_error : OR_ERROR
-
-  module Observe_data_or_error : OR_ERROR
-
-  module Find_or_error : OR_ERROR
-*)
 
   include CREATE_FUN with
     module Events := Events and
-(*    module Or_error := Create_or_error and *)
     module Or_error := Or_error and
     module Data := Data and
     type t := t
 
   include DATA_FUN with
     module Events := Events and
-(*    module Or_error := Data_or_error and *)
     module Or_error := Or_error and
     module Data := Data and
     type t := t
 
   include OBSERVE_DATA_FUN with
     module Events := Events and
-(*    module Or_error := Observe_data_or_error and *)
     module Or_error := Or_error and
     module Data := Data and
     type t := t
 
   include FIND_FUN with
     module Events := Events and
-(*    module Or_error := Observe_data_or_error and *)
     module Or_error := Or_error and
     module Data := Data and
     type t := t

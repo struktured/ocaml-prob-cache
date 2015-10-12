@@ -1,4 +1,5 @@
 open Prob_cache_common
+open Model.Std
 module Float = CCFloat
 
 (** Represents a single event- must be comparable and showable *)
@@ -11,21 +12,20 @@ module type EVENTS = Model_intf.EVENTS
     Uses in memory models backed by the containers api *)
 
 module type S = Model_intf.S
-
+module type S_KERNEL = Model_intf.S_KERNEL
 module Data = Model_intf.Data
 module Fun = CCFun
-
-module Make_for_events (Events:EVENTS) : S with module Event = Events.Event =
+  
+module Make_for_events (Events:EVENTS) : S_KERNEL with module Event = Events.Event =
 struct
   module Event = Events.Event
   module Events = Events
   module Cache = CCMap.Make(Events)
   module Int = CCInt
   module Data = Data
-  include Model_common.Make(Events)(Data)
 
  type prior_count = Events.t -> int
-  type prior_exp = Events.t -> float
+ type prior_exp = Events.t -> float
 
   module T = struct 
     type update_rule = Events.t Data.update_rule
@@ -44,14 +44,14 @@ struct
   let default_update_rule : update_rule = Update_rules.mean
   end
 
-  module Create_fun : Model_common.CREATE_FUN = struct
+  module Create_fun : CREATE_FUN = struct
     include T
     let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
     ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
   end
   
 
-  module Observe_fun : Model_common.OBSERVE_FUN = struct
+  module Observe_fun : OBSERVE_FUN = struct
     include T
     let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
     ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}

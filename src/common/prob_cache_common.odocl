@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 742abb379a9ba017b9a27e5fc4129cfc)
+# DO NOT EDIT (digest: 7a47160a4654221203d73952bc100b79)
 Update_rules
 Running
 Data
@@ -12,4 +12,5 @@ Find_fun
 Model_primitives
 Model_kernel
 Model_decorator
+Model
 # OASIS_STOP
