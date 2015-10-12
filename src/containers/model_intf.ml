@@ -1,10 +1,11 @@
 (** A abstract model, defining the type of events and data structures
 to maintain their probabilities and expectations.
 *)
+open Or_errors.Std
 open Prob_cache_common
 
 (** Floating point convenience module *)
-module Float = Model_common.Float
+module Float = Model_primitives.Float
 
 (** Represents a single event- must be comparable and showable *)
 module type EVENT =
@@ -39,7 +40,7 @@ module Data = struct
   let compare = Ord_t.compare
 end
 
-module Result : Model_common.RESULT =
+module Result : RESULT =
 struct
   type ('ok, 'err) t = Ok of 'ok | Error of 'err
   let map f x = match x with (Error _) as e -> e | Ok y -> Ok (f y)
@@ -63,7 +64,7 @@ struct
   end
 end
 
-module Base_error(T:sig type t [@@deriving show] end) : Model_common.ERROR with type t = T.t = struct
+module Base_error(T:sig type t [@@deriving show] end) : ERROR with type t = T.t = struct
   include T
   let to_string_mach t = show t
   let to_string_hum t = show t
@@ -74,8 +75,6 @@ module Data_error = Base_error(struct type t = [`Data_error of string] [@@derivi
 module Find_error = Base_error(struct type t = [`Find_error of string] [@@deriving show] end)
 module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@deriving show] end)
 
-module Or_errors = 
-struct
   module Error =
       struct
         type t =
@@ -118,14 +117,13 @@ struct
           end
         let of_result (r: ('a, Error.t) Result.t) : 'a t = r
         end
-end
 
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
 sig
   module Events : EVENTS
-  include Model_common.S with 
+  include Model_decorator.S with 
     module Result = Result and
     module Events := Events 
 end
