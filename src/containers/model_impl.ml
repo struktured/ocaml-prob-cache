@@ -39,7 +39,7 @@ struct
 
     let default_prior_count (e:Events.t) = 0
 
-  let default_prior_exp (e:Events.t) = 0
+  let default_prior_exp (e:Events.t) = 0.0
 
   let default_update_rule : update_rule = Update_rules.mean
   end
