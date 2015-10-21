@@ -160,7 +160,7 @@ end
 module Make_event_set(Event:EVENT) : EVENTS with module Event = Event = 
 struct
   module Event = Event
-  module Hashset = Containers_misc.Hashset
+  module Hashset = Hashset
   type t = Event.t Hashset.t
 
   let to_list t = List.sort_uniq ~cmp:Event.compare (Sequence.to_list (Hashset.to_seq t))
