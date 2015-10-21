@@ -12,6 +12,9 @@ type t = Oml.Running.t = { size : int         (** Number of observations. *)
 } [@@deriving show]
 end
 
+let debug = ref false
+let debug s = match !debug with true -> print_endline @@ "[data] " ^ s | false -> ()
+
 module type S =
 sig
   type 'a update_rule = 'a Update_rules.Update_fn.t
@@ -28,6 +31,7 @@ sig
   val min : t -> float
   val sum : t -> float
   val last : t -> float
+  val sum_sq : t -> float
   val update : cnt:int -> exp:float -> update_rule:'a update_rule
     -> ?prior_count:('a -> int) -> ?prior_exp:('a -> float) ->
       'a -> t option -> t
@@ -63,9 +67,10 @@ struct
   let max t = t.Oml.Running.max
   let sum t = t.Oml.Running.sum
   let last t = t.Oml.Running.last
+  let sum_sq t = t.Oml.Running.sum_sq
 
   let _mean_update ~(update_rule:'a update_rule)
-    ~obs ~size ~n_sum ~n_sum_sq ~n_size t v = print_endline @@ 
+    ~obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@ 
       Printf.sprintf "t=\"%s\", size=%d, n_sum=%f, n_sum_sqr=%f, n_size=%f, v=%f" 
         (Data.show t) size n_sum n_sum_sq n_size v;
       update_rule ~obs ~exp:v ~cnt:(int_of_float n_size) ~orig:(expect t)

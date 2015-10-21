@@ -124,11 +124,10 @@ struct
 
   let join_data data (events:Events.t) (t:t) =
     let open Result.Monad_infix in
-    _data events t >>= function
-      | None -> Result.return t
-      | Some orig_data -> let data' = Data.join
-        ~obs:events ~update_rule:t.update_rule orig_data data in
-        Cache.put t.cache ~k:events (Cache.Robj.of_value data') >>|
+    _data events t >>= fun data_opt ->
+      let data = CCOpt.maybe (fun orig -> Data.join
+        ~obs:events ~update_rule:t.update_rule orig data) data data_opt in
+        Cache.put t.cache ~k:events (Cache.Robj.of_value data) >>|
         Fun.const t
 
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) t =
@@ -161,7 +160,7 @@ end
 module Make_event_set(Event:EVENT) : EVENTS with module Event = Event = 
 struct
   module Event = Event
-  module Hashset = Containers_misc.Hashset
+  module Hashset = Hashset
   type t = Event.t Hashset.t
 
   let to_list t = List.sort_uniq ~cmp:Event.compare (Sequence.to_list (Hashset.to_seq t))

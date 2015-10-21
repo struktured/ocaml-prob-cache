@@ -87,9 +87,9 @@ struct
 
   let _observe_data data (events:Events.t) (t:t) =
     let orig_opt = Cache.get events t.cache in
-    CCOpt.maybe (fun orig -> let data' =
-      Data.join ~obs:events ~update_rule:t.update_rule orig data in
-    {t with cache=Cache.add events data' t.cache}) t orig_opt
+    let data = CCOpt.maybe (fun orig ->
+      Data.join ~obs:events ~update_rule:t.update_rule orig data) data orig_opt in
+    {t with cache=Cache.add events data t.cache}
 
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =
     CCList.fold_right (fun l t -> _observe ~cnt ~exp l t) (Events.subsets events) t
