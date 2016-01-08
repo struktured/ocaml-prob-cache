@@ -26,7 +26,7 @@ Flag riak_examples
 Library prob_cache_common
   Path:               src/common
   Pack:               true
-  Modules:            Hashset, Update_rules, Data, Events_common
+  Modules:            PHashtbl, Hashset, Update_rules, Data, Events_common
   InternalModules:    Powerset
   BuildDepends:       containers, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, oml
 
