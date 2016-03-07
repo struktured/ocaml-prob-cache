@@ -40,29 +40,7 @@ module Data = struct
   let compare = Ord_t.compare
 end
 
-module Result : RESULT =
-struct
-  type ('ok, 'err) t = Ok of 'ok | Error of 'err
-  let map f x = match x with (Error _) as e -> e | Ok y -> Ok (f y)
-  let bind f x = match x with (Error _) as e -> e | Ok y -> (f y)
-  let return x = Ok x
-  let all elems = CCList.fold_while (fun l x -> match x with
-      | Ok o ->
-          begin match l with (Error _ ) as e -> e | Ok l' -> Ok (o::l') end,
-        `Continue
-      | (Error _) as e -> e, `Stop) (Ok []) elems
-  let both x y = match x,y with
-    | ((Error _) as e), _ -> e
-    | _, ((Error _) as e') -> e'
-    | Ok x, Ok y -> Ok (x, y)
-  
-  module Monad_infix =
-  struct
-    let (>>=) x f = bind f x
-    let (>>|) x f = map f x
-    let (>|=) x f = map f x
-  end
-end
+module Result : RESULT = Or_errors_containers.Result
 
 module Base_error(T:sig type t [@@deriving show] end) : ERROR with type t = T.t = struct
   include T
@@ -101,22 +79,7 @@ module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@
           | `Find_error e -> Find_error.to_string_mach e
 
       end
-      module Or_error =
-      struct
-        type 'a t = ('a, Error.t) Result.t
-        let return x : 'a t = Result.return x
-        let all x : 'a list t = Result.all x
-        let bind f x : 'b t = Result.bind f x
-        let map f x : 'b t = Result.map f x
-        let both (x:'a t) (y: 'b t) : ('a * 'b) t = Result.both x y
-        module Infix = 
-          struct
-            let (>>|) = Result.Monad_infix.(>>|)
-            let (>|=) = Result.Monad_infix.(>|=)
-            let (>>=) = Result.Monad_infix.(>>=)
-          end
-        let of_result (r: ('a, Error.t) Result.t) : 'a t = r
-        end
+module Or_error = Or_errors_containers.Or_error.Make(Error)
 
 
 module type S_KERNEL =

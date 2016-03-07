@@ -1,6 +1,8 @@
 open Or_errors.Std
 open Events_common
 module type DATA = Data.S
+
+
 module type S =
   sig
 type t
@@ -22,11 +24,12 @@ type t
   type update_rule = Events.t Data.update_rule
   val update_rule : t -> update_rule
 
-  type create =
-    ?update_rule:update_rule -> ?prior_count:prior_count ->
-      ?prior_exp:prior_exp -> name:string -> t Or_error.t
-
-  val create : create
+  val create :
+      ?update_rule:update_rule -> 
+      ?prior_count:prior_count ->
+      ?prior_exp:prior_exp ->
+      name:string ->
+      t Or_error.t
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
      using a mean value estimator and all priors are value 0. *)
 

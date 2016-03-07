@@ -13,9 +13,8 @@ sig
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  type data = Events.t -> t -> Data.t Or_error.t
+  val data : Events.t -> t -> Data.t Or_error.t
 
-  val data : data
   (** Gets the descriptive statistics data for the given events.
       Returns data with count of zero otherwise and other values set to nan. *)
 

@@ -74,7 +74,7 @@ module Make
   let prob ?(cond:Events.t option) (events:Events.t) (t:t) = failwith("NYI")
 
   let _data_map ?(cond=Events.empty) events t f =
-    Or_error.map f (data (Events.join cond events) t)
+    Or_error.map ~f (data (Events.join cond events) t)
 
   let exp ?cond events t =
     _data_map ?cond events t Data.expect

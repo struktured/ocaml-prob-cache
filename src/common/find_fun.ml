@@ -13,10 +13,7 @@ module type S =
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  type find = (Events.t -> bool) -> t -> Events.t Or_error.t
-  (** Gets all observed events given a filter function from the model. *)
-
-  val find : find
+  val find : (Events.t -> bool) -> t -> Events.t Or_error.t
   (** Gets all observed events given a filter function from the model. *)
 
   end

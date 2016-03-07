@@ -7,9 +7,10 @@ PKG containers
 PKG riakc_ppx
 PKG containers.advanced
 PKG sequence
-PKG containers.misc
 PKG containers.data
 PKG or_errors
+PKG or_errors_containers
+PKG or_errors_async
 S src/common
 S src/containers
 S src/riak

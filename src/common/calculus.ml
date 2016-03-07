@@ -59,9 +59,8 @@ module Derived =
 struct
   type t = {prob:float; data: Data.t} [@@deriving show]
 
-  let or_error ?(prob=1.0) data = match data with 
-    | Result.Ok data -> Result.Ok {prob;data}
-    | Result.Error _ as e -> e
+  let or_error ?(prob=1.0) data = Result.map data
+    ~f:(fun data -> {prob;data})
   let create ?(prob=1.0) ~data = {prob;data}
   let data t = t.data
   let prob t = t.prob
@@ -78,7 +77,7 @@ module Or_error = M.Or_error
 
 module Literal =
   struct
-    open Or_error.Infix
+    open Or_error.Monad_infix
     include Events.Event
     open Events.Infix
 
@@ -90,7 +89,7 @@ module Literal =
 module And = 
   struct
     open Literal
-    open Or_error.Infix
+    open Or_error.Monad_infix
     include Events 
 
     let data m t = M.data t m 
@@ -103,7 +102,7 @@ module Or =
   struct
     open Literal
     open And
-    open Or_error.Infix
+    open Or_error.Monad_infix
     type t = And.t list [@@deriving show]
 
     open Events.Infix
@@ -147,7 +146,7 @@ module Given =
     open Literal
     open And
     open Or
-    open Or_error.Infix
+    open Or_error.Monad_infix
     open Events.Infix
 
    

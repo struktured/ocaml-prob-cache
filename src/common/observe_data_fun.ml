@@ -14,9 +14,8 @@ module type S =
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  type observe_data = Data.t -> Events.t -> t -> t Or_error.t
+  val observe_data : Data.t -> Events.t -> t -> t Or_error.t
 
-  val observe_data : observe_data
   (** Observe events from a [data] instance of descriptive statistics. This
     can be used to batch updates, or to load independently generated datasets
     together in a meaningful way. The returned model reflects the observation

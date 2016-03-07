@@ -24,12 +24,13 @@ struct
   module Int = CCInt
   module Data = Data
 
- type prior_count = Events.t -> int
- type prior_exp = Events.t -> float
-
   module T = struct 
+    module Events = Events
+    type prior_count = Events.t -> int
+    type prior_exp = Events.t -> float
+    module Or_error = Model_intf.Or_error
+    module Data = Data
     type update_rule = Events.t Data.update_rule
-
   and t = {
     name : string;
     cache : Data.t Cache.t;
@@ -48,8 +49,10 @@ struct
     include T
     let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
     ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
+    let name t = t.name
+    let update_rule t = t.update_rule
   end
-  
+ 
 
   module Observe_fun : OBSERVE_FUN = struct
     include T
