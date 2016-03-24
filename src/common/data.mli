@@ -38,3 +38,6 @@ end
 
 module Make(Update_rule:Update_rules.Update_fn) (Data:DATA) :
   S with module T = Data and module Obs = Update_rule.Obs
+
+module Make_with_defaults(Obs:OBS)(Data:DATA) :
+  S with module T = Data and module Obs = Obs

@@ -98,3 +98,11 @@ struct
   let update ~cnt ~exp ?prior_count ?prior_exp obs t_opt = failwith("nyi")
   let join ~obs t t' = Online.join t t'
 end
+
+module Make_with_defaults(Obs:OBS)(Data:DATA) =
+struct
+  module Update_rule = Update_rules.Mean(Obs)
+  include Make(Update_rule)(Data)
+end
+
+

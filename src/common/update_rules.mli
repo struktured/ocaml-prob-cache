@@ -28,9 +28,9 @@ sig
   val weight : UPDATE_FN(Obs).t
 end
 
+module Make_weighted : functor(Weight_provider:WEIGHT_PROVIDER) -> 
+  S with module Obs = Weight_provider.Obs
 
-module Make_weighted : functor(Weight_provider:WEIGHT_PROVIDER) -> S
+module Constant : functor(Obs:OBS)(Weight:WEIGHT) -> S with module Obs = Obs
 
-module Constant : functor(Obs:OBS)(Weight:WEIGHT) -> S
-
-module Mean : functor(Obs:OBS) -> S
+module Mean : functor(Obs:OBS) -> S with module Obs = Obs

@@ -8,7 +8,6 @@ module Float = CCFloat
 
 (** Represents a single event- must be comparable and showable *)
 module type EVENT = sig type t [@@deriving ord, show] end
-
 (** Represents an abstract collection of events *)
 module type EVENTS =
 sig
@@ -23,11 +22,11 @@ sig
   val show : t -> string
 end
 
-module Data = struct
+module Data(Events: EVENTS) = struct
   module Ord_t =
     struct
       (** Compute running statitics using recurrence equations. *)
-      type t = Oml.Running.t = { size : int         (** Number of observations. *)
+      type t = Oml.Online.t = { size : int         (** Number of observations. *)
       ; last : float        (** Last observation. *)
       ; max : float        (** Maxiumum. *)
       ; min : float        (** Minimum. *)
@@ -37,7 +36,7 @@ module Data = struct
       ; var : float (** _Unbiased_ variance *)
       } [@@deriving show, ord]
     end
-  include Data.Make(Ord_t)
+  include Data.Make_with_defaults(Events)(Ord_t)
   let compare = Ord_t.compare
 end
 
@@ -51,7 +50,7 @@ sig
   (** The module type representing a collection of events *)
   module Events : EVENTS with module Event = Event
 
-  module Data = Data
+  module Data : module type of Data(Events)
 
   (* Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
@@ -63,9 +62,9 @@ sig
   type t
 
   (** Defines the update rule for expectations *)
-  type update_rule = Events.t Data.update_rule
+  type update_rule = Update_rules.UPDATE_FN(Events).t
 
-  val create : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t
+  val create : ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
      using a mean value estimator and all priors are value 0. *)
 

@@ -21,27 +21,25 @@ struct
   module Events = Events
   module Cache = CCMap.Make(Events)
   module Int = CCInt
-  module Data = Data
+  module Data = Data(Events)
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
-  type update_rule = Events.t Data.update_rule
+  type update_rule = Update_rules.UPDATE_FN(Events).t
 
   and t = {
     name : string;
     cache : Data.t Cache.t;
     prior_count : prior_count;
-    prior_exp : prior_exp;
-    update_rule : update_rule }
+    prior_exp : prior_exp}
 
   let default_prior_count (e:Events.t) = 0
 
   let default_prior_exp (e:Events.t) = 0.
 
-  let default_update_rule : update_rule = Update_rules.mean
 
-  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
-    ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
+  let create ?(prior_count=default_prior_count) ?(prior_exp=default_prior_exp) ~(name:string) : 
+    t = {name;cache=Cache.empty;prior_count;prior_exp}
 
   let count (events:Events.t) (t:t) : int =
     CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get events t.cache))
@@ -81,14 +79,14 @@ struct
     (Float.of_int joined_events_count) /. (Float.of_int cond_count)
 
   let _observe ~cnt ~exp (events:Events.t) (t:t) =
-    let d = Data.update ~cnt ~exp ~update_rule:t.update_rule ~prior_count:t.prior_count
+    let d = Data.update ~cnt ~exp ~prior_count:t.prior_count
       ~prior_exp:t.prior_exp events (Cache.get events t.cache) in
     {t with cache=Cache.add events d t.cache}
 
   let _observe_data data (events:Events.t) (t:t) =
     let orig_opt = Cache.get events t.cache in
     let data = CCOpt.maybe (fun orig ->
-      Data.join ~obs:events ~update_rule:t.update_rule orig data) data orig_opt in
+      Data.join ~obs:events orig data) data orig_opt in
     {t with cache=Cache.add events data t.cache}
 
   let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =

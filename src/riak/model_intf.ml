@@ -26,11 +26,11 @@ sig
   include Events_common.EVENTS with module Event := Event and type t := t
 end
 
-module Data = struct
+module Data(Events:EVENTS) = struct
   module Proto_T =
     struct
       (** Compute running statitics using recurrence equations. *)
-      type t = Oml.Running.t = { size : int [@key 1]         (** Number of observations. *)
+      type t = Oml.Online.t = { size : int [@key 1]         (** Number of observations. *)
       ; last : float [@key 2]       (** Last observation. *)
       ; max : float [@key 3]       (** Maxiumum. *)
       ; min : float [@key 4]       (** Minimum. *)
@@ -41,7 +41,7 @@ module Data = struct
       } [@@deriving show, protobuf]
     end
 
-  include Data.Make(Proto_T)
+  include Data.Make_with_defaults(Events)(Proto_T)
 
   let from_protobuf = Proto_T.from_protobuf
   let to_protobuf = Proto_T.to_protobuf
@@ -58,6 +58,8 @@ sig
   (** The module type representing one event *)
   module Event : module type of Events.Event
 
+  module Data : module type of Data(Events)
+
   (** The riak cache backing the probability model. *)
   module Cache : module type of Cache.Make(Events)(Data)
 
@@ -71,7 +73,7 @@ sig
   type t
 
   (** Defines the update rule for expectations *)
-  type update_rule = Events.t Update_rules.Update_fn.t
+  type update_rule = Update_rules.UPDATE_FN(Events).t
 
   val count : Events.t -> t -> (int, [> Opts.Get.error]) Result.t
   (** How many times [events] was observed for the model cache [t].
@@ -112,7 +114,7 @@ sig
   val name : t -> string
   (** Gets the name of the cache *)
 
-  val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp ->
+  val with_model : ?prior_count:prior_count -> ?prior_exp:prior_exp ->
     host:string -> port:int -> name:string ->
     (t -> ('a, [> Conn.error] as 'e) Result.t) ->
          ('a, 'e) Result.t

@@ -25,13 +25,13 @@ sig
   include Events_common.EVENTS with module Event := Event and type t := t
 end
 
-module Data = Model_intf.Data
 
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
 module type S =  Model_intf.S
 
 module Make_for_events (Events:EVENTS) : S with module Events = Events =
 struct
+  module Data = Model_intf.Data(Events)
   module Events = Events
   module Event = Events.Event
   module Cache = Cache.Make(Events)(Data)
@@ -40,24 +40,20 @@ struct
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
-  type update_rule = Events.t Update_rules.Update_fn.t
+  type update_rule = Update_rules.UPDATE_FN(Events).t
 
   and t = {
     name : string;
     cache : Cache.t;
     prior_count : prior_count;
-    prior_exp : prior_exp; 
-    update_rule : update_rule }
+    prior_exp : prior_exp}
 
   let default_prior_count (e:Events.t) = 0
 
   let default_prior_exp (e:Events.t) = 0.
 
-  let default_update_rule : update_rule = Update_rules.mean
-
-  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
-    ?(prior_exp=default_prior_exp) cache =
-      {cache;prior_count;prior_exp;update_rule;name=Cache.get_bucket cache}
+  let create ?(prior_count=default_prior_count) ?(prior_exp=default_prior_exp) cache =
+      {cache;prior_count;prior_exp;name=Cache.get_bucket cache}
 
   let _data events t =
    let open Cache.Robj in Cache.get t.cache events >>| function
@@ -116,7 +112,6 @@ struct
     let open Cache.Robj in data events t >>=
     fun d_opt -> let d = Data.update
       ~cnt ~exp
-      ~update_rule:t.update_rule
       ~prior_count:t.prior_count ~prior_exp:t.prior_exp
       events
       d_opt in
@@ -126,7 +121,7 @@ struct
     let open Result.Monad_infix in
     _data events t >>= fun data_opt ->
       let data = CCOpt.maybe (fun orig -> Data.join
-        ~obs:events ~update_rule:t.update_rule orig data) data data_opt in
+        ~obs:events orig data) data data_opt in
         Cache.put t.cache ~k:events (Cache.Robj.of_value data) >>|
         Fun.const t
 
@@ -148,11 +143,11 @@ struct
     subsets (Result.return ())
     >>| Fun.const t
 
-  let with_model ?update_rule ?prior_count
+  let with_model ?prior_count
     ?prior_exp ~host ~port ~(name:string) f =
       let open Result.Monad_infix in
       Cache.with_cache ~host ~port ~bucket:name (fun c ->
-        let (m:t) = create ?prior_count ?update_rule ?prior_exp c in f m)
+        let (m:t) = create ?prior_count ?prior_exp c in f m)
 
   let name t = t.name
 end
