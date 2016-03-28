@@ -47,13 +47,13 @@ struct
   module Update_fn = Update_fn
   module Obs = Update_fn.Obs
   module T = Data
-  module Wrapped = Update_rules.Rule_wrap(Update_fn)
+(*  module Wrapped = Update_rules.Rule_wrap(Update_fn)
   module Online = struct include Oml.Online include Oml.Online.Make(Wrapped) end
-
+*)
   type t = Data.t [@@deriving show]
   open T
   let create ~cnt ~exp =
-   Online.init ~size:cnt exp
+   Oml.Online.init ~size:cnt exp
 
   let bootstrap ~cnt ?last ?max ?min
     ~sum ~sum_sq ?mean ?var ?stddev =
@@ -67,14 +67,14 @@ struct
           sum_sq -. (sum *. sum) /. cnt_f /. (cnt_f -. 1.0)) stddev) var in
         {size=cnt;last;mean;max;min;var;sum_sq;sum}
 
-  let count t = t.Online.size
-  let expect t = t.Online.mean
-  let var t = t.Online.var
-  let min t = t.Online.min
-  let max t = t.Online.max
-  let sum t = t.Online.sum
-  let last t = t.Online.last
-  let sum_sq t = t.Online.sum_sq
+  let count t = t.Oml.Online.size
+  let expect t = t.Oml.Online.mean
+  let var t = t.Oml.Online.var
+  let min t = t.Oml.Online.min
+  let max t = t.Oml.Online.max
+  let sum t = t.Oml.Online.sum
+  let last t = t.Oml.Online.last
+  let sum_sq t = t.Oml.Online.sum_sq
 
   let _mean_update ~update_rule
     ~obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@
@@ -97,9 +97,13 @@ struct
    end
 *)
 
-    let update ~cnt ~exp ?prior_count ?prior_exp obs t_opt = 
-    failwith("nyi")
-  let join ~obs t t' = Online.join t t'
+    let update ~cnt ~exp ?prior_count ?prior_exp obs t_opt =
+      let module Wrapped = Update_rules.Rule_wrap(Update_fn) in
+      let module Update = Oml.Online.Make(Wrapped) in
+      Wrapped.add_obs obs;
+      let t = Opt.get Oml.Online.empty t_opt in
+      Update.update ~size:cnt t exp
+  let join ~obs (t:t) (t':t) = Oml.Online.join t t'
 end
 
 module Make_with_defaults(Obs:OBS)(Data:DATA) =
