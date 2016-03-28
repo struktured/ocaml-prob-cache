@@ -3,15 +3,11 @@ module type OBS = sig type t end
 
 module type OBS_WEIGHT = sig include OBS include WEIGHT end
 
-module Online : module type of Oml.Online
-
-type update = Online.update
-
 module UPDATE_FN: functor (Obs : OBS) -> sig
   type t = ?orig:float -> obs:Obs.t -> (** <-- parameters specific to ocaml prob cache *)
     size:float -> n_sum:float -> n_sum_sq:float ->
-    n_size:float -> Online.t -> (** <-- parameters specific to oml.online *)
-    exp:float -> update
+    n_size:float -> Oml.Online.t -> (** <-- parameters specific to Oml.Online *)
+    exp:float -> Oml.Online.update
 end
 
 
@@ -28,7 +24,7 @@ sig
   val weight : UPDATE_FN(Obs).t
 end
 
-module Make_weighted : functor(Weight_provider:WEIGHT_PROVIDER) -> 
+module Make_weighted : functor(Weight_provider:WEIGHT_PROVIDER) ->
   S with module Obs = Weight_provider.Obs
 
 module Constant : functor(Obs:OBS)(Weight:WEIGHT) -> S with module Obs = Obs
@@ -38,7 +34,7 @@ module Mean : functor(Obs:OBS) -> S with module Obs = Obs
 module type RULE_WRAP =
 sig
   module Obs : OBS
-  include Online.Update_rules
+  include Oml.Online.Update_rules
   val add_obs : Obs.t -> unit
 end
 

@@ -48,7 +48,7 @@ struct
   module Obs = Update_fn.Obs
   module T = Data
   module Wrapped = Update_rules.Rule_wrap(Update_fn)
-  module Online = Oml.Online.Make(Wrapped)
+  module Online = struct include Oml.Online include Oml.Online.Make(Wrapped) end
 
   type t = Data.t [@@deriving show]
   open T
