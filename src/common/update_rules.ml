@@ -2,7 +2,6 @@ module Float = CCFloat
 module RB = CCRingBuffer
 module Opt = CCOpt
 
-
 module type WEIGHT = sig val value : float end
 module type OBS = sig type t end
 
@@ -42,7 +41,7 @@ sig
   val add_obs : Obs.t -> unit
 end
 
-module Rule_wrap(Update_fn:Update_fn) : RULE_WRAP =
+module Rule_wrap(Update_fn:Update_fn) : RULE_WRAP with module Obs = Update_fn.Obs =
   struct
   module Obs = Update_fn.Obs
   let rb_size = 2
@@ -57,9 +56,6 @@ module Rule_wrap(Update_fn:Update_fn) : RULE_WRAP =
 end
 
 module type S = Update_fn
-(*sig
-  val update : 'a Update_fn.t
-end *)
 
 module type WEIGHT_PROVIDER =
 sig

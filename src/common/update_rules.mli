@@ -34,3 +34,13 @@ module Make_weighted : functor(Weight_provider:WEIGHT_PROVIDER) ->
 module Constant : functor(Obs:OBS)(Weight:WEIGHT) -> S with module Obs = Obs
 
 module Mean : functor(Obs:OBS) -> S with module Obs = Obs
+
+module type RULE_WRAP =
+sig
+  module Obs : OBS
+  include Online.Update_rules
+  val add_obs : Obs.t -> unit
+end
+
+module Rule_wrap :
+  functor(Update_fn:Update_fn) -> RULE_WRAP with module Obs = Update_fn.Obs

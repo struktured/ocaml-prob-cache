@@ -1,11 +1,11 @@
-(** Represents a single event- must be showable *)  
+(** Represents a single event- must be showable *)
 module type EVENT = sig type t [@@deriving show] end
 
 (** Represents an abstract collection of events *)
-module type EVENTS = 
+module type EVENTS =
 sig
   module Event : EVENT
-  type t [@@deriving show] 
+  type t [@@deriving show]
   val is_empty : t -> bool
   val join: t -> t -> t
   val empty : t

@@ -1,4 +1,3 @@
-module Online = Oml.Online
 module Opt = CCOpt
 module type OBS = Update_rules.OBS
 module Fun = CCFun
@@ -48,6 +47,9 @@ struct
   module Update_fn = Update_fn
   module Obs = Update_fn.Obs
   module T = Data
+  module Wrapped = Update_rules.Rule_wrap(Update_fn)
+  module Online = Oml.Online.Make(Wrapped)
+
   type t = Data.t [@@deriving show]
   open T
   let create ~cnt ~exp =
@@ -75,7 +77,7 @@ struct
   let sum_sq t = t.Online.sum_sq
 
   let _mean_update ~update_rule
-    ~obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@ 
+    ~obs ~size ~n_sum ~n_sum_sq ~n_size t v = debug @@
       Printf.sprintf "t=\"%s\", size=%d, n_sum=%f, n_sum_sqr=%f, n_size=%f, v=%f" 
         (Data.show t) size n_sum n_sum_sq n_size v;
       update_rule ~obs ~exp:v ~cnt:(int_of_float n_size) ~orig:(expect t)
@@ -95,7 +97,8 @@ struct
    end
 *)
 
-  let update ~cnt ~exp ?prior_count ?prior_exp obs t_opt = failwith("nyi")
+    let update ~cnt ~exp ?prior_count ?prior_exp obs t_opt = 
+    failwith("nyi")
   let join ~obs t t' = Online.join t t'
 end
 
@@ -104,5 +107,6 @@ struct
   module Update_rule = Update_rules.Mean(Obs)
   include Make(Update_rule)(Data)
 end
+
 
 
