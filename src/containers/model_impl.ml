@@ -15,13 +15,16 @@ module type S = Model_intf.S
 module Data = Model_intf.Data
 module Fun = CCFun
 
-module Make_for_events (Events:EVENTS) : S with module Event = Events.Event =
+module Make_for_events (Events:EVENTS)
+ (Update_rule:Update_rules.Update_fn with type Obs.t = Events.t) : S
+ with module Event = Events.Event =
 struct
   module Event = Events.Event
   module Events = Events
   module Cache = CCMap.Make(Events)
   module Int = CCInt
-  module Data = Data(Events)
+  module Data = Data(Events)(Update_rule)
+  module Update_rule = Update_rule
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
@@ -107,13 +110,14 @@ struct
   let join = union
   let subsets t = List.map of_list (Powerset.generate (to_list t))
   let show t = to_list t |> List.map Event.show |> String.concat " & "
+  let pp formater events = iter events (fun _ e -> Event.pp formater e)
 end
 
 
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
 struct
   module Event = Event
-  type t = Event.t list [@@deriving ord]
+  type t = Event.t list [@@deriving ord, show]
   let of_list l = l
   let to_list l = l
   let join = CCList.append
@@ -127,4 +131,5 @@ struct
   []::accum
   let is_empty t = empty = t
   let show t = t |> List.map Event.show |> String.concat " & "
+  let pp formater events = List.iter (fun e -> Event.pp formater e) events
 end

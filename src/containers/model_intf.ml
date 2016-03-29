@@ -12,7 +12,7 @@ module type EVENT = sig type t [@@deriving ord, show] end
 module type EVENTS =
 sig
   module Event : EVENT
-  type t [@@deriving ord]
+  type t [@@deriving ord, show]
   val is_empty : t -> bool
   val join: t -> t -> t
   val empty : t
@@ -22,7 +22,7 @@ sig
   val show : t -> string
 end
 
-module Data(Events: EVENTS) = struct
+module Data(Events: EVENTS) (Update_rule:Update_rules.Update_fn with type Obs.t = Events.t) = struct
   module Ord_t =
     struct
       (** Compute running statitics using recurrence equations. *)
@@ -36,7 +36,7 @@ module Data(Events: EVENTS) = struct
       ; var : float (** _Unbiased_ variance *)
       } [@@deriving show, ord]
     end
-  include Data.Make_with_defaults(Events)(Ord_t)
+  include Data.Make(Update_rule)(Ord_t)
   let compare = Ord_t.compare
 end
 
@@ -50,7 +50,8 @@ sig
   (** The module type representing a collection of events *)
   module Events : EVENTS with module Event = Event
 
-  module Data : module type of Data(Events)
+  module Update_rule : Update_rules.Update_fn with module Obs = Events
+  module Data : module type of Data(Events)(Update_rule)
 
   (* Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int

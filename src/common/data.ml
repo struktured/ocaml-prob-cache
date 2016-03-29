@@ -45,7 +45,7 @@ end
 module Make(Update_fn:Update_rules.Update_fn) (Data:DATA) =
 struct
   module Update_fn = Update_fn
-  module Obs = Update_fn.Obs
+  module Obs = Events
   module T = Data
   type t = Data.t [@@deriving show]
   open T
