@@ -47,9 +47,6 @@ struct
   module Update_fn = Update_fn
   module Obs = Update_fn.Obs
   module T = Data
-(*  module Wrapped = Update_rules.Rule_wrap(Update_fn)
-  module Online = struct include Oml.Online include Oml.Online.Make(Wrapped) end
-*)
   type t = Data.t [@@deriving show]
   open T
   let create ~cnt ~exp =
