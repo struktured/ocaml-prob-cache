@@ -79,26 +79,14 @@ struct
         (Data.show t) size n_sum n_sum_sq n_size v;
       update_rule ~obs ~exp:v ~cnt:(int_of_float n_size) ~orig:(expect t)
 
-  
-(*
-  module Make(Update_rules:Online.Update_rules) = struct
-    module Online = Online.Make(Update_rules)
-    let apply ~cnt ~exp ?prior_count ?prior_exp (obs:'a) t_opt =
-    let prior_count = Opt.get_lazy (fun () -> Fun.const 0) prior_count in
-    let prior_exp = Opt.get_lazy (fun () -> Fun.const 0.0) prior_exp in
-    let t = Opt.get_lazy (fun () -> create ~cnt:(prior_count obs) 
-      ~exp:(prior_exp obs)) t_opt in
-    Online.update ~size:cnt t exp
-
-   let join ~obs = Online.join
-   end
-*)
-
     let update ~cnt ~exp ?prior_count ?prior_exp obs t_opt =
       let module Wrapped = Update_rules.Rule_wrap(Update_fn) in
       let module Update = Oml.Online.Make(Wrapped) in
       Wrapped.add_obs obs;
-      let t = Opt.get Oml.Online.empty t_opt in
+      let prior_count = Opt.get_lazy (fun () -> Fun.const 0) prior_count in
+      let prior_exp = Opt.get_lazy (fun () -> Fun.const 0.0) prior_exp in
+      let t = Opt.get_lazy (fun () -> create ~cnt:(prior_count obs)
+          ~exp:(prior_exp obs)) t_opt in
       Update.update ~size:cnt t exp
   let join ~obs (t:t) (t':t) = Oml.Online.join t t'
 end
