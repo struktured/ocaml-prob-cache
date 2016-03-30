@@ -45,6 +45,7 @@ struct
   and t = {
     name : string;
     cache : Cache.t;
+    update_rule : update_rule;
     prior_count : prior_count;
     prior_exp : prior_exp}
 
@@ -52,8 +53,9 @@ struct
 
   let default_prior_exp (e:Events.t) = 0.
 
-  let create ?(prior_count=default_prior_count) ?(prior_exp=default_prior_exp) cache =
-      {cache;prior_count;prior_exp;name=Cache.get_bucket cache}
+  let default_update_rule = let module Mean = Update_rules.Mean(Events) in Mean.apply
+  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count) ?(prior_exp=default_prior_exp) cache =
+    {cache;update_rule;prior_count;prior_exp;name=Cache.get_bucket cache}
 
   let _data events t =
    let open Cache.Robj in Cache.get t.cache events >>| function
@@ -111,6 +113,7 @@ struct
     let open Result.Monad_infix in
     let open Cache.Robj in data events t >>=
     fun d_opt -> let d = Data.update
+      ~update_rule:t.update_rule
       ~cnt ~exp
       ~prior_count:t.prior_count ~prior_exp:t.prior_exp
       events
@@ -143,11 +146,11 @@ struct
     subsets (Result.return ())
     >>| Fun.const t
 
-  let with_model ?prior_count
+  let with_model ?update_rule ?prior_count
     ?prior_exp ~host ~port ~(name:string) f =
       let open Result.Monad_infix in
       Cache.with_cache ~host ~port ~bucket:name (fun c ->
-        let (m:t) = create ?prior_count ?prior_exp c in f m)
+        let (m:t) = create ?update_rule ?prior_count ?prior_exp c in f m)
 
   let name t = t.name
 end

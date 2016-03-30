@@ -83,8 +83,9 @@ struct
     (Float.of_int joined_events_count) /. (Float.of_int cond_count)
 
   let _observe ~cnt ~exp (events:Events.t) (t:t) =
-    let d = Data.update ~cnt ~exp ~prior_count:t.prior_count
-      ~prior_exp:t.prior_exp events (Cache.get events t.cache) in
+    let d = Data.update ~update_rule:t.update_rule ~cnt ~exp
+    ~prior_count:t.prior_count ~prior_exp:t.prior_exp events
+    (Cache.get events t.cache) in
     {t with cache=Cache.add events d t.cache}
 
   let _observe_data data (events:Events.t) (t:t) =

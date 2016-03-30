@@ -30,7 +30,7 @@ sig
   val sum : t -> float
   val last : t -> float
   val sum_sq : t -> float
-  val update : cnt:int -> exp:float -> ?update_fn:(Obs.t Update_rules.update_fn)
+  val update : cnt:int -> exp:float -> ?update_rule:(Obs.t Update_rules.update_fn)
     -> ?prior_count:(Obs.t -> int) -> ?prior_exp:(Obs.t -> float) -> Obs.t -> 
     t option -> t
   val join : obs:Obs.t -> t -> t -> t

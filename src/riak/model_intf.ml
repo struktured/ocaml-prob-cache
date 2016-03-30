@@ -114,7 +114,7 @@ sig
   val name : t -> string
   (** Gets the name of the cache *)
 
-  val with_model : ?prior_count:prior_count -> ?prior_exp:prior_exp ->
+  val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp ->
     host:string -> port:int -> name:string ->
     (t -> ('a, [> Conn.error] as 'e) Result.t) ->
          ('a, 'e) Result.t
