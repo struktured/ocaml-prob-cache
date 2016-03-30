@@ -10,6 +10,10 @@ module UPDATE_FN: functor (Obs : OBS) -> sig
     exp:float -> Oml.Online.update
 end
 
+type 'a update_fn = ?orig:float -> obs:'a -> (** <-- parameters specific to ocaml prob cache *)
+    size:float -> n_sum:float -> n_sum_sq:float ->
+    n_size:float -> Oml.Online.t -> (** <-- parameters specific to oml.online *)
+    exp:float -> (** <-- parameters specific to ocaml prob cache, since it's labeled *) Oml.Online.update
 
 module type Update_fn = sig
   module Obs : OBS

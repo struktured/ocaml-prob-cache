@@ -36,17 +36,16 @@ sig
   val sum : t -> float
   val last : t -> float
   val sum_sq : t -> float
-  val update : cnt:int -> exp:float -> ?prior_count:(Obs.t -> int) ->
+  val update : cnt:int -> exp:float -> ?update_fn:(Obs.t Update_rules.update_fn)-> ?prior_count:(Obs.t -> int) ->
     ?prior_exp:(Obs.t -> float) -> Obs.t -> t option -> t
   val join : obs:Obs.t -> t -> t -> t
 end
 
 
-module Make(Update_fn:Update_rules.Update_fn) (Data:DATA) =
+module Make(Obs:OBS)(Data:DATA) =
 struct
-  module Update_fn = Update_fn
-  module Obs = Events
   module T = Data
+  module Obs = Obs
   type t = Data.t [@@deriving show]
   open T
   let create ~cnt ~exp =
@@ -79,7 +78,10 @@ struct
         (Data.show t) size n_sum n_sum_sq n_size v;
       update_rule ~obs ~exp:v ~cnt:(int_of_float n_size) ~orig:(expect t)
 
-    let update ~cnt ~exp ?prior_count ?prior_exp obs t_opt =
+    let update ~cnt ~exp ?update_fn ?prior_count ?prior_exp obs t_opt =
+      let update_fn = Opt.get_lazy
+        (fun () -> let module Mean = Update_rules.Mean(Obs) in Mean.apply) update_fn in
+      let module Update_fn = struct module Obs = Obs let apply = update_fn end in
       let module Wrapped = Update_rules.Rule_wrap(Update_fn) in
       let module Update = Oml.Online.Make(Wrapped) in
       Wrapped.add_obs obs;
@@ -90,12 +92,3 @@ struct
       Update.update ~size:cnt t exp
   let join ~obs (t:t) (t':t) = Oml.Online.join t t'
 end
-
-module Make_with_defaults(Obs:OBS)(Data:DATA) =
-struct
-  module Update_rule = Update_rules.Mean(Obs)
-  include Make(Update_rule)(Data)
-end
-
-
-

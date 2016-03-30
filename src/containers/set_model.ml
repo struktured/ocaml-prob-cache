@@ -7,6 +7,5 @@ module type S = Model_intf.S
 
 module Make(Event:EVENT) = struct
   module EventSet = Model_impl.Make_event_set(Event)
-  module Mean = Update_rules.Mean(EventSet)
-  include Model_impl.Make_for_events(EventSet)(Mean)
+  include Model_impl.Make_for_events(EventSet)
 end

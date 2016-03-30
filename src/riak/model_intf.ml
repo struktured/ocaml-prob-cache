@@ -41,7 +41,7 @@ module Data(Events:EVENTS) = struct
       } [@@deriving show, protobuf]
     end
 
-  include Data.Make_with_defaults(Events)(Proto_T)
+  include Data.Make(Events)(Proto_T)
 
   let from_protobuf = Proto_T.from_protobuf
   let to_protobuf = Proto_T.to_protobuf

@@ -22,7 +22,7 @@ sig
   val show : t -> string
 end
 
-module Data(Events: EVENTS) (Update_rule:Update_rules.Update_fn with type Obs.t = Events.t) = struct
+module Data(Events: EVENTS) = struct
   module Ord_t =
     struct
       (** Compute running statitics using recurrence equations. *)
@@ -36,7 +36,7 @@ module Data(Events: EVENTS) (Update_rule:Update_rules.Update_fn with type Obs.t 
       ; var : float (** _Unbiased_ variance *)
       } [@@deriving show, ord]
     end
-  include Data.Make(Update_rule)(Ord_t)
+  include Data.Make(Events)(Ord_t)
   let compare = Ord_t.compare
 end
 
@@ -50,8 +50,7 @@ sig
   (** The module type representing a collection of events *)
   module Events : EVENTS with module Event = Event
 
-  module Update_rule : Update_rules.Update_fn with module Obs = Events
-  module Data : module type of Data(Events)(Update_rule)
+  module Data : module type of Data(Events)
 
   (* Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
@@ -65,7 +64,8 @@ sig
   (** Defines the update rule for expectations *)
   type update_rule = Update_rules.UPDATE_FN(Events).t
 
-  val create : ?prior_count:prior_count -> ?prior_exp:prior_exp -> name:string -> t
+  val create : ?update_rule:update_rule -> ?prior_count:prior_count ->
+               ?prior_exp:prior_exp -> name:string -> t
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
      using a mean value estimator and all priors are value 0. *)
 

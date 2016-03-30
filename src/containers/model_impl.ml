@@ -1,6 +1,6 @@
 open Prob_cache_common
 module Float = CCFloat
-
+module Opt = CCOpt
 (** Represents a single event- must be comparable and showable *)
 module type EVENT = Model_intf.EVENT 
 
@@ -16,15 +16,14 @@ module Data = Model_intf.Data
 module Fun = CCFun
 
 module Make_for_events (Events:EVENTS)
- (Update_rule:Update_rules.Update_fn with type Obs.t = Events.t) : S
+ (*(Update_rule:Update_rules.Update_fn with type Obs.t = Events.t) *): S
  with module Event = Events.Event =
 struct
   module Event = Events.Event
   module Events = Events
   module Cache = CCMap.Make(Events)
   module Int = CCInt
-  module Data = Data(Events)(Update_rule)
-  module Update_rule = Update_rule
+  module Data = Data(Events)
   type prior_count = Events.t -> int
   type prior_exp = Events.t -> float
 
@@ -33,6 +32,7 @@ struct
   and t = {
     name : string;
     cache : Data.t Cache.t;
+    update_rule : update_rule;
     prior_count : prior_count;
     prior_exp : prior_exp}
 
@@ -40,9 +40,10 @@ struct
 
   let default_prior_exp (e:Events.t) = 0.
 
-
-  let create ?(prior_count=default_prior_count) ?(prior_exp=default_prior_exp) ~(name:string) : 
-    t = {name;cache=Cache.empty;prior_count;prior_exp}
+  let default_update_rule = let module Mean = Update_rules.Mean(Events) in Mean.apply
+  let create ?(update_rule=default_update_rule)
+    ?(prior_count=default_prior_count) ?(prior_exp=default_prior_exp) ~(name:string) :
+      t = {name;cache=Cache.empty;update_rule;prior_count;prior_exp}
 
   let count (events:Events.t) (t:t) : int =
     CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get events t.cache))
@@ -52,7 +53,7 @@ struct
     Cache.get joined_events t.cache
 
   let descriptive_stat ?cond (events:Events.t) t prior_fn stat_fn =
-      CCOpt.get_lazy (fun () -> prior_fn events) (CCOpt.map stat_fn (data ?cond events t))
+      Opt.get_lazy (fun () -> prior_fn events) (CCOpt.map stat_fn (data ?cond events t))
 
   let exp ?(cond=Events.empty) (events:Events.t) (t:t) : float =
     descriptive_stat ~cond events t t.prior_exp Data.expect

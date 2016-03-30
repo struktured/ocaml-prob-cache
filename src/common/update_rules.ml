@@ -7,11 +7,15 @@ module type OBS = sig type t end
 
 module type OBS_WEIGHT = sig include OBS include WEIGHT end
 
-module UPDATE_FN(Obs:OBS) = struct
-  type t = ?orig:float -> obs:Obs.t -> (** <-- parameters specific to ocaml prob cache *)
+
+type 'a update_fn = ?orig:float -> obs:'a -> (** <-- parameters specific to ocaml prob cache *)
     size:float -> n_sum:float -> n_sum_sq:float ->
     n_size:float -> Oml.Online.t -> (** <-- parameters specific to oml.online *)
     exp:float -> (** <-- parameters specific to ocaml prob cache, since it's labeled *) Oml.Online.update
+
+
+module UPDATE_FN(Obs:OBS) = struct
+  type t = Obs.t update_fn
 end
 
 module type Update_fn = sig

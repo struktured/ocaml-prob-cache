@@ -1,13 +1,12 @@
-
 module type OBS = Update_rules.OBS
 module type DATA =
 sig
 (** Compute running statitics using recurrence equations. *)
 type t = Oml.Online.t = { size : int         (** Number of observations. *)
          ; last : float       (** Last observation. *)
-         ; max : float        (** Maxiumum. *)
+         ; max : float        (** Maximum. *)
          ; min : float        (** Minimum. *)
-         ; sum : float        (** Sum . *)
+         ; sum : float        (** Sum. *)
          ; sum_sq : float     (** Sum of squares. *)
          ; mean : float       (** Mean. *)
          ; var : float        (** _Unbiased_ variance *)
@@ -31,13 +30,11 @@ sig
   val sum : t -> float
   val last : t -> float
   val sum_sq : t -> float
-  val update : cnt:int -> exp:float -> ?prior_count:(Obs.t -> int) ->
-    ?prior_exp:(Obs.t -> float) -> Obs.t -> t option -> t
+  val update : cnt:int -> exp:float -> ?update_fn:(Obs.t Update_rules.update_fn)
+    -> ?prior_count:(Obs.t -> int) -> ?prior_exp:(Obs.t -> float) -> Obs.t -> 
+    t option -> t
   val join : obs:Obs.t -> t -> t -> t
 end
 
-module Make(Update_rule:Update_rules.Update_fn) (Data:DATA) :
-  S with module T = Data and module Obs = Update_rule.Obs
-
-module Make_with_defaults(Obs:OBS)(Data:DATA) :
+module Make(Obs:OBS) (Data:DATA) :
   S with module T = Data and module Obs = Obs
