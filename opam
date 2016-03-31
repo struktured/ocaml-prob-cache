@@ -28,7 +28,7 @@ depends: [
   "ocamlfind"
   "ppx_deriving" {>= "1.1"}
   "ppx_deriving_protobuf" {>= "2.0"}
-  "containers" 
+  "containers" {>= "0.16"}
   "sequence"
-  "oml"
+  "oml" {>= "0.0.5"}
 ]

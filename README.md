@@ -1,10 +1,10 @@
 # README #
 
 OCaml Probability Cache Library
-  
+
 ## Introduction ##
 
-This library provides a polymorphic cache for maintaining random events to their observed probabilities and expectations. There are two types of supported probability models- a set model and sequence model, either of which can be used in process (with [containers](https://github.com/c-cube/ocaml-containers)) or over a distributed riak cache (with [riakc_ppx](https://github.com/struktured/riakc_ppx)). 
+This library provides a polymorphic cache for maintaining random events to their observed probabilities and expectations. There are two types of supported probability models- a set model and sequence model, either of which can be used in process (with [containers](https://github.com/c-cube/ocaml-containers)) or over a distributed riak cache (with [riakc_ppx](https://github.com/struktured/riakc_ppx)).
 
 ## Dependencies ##
 
@@ -94,7 +94,7 @@ let heads_tails = Model.Events.of_list [HEADS;TAILS]
 
 let m = Model.create "coin-flips" |>
   Model.observe events
-  
+
 let cnt,exp = Model.count events m, Model.exp events m (* cnt=1, exp = 1. *)
 
 let a = Model.prob heads m (* returns 1. *)
@@ -119,7 +119,7 @@ The sequence model is linear with respect to the sequence length. It stores N ev
 
 ## Contributing ##
 
- * Open an issue on github 
+ * Open an issue on github
  * Contact struktured on \#ocaml freenode irc.
 
 ## Future work ##
