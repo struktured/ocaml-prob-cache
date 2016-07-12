@@ -16,5 +16,5 @@ S src/containers
 S src/riak
 S src/examples
 S src/riak_examples
-B _build/src/**
+B _build/**
 

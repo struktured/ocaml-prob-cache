@@ -3,7 +3,7 @@ open Model.Std
 module Float = CCFloat
 
 (** Represents a single event- must be comparable and showable *)
-module type EVENT = Model_intf.EVENT 
+module type EVENT = Model_intf.EVENT
 
 (** Represents an abstract collection of events *)
 module type EVENTS = Model_intf.EVENTS
@@ -15,16 +15,17 @@ module type S = Model_intf.S
 module type S_KERNEL = Model_intf.S_KERNEL
 module Data = Model_intf.Data
 module Fun = CCFun
-  
-module Make_for_events (Events:EVENTS) : S_KERNEL with module Event = Events.Event =
+
+module Make_for_events (Events:EVENTS) :
+  S_KERNEL with module Events = Events =
 struct
   module Event = Events.Event
   module Events = Events
   module Cache = CCMap.Make(Events)
   module Int = CCInt
   module Data = Data
-
-  module T = struct 
+  module Result = Model_intf.Or_error.Result
+  module T = struct
     module Events = Events
     type prior_count = Events.t -> int
     type prior_exp = Events.t -> float
@@ -45,21 +46,15 @@ struct
   let default_update_rule : update_rule = Update_rules.mean
   end
 
-  module Create_fun : CREATE_FUN = struct
+  module Create_fun : CREATE_FUN =
+  struct
     include T
     let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
-    ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
+    ?(prior_exp=default_prior_exp) ~(name:string) = Or_error.return {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
     let name t = t.name
     let update_rule t = t.update_rule
   end
- 
-
-  module Observe_fun : OBSERVE_FUN = struct
-    include T
-    let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
-    ?(prior_exp=default_prior_exp) ~(name:string) : t = {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
-  end
-  
+(*
   let count (events:Events.t) (t:t) : int =
     CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get events t.cache))
 
@@ -77,11 +72,10 @@ struct
     if (cond_count = 0) then (Float.of_int 0) else
     let joined_events_count = count (Events.join cond events) t in
     (Float.of_int joined_events_count) /. (Float.of_int cond_count)
-
-  let _observe ~cnt ~exp (events:Events.t) (t:t) =
-    let d = Data.update ~cnt ~exp ~update_rule:t.update_rule ~prior_count:t.prior_count
-      ~prior_exp:t.prior_exp events (Cache.get events t.cache) in
-    {t with cache=Cache.add events d t.cache}
+*)
+  module Observe_fun : OBSERVE_DATA_FUN =
+  struct
+    include T
 
   let _observe_data data (events:Events.t) (t:t) =
     let orig_opt = Cache.get events t.cache in
@@ -89,17 +83,16 @@ struct
       Data.join ~obs:events ~update_rule:t.update_rule orig data) data orig_opt in
     {t with cache=Cache.add events data t.cache}
 
-  let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : t =
-    CCList.fold_right (fun l t -> _observe_data (Data.create  ~cnt ~exp) l t) (Events.subsets events) t
-
-  let observe_data data (events:Events.t) (t:t) : t =
+  let observe_data data (events:Events.t) (t:t) = Or_error.return @@
     CCList.fold_right (fun l t -> _observe_data data l t) (Events.subsets events) t
-
-  let name t = t.name
+  end
+  module M = struct
+  include Prob_cache_common.Model_kernel.Make(Create_fun)(Data_fun)(Observe_data_fun)(Find_fun)
+  end
 end
 
-module Make_event_set(Event:EVENT) : EVENTS with module Event = Event =
-struct 
+module Make_event_set(Event:EVENT) :  EVENTS with module Event = Event =
+struct ts
   module Multiset = 
     struct 
        module Event = Event

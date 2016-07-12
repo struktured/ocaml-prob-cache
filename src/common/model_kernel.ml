@@ -50,3 +50,23 @@ sig
     type t := t
 end
 
+module Make
+  (Create_fun:CREATE_FUN)
+  (Data_fun:DATA_FUN with
+    module Events = Create_fun.Events and module Or_error = Create_fun.Or_error and module Data = Create_fun.Data)
+  (Observe_data_fun:OBSERVE_DATA_FUN with
+    module Events = Create_fun.Events and module Or_error = Create_fun.Or_error and module Data = Create_fun.Data)
+  (Find_fun:FIND_FUN with
+    module Events = Create_fun.Events and module Or_error = Create_fun.Or_error and module Data = Create_fun.Data) =
+struct
+  include Create_fun
+  include (Data_fun : DATA_FUN with
+    module Events := Events and module Or_error := Or_error and module Data := Data and type t := Data_fun.t)
+
+  include (Observe_data_fun : OBSERVE_DATA_FUN with
+    module Events := Events and module Or_error := Or_error and module Data := Data and type t := Observe_data_fun.t)
+
+  include (Find_fun : FIND_FUN with
+    module Events := Events and module Or_error := Or_error and module Data := Data and type t := Find_fun.t)
+end
+

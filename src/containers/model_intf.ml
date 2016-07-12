@@ -9,7 +9,7 @@ module Float = Model_primitives.Float
 
 (** Represents a single event- must be comparable and showable *)
 module type EVENT =
-  sig  
+  sig
     type t [@@deriving show, ord]
     include Events_common.EVENT with type t := t
   end
@@ -19,7 +19,7 @@ module type EVENTS =
 sig
   type t [@@deriving show, ord]
   module Event : EVENT
-  include Events_common.EVENTS with module Event := Event and type t := t 
+  include Events_common.EVENTS with module Event := Event and type t := t
 end
 
 module Data = struct
@@ -85,7 +85,7 @@ module Or_error = Or_errors_containers.Or_error.Make(Error)
 module type S_KERNEL =
   sig
   module Events : EVENTS
-  include Model_kernel.S with 
+  include Model_kernel.S with
     module Result = Result and
     module Events := Events
   end
