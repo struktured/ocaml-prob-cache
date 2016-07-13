@@ -151,11 +151,10 @@ end
 module Make_event_set(Event:EVENT) :
   EVENTS with module Event = Event =
     struct
-      open Containers_misc
   module Set =
     struct
       module Event = Event
-      type t = Event.t Containers_misc.Hashset.t
+      type t = Event.t Hashset.t
   let to_list t = List.sort_uniq ~cmp:Event.compare
     (Sequence.to_list (Hashset.to_seq t))
   let of_list l =

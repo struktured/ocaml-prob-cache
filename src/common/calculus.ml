@@ -3,7 +3,7 @@ open Events_common
 module Make(Model:Model_decorator.S) = struct
 module Events = Model.Events
 module Data = Model.Data
-module Result = Model.Result
+module Or_error = Model.Or_error
 module Float = CCFloat
 
 
@@ -59,7 +59,7 @@ module Derived =
 struct
   type t = {prob:float; data: Data.t} [@@deriving show]
 
-  let or_error ?(prob=1.0) data = Result.map data
+  let or_error ?(prob=1.0) data = Or_error.map data
     ~f:(fun data -> {prob;data})
   let create ?(prob=1.0) ~data = {prob;data}
   let data t = t.data
@@ -73,7 +73,6 @@ struct
 end
 
 module M = Model
-module Or_error = M.Or_error
 
 module Literal =
   struct

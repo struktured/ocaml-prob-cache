@@ -5,9 +5,8 @@ module type DATA_FUN = Data_fun.S
 module type OBSERVE_DATA_FUN = Observe_data_fun.S
 module type S =
 sig
-  module Model_kernel : Model_kernel.S
-  include module type of Model_kernel
-
+  include Model_kernel.S
+  module Event = Events.Event
   type prob = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
   type exp = ?cond:Events.t -> Events.t -> t -> float Or_error.t
@@ -51,10 +50,13 @@ end
 
 module Make
   (Model_kernel : Model_kernel.S)
-   : S
+   : S with
+    module Events = Model_kernel.Events and
+    module Data = Model_kernel.Data and
+    module Or_error = Model_kernel.Or_error
   = struct
-  module Model_kernel = Model_kernel
   include Model_kernel
+  module Event = Events.Event
   type prob = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
   type exp = ?cond:Events.t -> Events.t -> t -> float Or_error.t

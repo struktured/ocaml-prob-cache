@@ -22,7 +22,7 @@ end
 
 module Data_error_converter
   (Error_in : ERROR)
-  (Error_out : sig include ERROR val of_data : Error_in.t -> t end) : ERROR_CONVERTER with 
+  (Error_out : sig include ERROR val of_data : Error_in.t -> t end) : ERROR_CONVERTER with
     module Error_in = Error_in and
     module Error_out = Error_out =
   struct

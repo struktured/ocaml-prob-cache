@@ -40,9 +40,12 @@ module Data = struct
   let compare = Ord_t.compare
 end
 
-module Result : RESULT = Or_errors_containers.Result
+module Showable =
+struct
+  module type S = sig type t [@@deriving show] end
+end
 
-module Base_error(T:sig type t [@@deriving show] end) : ERROR with type t = T.t = struct
+module Base_error(T:Showable.S) : ERROR with type t = T.t = struct
   include T
   let to_string_mach t = show t
   let to_string_hum t = show t
@@ -77,22 +80,29 @@ module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@
           | `Observe_error e -> Observe_error.to_string_mach e
           | `Data_error e -> Data_error.to_string_mach e
           | `Find_error e -> Find_error.to_string_mach e
-
       end
-module Or_error = Or_errors_containers.Or_error.Make(Error)
 
+module Or_error =
+struct
+  include Or_errors_containers.Or_error.Make(Error)
+end
 
 module type S_KERNEL =
   sig
-  module Events : EVENTS
-  include Model_kernel.S with
-    module Result = Result and
-    module Events := Events
+    module Events : EVENTS
+    include Model_kernel.S with
+      module Or_error = Or_error and
+      module Events := Events
   end
 
 (** A module type provided polymorphic probability model caches. Uses in memory models backed by the containers api *)
 module type S =
   sig
-    module Model_kernel : S_KERNEL
-    include Model_decorator.S with module Model_kernel := Model_kernel
+    module Events : EVENTS
+    module Event = Events.Event
+    module Or_error : module type of Or_error
+    include Model_decorator.S with
+      module Events := Events and
+      module Event := Event and
+      module Or_error := Or_error
   end
