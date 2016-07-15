@@ -46,6 +46,48 @@ sig
 
   val observe : observe
 
+  type 'a mapper = Events.t -> 'a
+  type 'a indexed_mapper = int -> Events.t -> 'a
+  type 'a indexed2_mapper = int -> int -> Events.t -> 'a
+  type predicate = bool mapper
+  type 'a fold = t ->
+    ?pred:predicate option ->
+    f:('a -> Events.t -> 'a) ->
+    init:'a ->
+    'a Or_error.t
+
+  val fold : 'a fold
+
+  val update : t -> ?pred:predicate option -> f:Data.t mapper -> t
+  module Floats :
+  sig
+    module Vec = Lacaml_D.Vec
+    module Mat = Lacaml_D.Mat
+    val to_vector : t ->
+     ?pred:predicate option ->
+     f:float mapper -> Vec.t Or_error.t
+
+    val to_array : t ->
+     ?pred:predicate option ->
+     f:float mapper -> float array Or_error.t
+
+    val to_matrix : t ->
+      ?x_pred:predicate option ->
+      x_f:float mapper ->
+      ?y_pred:(x:Events.t -> predicate) option ->
+      y_f:float mapper ->
+      Mat.t Or_error.t
+
+    val dot : t ->
+      ?x_pred:predicate option ->
+      x_f:float mapper ->
+      ?y_pred:predicate option ->
+      y_f:float mapper ->
+      float Or_error.t
+
+    val fold : float fold
+   end
+
 end
 
 module Make

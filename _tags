@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: ef364f33fac6c1ff531da4ec3fbbc06d)
+# DO NOT EDIT (digest: 652bca45370a1a791e9ced3886b68a20)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -33,6 +33,7 @@ true: annot, bin_annot
 <src/common/*.ml{,i,y}>: pkg_containers
 <src/common/*.ml{,i,y}>: pkg_containers.advanced
 <src/common/*.ml{,i,y}>: pkg_containers.data
+<src/common/*.ml{,i,y}>: pkg_lacaml
 <src/common/*.ml{,i,y}>: pkg_or_errors
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving.iter
@@ -49,6 +50,7 @@ true: annot, bin_annot
 <src/containers/*.ml{,i,y}>: pkg_containers
 <src/containers/*.ml{,i,y}>: pkg_containers.advanced
 <src/containers/*.ml{,i,y}>: pkg_containers.data
+<src/containers/*.ml{,i,y}>: pkg_lacaml
 <src/containers/*.ml{,i,y}>: pkg_or_errors
 <src/containers/*.ml{,i,y}>: pkg_or_errors_containers
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving
@@ -70,6 +72,7 @@ true: annot, bin_annot
 <src/riak/*.ml{,i,y}>: pkg_containers.advanced
 <src/riak/*.ml{,i,y}>: pkg_containers.data
 <src/riak/*.ml{,i,y}>: pkg_core
+<src/riak/*.ml{,i,y}>: pkg_lacaml
 <src/riak/*.ml{,i,y}>: pkg_or_errors
 <src/riak/*.ml{,i,y}>: pkg_or_errors_async
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving
@@ -85,6 +88,7 @@ true: annot, bin_annot
 "src/examples/sprinkler.byte": pkg_containers
 "src/examples/sprinkler.byte": pkg_containers.advanced
 "src/examples/sprinkler.byte": pkg_containers.data
+"src/examples/sprinkler.byte": pkg_lacaml
 "src/examples/sprinkler.byte": pkg_or_errors
 "src/examples/sprinkler.byte": pkg_or_errors_containers
 "src/examples/sprinkler.byte": pkg_ppx_deriving
@@ -99,6 +103,7 @@ true: annot, bin_annot
 "src/examples/coin_flip.byte": pkg_containers
 "src/examples/coin_flip.byte": pkg_containers.advanced
 "src/examples/coin_flip.byte": pkg_containers.data
+"src/examples/coin_flip.byte": pkg_lacaml
 "src/examples/coin_flip.byte": pkg_or_errors
 "src/examples/coin_flip.byte": pkg_or_errors_containers
 "src/examples/coin_flip.byte": pkg_ppx_deriving
@@ -112,6 +117,7 @@ true: annot, bin_annot
 <src/examples/*.ml{,i,y}>: pkg_containers
 <src/examples/*.ml{,i,y}>: pkg_containers.advanced
 <src/examples/*.ml{,i,y}>: pkg_containers.data
+<src/examples/*.ml{,i,y}>: pkg_lacaml
 <src/examples/*.ml{,i,y}>: pkg_or_errors
 <src/examples/*.ml{,i,y}>: pkg_or_errors_containers
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving
@@ -129,6 +135,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_sprinkler.byte": pkg_containers.advanced
 "src/riak_examples/riak_sprinkler.byte": pkg_containers.data
 "src/riak_examples/riak_sprinkler.byte": pkg_core
+"src/riak_examples/riak_sprinkler.byte": pkg_lacaml
 "src/riak_examples/riak_sprinkler.byte": pkg_or_errors
 "src/riak_examples/riak_sprinkler.byte": pkg_or_errors_async
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving
@@ -148,6 +155,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_coin_flip.byte": pkg_containers.advanced
 "src/riak_examples/riak_coin_flip.byte": pkg_containers.data
 "src/riak_examples/riak_coin_flip.byte": pkg_core
+"src/riak_examples/riak_coin_flip.byte": pkg_lacaml
 "src/riak_examples/riak_coin_flip.byte": pkg_or_errors
 "src/riak_examples/riak_coin_flip.byte": pkg_or_errors_async
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving
@@ -166,6 +174,7 @@ true: annot, bin_annot
 <src/riak_examples/*.ml{,i,y}>: pkg_containers.advanced
 <src/riak_examples/*.ml{,i,y}>: pkg_containers.data
 <src/riak_examples/*.ml{,i,y}>: pkg_core
+<src/riak_examples/*.ml{,i,y}>: pkg_lacaml
 <src/riak_examples/*.ml{,i,y}>: pkg_or_errors
 <src/riak_examples/*.ml{,i,y}>: pkg_or_errors_async
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving

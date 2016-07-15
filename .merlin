@@ -11,6 +11,7 @@ PKG containers.data
 PKG or_errors
 PKG or_errors_containers
 PKG or_errors_async
+PKG lacaml
 S src/common
 S src/containers
 S src/riak
