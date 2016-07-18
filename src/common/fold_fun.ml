@@ -13,21 +13,29 @@ module type S =
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  module Make : functor(State:sig type t [@@deriving show] end) ->
-    sig
-      val find : (Events.t -> bool) -> t -> Events.t Or_error.t
-    end
+  module Make : functor(Accum:sig type t end) ->
+  sig
+    val fold :
+      f:(Accum.t -> Events.t -> bool) ->
+      ?filter:(Events.t -> bool) option ->
+      ?order_by:(Events.t -> Events.t -> int) ->
+      t ->
+      init: Accum.t ->
+      Accum.t Or_error.t
+  end
   (** Gets all observed events given a filter function from the model. *)
 
   end
 
-module Find_error_converter
+module Fold_error_converter
   (Error_in : ERROR)
-  (Error_out : sig include ERROR val of_find : Error_in.t -> t end) : ERROR_CONVERTER with
+  (Error_out : sig
+    include ERROR
+    val of_fold : Error_in.t -> t end) : ERROR_CONVERTER with
     module Error_in = Error_in and
     module Error_out = Error_out =
   struct
      module Error_in = Error_in
      module Error_out = Error_out
-     let convert (e:Error_in.t) = Error_out.of_find e
+     let convert (e:Error_in.t) = Error_out.of_fold e
   end
