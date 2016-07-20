@@ -1,9 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: 563e2f55fcabc2aa08b938c1607abbfc)
+# DO NOT EDIT (digest: ae7090ff85b0bd911f7d8bf89c3f032a)
 version = "0.1"
 description = "Probability cache library for OCaml"
 requires =
-"lacaml containers containers.data containers.advanced sequence ppx_deriving ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf or_errors"
+"lacaml containers containers.data containers.advanced sequence ppx_deriving ppx_deriving.make ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf or_errors"
 archive(byte) = "prob_cache_common.cma"
 archive(byte, plugin) = "prob_cache_common.cma"
 archive(native) = "prob_cache_common.cmxa"

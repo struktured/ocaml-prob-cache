@@ -34,6 +34,16 @@ sig
   end
 end
 
+module Predicate =
+struct
+  module type S =
+  sig
+    module Events : EVENTS
+    type t
+    val apply : t -> Events.t -> bool
+  end
+end
+
 module Make (Events:EVENTS_BASE) = 
   struct
    include Events

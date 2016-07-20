@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 652bca45370a1a791e9ced3886b68a20)
+# DO NOT EDIT (digest: 08d112c78fd0ee903faad2b4440e84c3)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -20,6 +20,7 @@ true: annot, bin_annot
 "src/common/running.cmx": for-pack(Prob_cache_common)
 "src/common/data.cmx": for-pack(Prob_cache_common)
 "src/common/events_common.cmx": for-pack(Prob_cache_common)
+"src/common/prob_cache_entry.cmx": for-pack(Prob_cache_common)
 "src/common/calculus.cmx": for-pack(Prob_cache_common)
 "src/common/create_fun.cmx": for-pack(Prob_cache_common)
 "src/common/observe_data_fun.cmx": for-pack(Prob_cache_common)
@@ -37,6 +38,7 @@ true: annot, bin_annot
 <src/common/*.ml{,i,y}>: pkg_or_errors
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving.iter
+<src/common/*.ml{,i,y}>: pkg_ppx_deriving.make
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving.ord
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving.show
 <src/common/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
@@ -55,6 +57,7 @@ true: annot, bin_annot
 <src/containers/*.ml{,i,y}>: pkg_or_errors_containers
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving.iter
+<src/containers/*.ml{,i,y}>: pkg_ppx_deriving.make
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving.ord
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving.show
 <src/containers/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
@@ -77,6 +80,7 @@ true: annot, bin_annot
 <src/riak/*.ml{,i,y}>: pkg_or_errors_async
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving.iter
+<src/riak/*.ml{,i,y}>: pkg_ppx_deriving.make
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving.ord
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving.show
 <src/riak/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
@@ -93,6 +97,7 @@ true: annot, bin_annot
 "src/examples/sprinkler.byte": pkg_or_errors_containers
 "src/examples/sprinkler.byte": pkg_ppx_deriving
 "src/examples/sprinkler.byte": pkg_ppx_deriving.iter
+"src/examples/sprinkler.byte": pkg_ppx_deriving.make
 "src/examples/sprinkler.byte": pkg_ppx_deriving.ord
 "src/examples/sprinkler.byte": pkg_ppx_deriving.show
 "src/examples/sprinkler.byte": pkg_ppx_deriving_protobuf
@@ -108,6 +113,7 @@ true: annot, bin_annot
 "src/examples/coin_flip.byte": pkg_or_errors_containers
 "src/examples/coin_flip.byte": pkg_ppx_deriving
 "src/examples/coin_flip.byte": pkg_ppx_deriving.iter
+"src/examples/coin_flip.byte": pkg_ppx_deriving.make
 "src/examples/coin_flip.byte": pkg_ppx_deriving.ord
 "src/examples/coin_flip.byte": pkg_ppx_deriving.show
 "src/examples/coin_flip.byte": pkg_ppx_deriving_protobuf
@@ -122,6 +128,7 @@ true: annot, bin_annot
 <src/examples/*.ml{,i,y}>: pkg_or_errors_containers
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving.iter
+<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.make
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving.ord
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving.show
 <src/examples/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
@@ -140,6 +147,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_sprinkler.byte": pkg_or_errors_async
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving.iter
+"src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving.make
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving.ord
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving.show
 "src/riak_examples/riak_sprinkler.byte": pkg_ppx_deriving_protobuf
@@ -160,6 +168,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_coin_flip.byte": pkg_or_errors_async
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving.iter
+"src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving.make
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving.ord
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving.show
 "src/riak_examples/riak_coin_flip.byte": pkg_ppx_deriving_protobuf
@@ -179,6 +188,7 @@ true: annot, bin_annot
 <src/riak_examples/*.ml{,i,y}>: pkg_or_errors_async
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving.iter
+<src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving.make
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving.ord
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving.show
 <src/riak_examples/*.ml{,i,y}>: pkg_ppx_deriving_protobuf

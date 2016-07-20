@@ -97,3 +97,13 @@ struct
     | None -> empty
     | Some d -> d
 end
+
+module Predicate =
+struct
+  module type S =
+  sig
+    type t
+    module Data : S
+    val apply : t -> Data.t -> bool
+  end
+end

@@ -36,4 +36,14 @@ sig
   val of_option : t option -> t
   end
 
-module Make(Data:DATA) : S 
+module Make(Data:DATA) : S with type t = Data.t
+
+module Predicate :
+sig
+  module type S =
+  sig
+    module Data : S
+    type t
+    val apply : t -> Data.t -> bool
+  end
+end

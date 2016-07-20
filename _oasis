@@ -26,9 +26,9 @@ Flag riak_examples
 Library prob_cache_common
   Path:               src/common
   Pack:               true
-  Modules:            Update_rules, Running, Data, Events_common, Calculus, Create_fun, Observe_data_fun, Data_fun, Find_fun, Model_primitives, Model_kernel, Model_decorator, Model
+  Modules:            Update_rules, Running, Data, Events_common, Prob_cache_entry, Calculus, Create_fun, Observe_data_fun, Data_fun, Map_fun, Model_primitives, Model_kernel, Model_decorator, Model
   InternalModules:    Powerset
-  BuildDepends:       lacaml, containers, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, or_errors
+  BuildDepends:       lacaml, containers, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.make, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, or_errors
 
   FindLibName:        prob_cache_common
 
