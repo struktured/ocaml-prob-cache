@@ -43,36 +43,40 @@ module Folder =
 struct
   module type ENTRY = S
   module type VALUE = sig type t [@@deriving show] end
-  
+
   module Return =
   struct
     module type S =
     sig
-      module Value : VALUE
       module Or_error : OR_ERROR
-      type flow = [`Stop | `Continue] [@@deriving show]
-      type t = flow * Value.t Or_error.t [@@deriving show]
-      val stop : Value.t Or_error.t -> t
-      val continue : Value.t Or_error.t -> t
+      module Flow :
+      sig
+        type t = [`Stop | `Continue] [@@deriving show]
+      end
+      type 'a t = Flow.t * 'a Or_error.t
+      val stop : 'a Or_error.t -> 'a t
+      val continue : 'a Or_error.t -> 'a t
       module Error :
       sig
-       val stop : Or_error.Error.t -> t
-       val continue : Or_error.Error.t -> t
+       val stop : Or_error.Error.t -> 'a t
+       val continue : Or_error.Error.t -> 'a t
       end
       module Ok :
       sig
-       val stop : Value.t -> t
-       val continue : Value.t -> t
+       val stop : 'a -> 'a t
+       val continue : 'a -> 'a t
       end
-      val value : t -> Value.t Or_error.t
-      val flow : t -> flow
+      val value : 'a t  -> 'a Or_error.t
+      val flow : 'a t -> Flow.t
     end
-    module Make(Value:VALUE)(Or_error:OR_ERROR) : S with module Value = Value =
+    module Make(Or_error:OR_ERROR) : S =
     struct
-      module Value = Value
       module Or_error = Or_error
-      type flow = [`Stop | `Continue] [@@deriving show]
-      type t = flow * Value.t Or_error.t
+      module Flow =
+      struct
+        type t = [`Stop | `Continue] [@@deriving show]
+      end
+      type 'a t = Flow.t * 'a Or_error.t
       let stop t = `Stop, t
       let continue t = `Continue,t
       let flow (f, _) = f
@@ -83,6 +87,13 @@ struct
        let continue v = continue @@ Or_error.return v
       end
 
+      module Error =
+      struct
+       let stop v = stop @@ Or_error.fail v
+       let continue v = continue @@ Or_error.fail v
+      end
+
+
     end
   end
 
@@ -90,23 +101,22 @@ struct
   sig
     module Entry : ENTRY
     module Return : Return.S
-    module Value = Return.Value
-    type t = accum:Value.t -> Entry.t -> Return.t
+    type ('init, 'accum) fold =
+      init:'init -> accum:'accum -> Entry.t -> 'accum Return.t
+    val fold : ('init, 'accum) fold
   end
 
-  (** Creates stateless predicate functions given an entry module *)
-  module Make(Entry:ENTRY) (Value:VALUE) : S with
-    module Entry = Entry and
-    module Return.Value = Value (* and
-    module Or_error.Or_error = Or_error *) =
+  module Make(Entry:ENTRY) (Or_error:OR_ERROR) : S with
+    module Entry = Entry and module Return.Or_error = Or_error =
   struct
+    module Return = Return.Make(Or_error)
     module Entry = Entry
-    module Value = Value
-    module type RETURN = Return.S with module Value = Value
-    module Return = struct include (Return.Make(Value) : RETURN) end
-    type t = accum:Value.t -> Entry.t -> Return.t
+    type ('init, 'accum) fold =
+      init:'init -> accum:'accum -> Entry.t -> 'accum Return.t
+    end
+
 end
-end
+(*
 module Predicate =
 struct
   module type S =
@@ -153,5 +163,5 @@ struct
     include Folder.S with module Value := Value
   end
 end
-
+*)
 

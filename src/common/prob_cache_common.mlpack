@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8d7f481e3750756e5572210f66f7a690)
+# DO NOT EDIT (digest: 099cfe09403018ee6366cae5a5f27f62)
 Update_rules
 Running
 Data
@@ -9,7 +9,7 @@ Calculus
 Create_fun
 Observe_data_fun
 Data_fun
-Find_fun
+Fold_fun
 Model_primitives
 Model_kernel
 Model_decorator

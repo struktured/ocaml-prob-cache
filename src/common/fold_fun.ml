@@ -7,24 +7,15 @@ module type S =
   type t
   module Or_error : OR_ERROR
 
-  (** The module type representing a collection of events *)
-  module Events : EVENTS
-
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  module Make : functor(Accum:sig type t end) ->
-  sig
-    val fold :
-      f:(Accum.t -> Events.t -> bool) ->
-      ?filter:(Events.t -> bool) option ->
-      ?order_by:(Events.t -> Events.t -> int) ->
-      t ->
-      init: Accum.t ->
-      Accum.t Or_error.t
-  end
+  module Entry : Prob_cache_entry.S
   (** Gets all observed events given a filter function from the model. *)
 
+  module Folder : Prob_cache_entry.Folder.S with
+    module Entry := Entry
+  val ('init, 'accum) fold : ('init, 'accum) Folder.fold
   end
 
 module Fold_error_converter
