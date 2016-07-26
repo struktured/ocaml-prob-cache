@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 800145c688209c357a8f044fe7d326a9) *)
+(* DO NOT EDIT (digest: b9f8e757e5ec0933d75d0122cd86890c) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -769,18 +769,18 @@ let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
        [
-          ("prob_cache_common", ["src/common"], []);
-          ("prob_cache_containers", ["src/containers"], []);
-          ("prob_cache_riak", ["src/riak"], [])
+          ("prob_cache", ["src/core"], []);
+          ("containers", ["src/containers"], []);
+          ("riak", ["src/riak"], [])
        ];
      lib_c = [];
      flags = [];
      includes =
        [
           ("src/riak_examples", ["src/riak"]);
-          ("src/riak", ["src/common"]);
+          ("src/riak", ["src/core"]);
           ("src/examples", ["src/containers"]);
-          ("src/containers", ["src/common"])
+          ("src/containers", ["src/core"])
        ]
   }
   ;;

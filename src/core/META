@@ -1,13 +1,36 @@
 # OASIS_START
-# DO NOT EDIT (digest: ae7090ff85b0bd911f7d8bf89c3f032a)
+# DO NOT EDIT (digest: 09bbe68bfeb435340dca89d5bb378749)
 version = "0.1"
 description = "Probability cache library for OCaml"
 requires =
 "lacaml containers containers.data containers.advanced sequence ppx_deriving ppx_deriving.make ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf or_errors"
-archive(byte) = "prob_cache_common.cma"
-archive(byte, plugin) = "prob_cache_common.cma"
-archive(native) = "prob_cache_common.cmxa"
-archive(native, plugin) = "prob_cache_common.cmxs"
-exists_if = "prob_cache_common.cma"
+archive(byte) = "prob_cache.cma"
+archive(byte, plugin) = "prob_cache.cma"
+archive(native) = "prob_cache.cmxa"
+archive(native, plugin) = "prob_cache.cmxs"
+exists_if = "prob_cache.cma"
+package "riak" (
+ version = "0.1"
+ description = "Probability cache library for OCaml"
+ requires =
+ "threads containers ppx_deriving ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf prob_cache core async bitstring riakc_ppx or_errors_async"
+ archive(byte) = "riak.cma"
+ archive(byte, plugin) = "riak.cma"
+ archive(native) = "riak.cmxa"
+ archive(native, plugin) = "riak.cmxs"
+ exists_if = "riak.cma"
+)
+
+package "containers" (
+ version = "0.1"
+ description = "Probability cache library for OCaml"
+ requires =
+ "prob_cache containers containers.data containers.advanced sequence ppx_deriving ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf or_errors_containers"
+ archive(byte) = "containers.cma"
+ archive(byte, plugin) = "containers.cma"
+ archive(native) = "containers.cmxa"
+ archive(native, plugin) = "containers.cmxs"
+ exists_if = "containers.cma"
+)
 # OASIS_STOP
 

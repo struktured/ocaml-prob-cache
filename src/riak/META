@@ -1,13 +1,13 @@
 # OASIS_START
-# DO NOT EDIT (digest: e929558c11b1e74705134769b38a9433)
+# DO NOT EDIT (digest: ca277cd67723e389b9be70c2082b65e6)
 version = "0.1"
 description = "Probability cache library for OCaml"
 requires =
-"threads containers ppx_deriving ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf prob_cache_common core async bitstring riakc_ppx or_errors_async"
-archive(byte) = "prob_cache_riak.cma"
-archive(byte, plugin) = "prob_cache_riak.cma"
-archive(native) = "prob_cache_riak.cmxa"
-archive(native, plugin) = "prob_cache_riak.cmxs"
-exists_if = "prob_cache_riak.cma"
+"threads containers ppx_deriving ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf prob_cache core async bitstring riakc_ppx or_errors_async"
+archive(byte) = "riak.cma"
+archive(byte, plugin) = "riak.cma"
+archive(native) = "riak.cmxa"
+archive(native, plugin) = "riak.cmxs"
+exists_if = "riak.cma"
 # OASIS_STOP
 

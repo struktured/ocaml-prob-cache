@@ -21,4 +21,6 @@ struct
   module type MODEL_KERNEL = Model_kernel.S
   module type MODEL_DECORATOR = Model_decorator.S
   module Model = Prob_cache_model
+  module Running = Data.Running
+  module Update_rules = Prob_cache_update_rules
 end

@@ -40,7 +40,7 @@ Library "containers"
   else
     Build: false
   Path:               src/containers
-  FindLibParent:      "prob_cache"
+  FindLibParent:      prob_cache
   Pack:               false
   Modules:            Containers_model_intf, Containers_set_model, Containers_sequence_model, Prob_cache_containers
   InternalModules:    Containers_model_impl
@@ -53,7 +53,7 @@ Library "riak"
   else
     Build: false
   Path:               src/riak
-  FindLibParent:      "prob_cache"
+  FindLibParent:      prob_cache
   Pack:               false
   Modules:            Model_intf, Set_model, Sequence_model
   InternalModules:    Model_impl
@@ -117,7 +117,7 @@ Document "prob_cache_containers"
   XOCamlbuildPath: src/containers
   XOCamlbuildExtraArgs:
     "-docflags '-colorize-code -html -short-functors -charset utf-8'"
-  XOCamlbuildLibraries: containers
+  XOCamlbuildLibraries: prob_cache.containers
 
 Document "prob_cache_riak"
   Type: ocamlbuild (0.4)
@@ -126,4 +126,4 @@ Document "prob_cache_riak"
   XOCamlbuildPath: src/riak
   XOCamlbuildExtraArgs:
     "-docflags '-colorize-code -html -short-functors -charset utf-8'"
-  XOCamlbuildLibraries: riak
+  XOCamlbuildLibraries: prob_cache.riak
