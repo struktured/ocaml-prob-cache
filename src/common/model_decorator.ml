@@ -54,28 +54,32 @@ sig
     module Mat = Lacaml_D.Mat
     type 'p predicate = 'p Entry.Predicate.t
     type 'state fold = ('state, float) Fold.t
-    val to_vector : t ->
-     ?pred:'p predicate option ->
-     f:('state fold) ->
-     Vec.t Or_error.t
+
+    val to_vector : t -> 
+      init:float Or_error.t ->
+      ?pred:'p predicate option ->
+      f:('state fold) ->
+      Vec.t Or_error.t
 
     val to_array : t ->
-     ?pred:'p predicate option ->
-     f:('state, 'float) Fold.t ->
-     float array Or_error.t
+      init:float Or_error.t ->
+      ?pred:'p predicate option ->
+      f:('state, 'float) Fold.t ->
+      float array Or_error.t
 
+    (* TODO
     val to_matrix : t ->
       ?x_pred:'x_p predicate option ->
       ?y_pred:(x:Entry.t -> 'y_p predicate) option ->
       f:(x:Entry.t -> 'state fold) -> (* <- todo not right does not account for x *)
-      Mat.t Or_error.t
-
+      Mat.t Or_error.t *) 
+    (* TODO
     val dot : t ->
       ?x_pred:'x_p predicate option ->
       x_f:'x_s fold ->
       ?y_pred:'y_p predicate option ->
       y_f:'y_s fold ->
-      float Or_error.t
+      float Or_error.t *)
    end
 
 end
@@ -86,7 +90,8 @@ module Make
     module Events = Model_kernel.Events and
     module Data = Model_kernel.Data and
     module Or_error = Model_kernel.Or_error
-  = struct
+  =
+struct
   include Model_kernel
   module Event = Events.Event
   type prob = ?cond:Events.t -> Events.t -> t -> float Or_error.t
@@ -131,5 +136,35 @@ module Make
    let observe ?(cnt=1) ?(exp=1.0) events t =
      observe_data
       (Data.create ~cnt ~exp) events t
+
+   module Floats =
+   struct
+    module Vec = Lacaml_D.Vec
+    module Mat = Lacaml_D.Mat
+    type 'p predicate = 'p Entry.Predicate.t
+    type 'state fold = ('state, float) Fold.t
+
+    let to_vector t ~init ?pred ~f = failwith("nyi")
+
+    let to_array t 
+      ~init
+      ?pred
+      ~f = failwith("nyi")
+
+    (* TODO
+    val to_matrix : t ->
+      ?x_pred:'x_p predicate option ->
+      ?y_pred:(x:Entry.t -> 'y_p predicate) option ->
+      f:(x:Entry.t -> 'state fold) -> (* <- todo not right does not account for x *)
+      Mat.t Or_error.t *) 
+    (* TODO
+    val dot : t ->
+      ?x_pred:'x_p predicate option ->
+      x_f:'x_s fold ->
+      ?y_pred:'y_p predicate option ->
+      y_f:'y_s fold ->
+      float Or_error.t *)
+
+   end
 end
 
