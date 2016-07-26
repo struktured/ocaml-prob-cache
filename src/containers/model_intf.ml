@@ -2,6 +2,7 @@
 to maintain their probabilities and expectations.
 *)
 open Or_errors.Std
+open Or_errors_containers.Std
 open Prob_cache_common
 
 (** Floating point convenience module *)
@@ -62,7 +63,7 @@ module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@
           [ `Create_error of Create_error.t
           | `Observe_error of Observe_error.t
           | `Data_error of Data_error.t
-          | `Find_error of Find_error.t]
+          | `Find_error of Find_error.t] [@@deriving show]
 
         let of_create e = `Create_error e
         let of_observe e = `Observe_error e
@@ -84,7 +85,7 @@ module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@
 
 module Or_error =
 struct
-  include Or_errors_containers.Or_error.Make(Error)
+  include Or_error.Make(Error)
 end
 
 module type S_KERNEL =

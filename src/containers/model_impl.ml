@@ -95,8 +95,11 @@ struct
     CCList.fold_right (fun l t -> _observe_data data l t) (Events.subsets events) t
   end
 
-  module Find_fun : FIND_FUN with
-   type t = T.t and module Events = T.Events and module Data = T.Data and module Or_error = T.Or_error =
+  module Fold_fun : FOLD_FUN with
+    type t = T.t and
+    module Entry.Events = T.Events and
+    module Entry.Data = T.Data and
+    module Or_error = T.Or_error =
   struct include T let find _ = failwith("nyi") end
   module Model_kernel = struct
     module K = Prob_cache_common.Model_kernel.Make
@@ -104,7 +107,7 @@ struct
     (Create_fun)
     (Data_fun)
     (Observe_data_fun)
-    (Find_fun)
+    (Fold_fun)
     module Events = Events
     module Data = Data
     include (K:module type of K with module Events := Events and module Data := Data)
