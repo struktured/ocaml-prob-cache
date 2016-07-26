@@ -13,6 +13,7 @@ sig
   (** The module type representing a collection of events *)
   module Events : EVENTS
 
+  (** The module type representing statistical data bound to some events *)
   module Data : DATA
 
   (** An abstract events model cache *)
@@ -47,27 +48,49 @@ sig
 end
 
 module Make
-  (Events:EVENTS)
+  (Events:EVENTS) (** TODO why is this Events arg required? *)
   (Create_fun:CREATE_FUN with module Events = Events)
-  (Data_fun:DATA_FUN with type t = Create_fun.t and
-    module Events = Events and module Or_error = Create_fun.Or_error and module Data = Create_fun.Data)
-  (Observe_data_fun:OBSERVE_DATA_FUN with type t= Create_fun.t and
-    module Events = Events and module Or_error = Create_fun.Or_error and module Data = Create_fun.Data)
-  (Fold_fun:FOLD_FUN with type t = Create_fun.t and
-    module Events = Events and module Or_error = Create_fun.Or_error and module Data = Create_fun.Data)
-: S with type t = Create_fun.t and
+  (Data_fun:DATA_FUN with
+    type t = Create_fun.t and
+    module Events = Events and
+    module Or_error = Create_fun.Or_error and
+    module Data = Create_fun.Data)
+  (Observe_data_fun:OBSERVE_DATA_FUN with
+    type t = Create_fun.t and
+    module Events = Events and
+    module Or_error = Create_fun.Or_error and
+    module Data = Create_fun.Data)
+  (Fold_fun:FOLD_FUN with
+    type t = Create_fun.t and
+    module Entry.Events = Events and
+    module Or_error = Create_fun.Or_error and
+    module Entry.Data = Create_fun.Data)
+: S with
+  type t = Create_fun.t and
   module Events = Events and
   module Or_error = Create_fun.Or_error and
-  module Data = Create_fun.Data =
+  module Data = Create_fun.Data and
+  module Entry.Events = Events and
+  module Entry.Data = Create_fun.Data
+(* and module Entry.Or_error = Create_fun.Or_error *) =
 struct
   include Create_fun
   include (Data_fun : DATA_FUN with
-    module Events := Events and module Or_error := Or_error and module Data := Data and type t := Data_fun.t)
+    module Events := Events and
+    module Or_error := Or_error and
+    module Data := Data and
+    type t := Data_fun.t)
 
   include (Observe_data_fun : OBSERVE_DATA_FUN with
-    module Events := Events and module Or_error := Or_error and module Data := Data and type t := Observe_data_fun.t)
+    module Events := Events and
+    module Or_error := Or_error and
+    module Data := Data and
+    type t := Observe_data_fun.t)
 
   include (Fold_fun : FOLD_FUN with
-    module Events := Events and module Or_error := Or_error and module Data := Data and type t := Fold_fun.t)
+    module Entry.Events = Events and
+    module Or_error := Or_error and
+    module Entry.Data = Data and
+    type t := Fold_fun.t)
 end
 

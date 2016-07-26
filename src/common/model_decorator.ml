@@ -45,47 +45,37 @@ sig
   (** Observed last value of events given [cond], possibly the empty events *)
 
   val observe : observe
+  (* Observe a new data instance given [cond], possibly the empty events. *)
 
-  type 'a mapper = Events.t -> 'a
-  type 'a indexed_mapper = int -> Events.t -> 'a
-  type 'a indexed2_mapper = int -> int -> Events.t -> 'a
-  type predicate = bool mapper
-  type 'a fold = t ->
-    ?pred:predicate option ->
-    f:('a -> Events.t -> 'a) ->
-    init:'a ->
-    'a Or_error.t
-
-  val fold : 'a fold
-
-  val update : t -> ?pred:predicate option -> f:Data.t mapper -> t
+  (** Floating point style computations over the model *)
   module Floats :
   sig
     module Vec = Lacaml_D.Vec
     module Mat = Lacaml_D.Mat
+    type 'p predicate = 'p Entry.Predicate.t
+    type 'state fold = ('state, float) Fold.t
     val to_vector : t ->
-     ?pred:predicate option ->
-     f:float mapper -> Vec.t Or_error.t
+     ?pred:'p predicate option ->
+     f:('state fold) ->
+     Vec.t Or_error.t
 
     val to_array : t ->
-     ?pred:predicate option ->
-     f:float mapper -> float array Or_error.t
+     ?pred:'p predicate option ->
+     f:('state, 'float) Fold.t ->
+     float array Or_error.t
 
     val to_matrix : t ->
-      ?x_pred:predicate option ->
-      x_f:float mapper ->
-      ?y_pred:(x:Events.t -> predicate) option ->
-      y_f:float mapper ->
+      ?x_pred:'x_p predicate option ->
+      ?y_pred:(x:Entry.t -> 'y_p predicate) option ->
+      f:(x:Entry.t -> 'state fold) -> (* <- todo not right does not account for x *)
       Mat.t Or_error.t
 
     val dot : t ->
-      ?x_pred:predicate option ->
-      x_f:float mapper ->
-      ?y_pred:predicate option ->
-      y_f:float mapper ->
+      ?x_pred:'x_p predicate option ->
+      x_f:'x_s fold ->
+      ?y_pred:'y_p predicate option ->
+      y_f:'y_s fold ->
       float Or_error.t
-
-    val fold : float fold
    end
 
 end

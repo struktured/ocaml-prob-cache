@@ -48,8 +48,12 @@ struct
     type t = T.t and module Events = T.Events and module Data = T.Data and module Or_error = T.Or_error  =
   struct
     include T
-    let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
-    ?(prior_exp=default_prior_exp) ~(name:string) = Or_error.return {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
+    let create
+        ?(update_rule=default_update_rule)
+        ?(prior_count=default_prior_count)
+        ?(prior_exp=default_prior_exp)
+        ~(name:string) = Or_error.return
+          {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
     let name t = t.name
     let update_rule t = t.update_rule
   end
