@@ -1,5 +1,5 @@
-open Events_common
-
+open Prob_cache_events
+module Model_decorator = Prob_cache_model_decorator
 module Make(Model:Model_decorator.S) = struct
 module Events = Model.Events
 module Data = Model.Data

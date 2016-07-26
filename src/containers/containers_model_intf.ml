@@ -3,7 +3,7 @@ to maintain their probabilities and expectations.
 *)
 open Or_errors.Std
 open Or_errors_containers.Std
-open Prob_cache_common
+open Prob_cache.Std
 
 (** Floating point convenience module *)
 module Float = Model_primitives.Float
@@ -12,7 +12,7 @@ module Float = Model_primitives.Float
 module type EVENT =
   sig
     type t [@@deriving show, ord]
-    include Events_common.EVENT with type t := t
+    include Events.EVENT with type t := t
   end
 
 (** Represents an abstract collection of events *)
@@ -20,7 +20,7 @@ module type EVENTS =
 sig
   type t [@@deriving show, ord]
   module Event : EVENT
-  include Events_common.EVENTS with module Event := Event and type t := t
+  include Events.EVENTS with module Event := Event and type t := t
 end
 
 module Data = struct
@@ -85,7 +85,7 @@ module Observe_error = Base_error(struct type t = [`Observe_error of string] [@@
 
 module Or_error =
 struct
-  include Or_error.Make(Error)
+  include Or_errors_containers.Std.Or_error.Make(Error)
 end
 
 module type S_KERNEL =

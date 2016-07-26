@@ -1,3 +1,4 @@
+module Running = Prob_cache_running
 module type DATA =
 sig
 (** Compute running statitics using recurrence equations. *)

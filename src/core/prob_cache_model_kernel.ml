@@ -1,8 +1,14 @@
 open Or_errors.Std
-open Events_common
+open Prob_cache_events
+
+module Data = Prob_cache_data
+module Create_fun = Prob_cache_create_fun
+module Observe_data_fun = Prob_cache_observe_data_fun
+module Data_fun = Prob_cache_data_fun
+module Fold_fun = Prob_cache_fold_fun
+
 module type DATA = Data.S
 module type CREATE_FUN = Create_fun.S
-
 module type OBSERVE_DATA_FUN = Observe_data_fun.S
 module type DATA_FUN = Data_fun.S
 module type FOLD_FUN = Fold_fun.S

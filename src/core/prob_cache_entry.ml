@@ -1,4 +1,5 @@
-open Events_common
+open Prob_cache_events
+module Data = Prob_cache_data
 open Or_errors.Std
 module type S_BASE =
 sig

@@ -1,8 +1,7 @@
-open Prob_cache_common
-open Model.Std
+open Prob_cache.Std
 open Or_errors.Std
 module Float = CCFloat
-
+module Model_intf = Containers_model_intf
 (** Represents a single event- must be comparable and showable *)
 module type EVENT = Model_intf.EVENT
 

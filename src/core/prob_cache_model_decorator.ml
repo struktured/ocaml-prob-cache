@@ -1,11 +1,14 @@
 open Or_errors.Std
-open Events_common
-
-module type DATA_FUN = Data_fun.S
+open Prob_cache_events
+module Data_fun = Prob_cache_data_fun
+module Observe_data_fun = Prob_cache_observe_data_fun
+module type DATA_FUN = Prob_cache_data_fun.S
 module type OBSERVE_DATA_FUN = Observe_data_fun.S
+
+module Model_kernel = Prob_cache_model_kernel
 module type S =
 sig
-  include Model_kernel.S
+  include Prob_cache_model_kernel.S
   module Event = Events.Event
   type prob = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 

@@ -1,3 +1,6 @@
+module Running = Prob_cache_running
+module Update_rules = Prob_cache_update_rules
+
 module type DATA =
 sig
 (** Compute running statitics using recurrence equations. *)
