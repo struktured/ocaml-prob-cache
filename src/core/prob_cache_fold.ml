@@ -1,11 +1,16 @@
 open Or_errors.Std
 open Prob_cache_events
+
 module Data = Prob_cache_data
 module type DATA = Data.S
 
-module type ENTRY = Prob_cache_entry.S
+module Entry = Prob_cache_entry
+module type ENTRY = Entry.S
+
 module Make(Entry:ENTRY)(Or_error:OR_ERROR) =
 struct
+  module Entry = Entry
+  module Or_error = Or_error
   module Return =
   struct
     module type S =
@@ -63,5 +68,7 @@ module type S =
 sig
   module Entry : ENTRY
   module Or_error : OR_ERROR
-  include module type of Make(Entry)(Or_error)
+  include module type of Make(Entry)(Or_error) with
+    module Entry := Entry and
+    module Or_error := Or_error
 end

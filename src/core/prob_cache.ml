@@ -10,6 +10,8 @@ struct
   module Observe_data_fun = Prob_cache_observe_data_fun
   module Fold_fun = Prob_cache_fold_fun
   module Create_fun = Prob_cache_create_fun
+  module Entry = Prob_cache_entry
+  module Fold = Prob_cache_fold
 
   module type EVENTS = Events.EVENTS
   module type EVENT = Events.EVENT

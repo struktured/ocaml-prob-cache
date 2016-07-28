@@ -1,5 +1,6 @@
 open Prob_cache.Std
 open Or_errors.Std
+open Or_errors_containers.Std
 module Float = CCFloat
 module Model_intf = Containers_model_intf
 (** Represents a single event- must be comparable and showable *)
@@ -44,7 +45,10 @@ struct
   end
 
   module Create_fun : CREATE_FUN with
-    type t = T.t and module Events = T.Events and module Data = T.Data and module Or_error = T.Or_error  =
+    type t = T.t and
+    module Events = T.Events and
+    module Data = T.Data and
+    module Or_error = T.Or_error =
   struct
     include T
     let create
@@ -81,7 +85,10 @@ struct
     (Float.of_int joined_events_count) /. (Float.of_int cond_count)
 *)
   module Observe_data_fun : OBSERVE_DATA_FUN with
-   type t = T.t and module Events = T.Events and module Data = T.Data and module Or_error = T.Or_error =
+   type t = T.t and
+   module Events = T.Events and
+   module Data = T.Data and
+   module Or_error = T.Or_error =
   struct
     include T
   let _observe_data data (events:Events.t) (t:t) =
@@ -99,9 +106,30 @@ struct
     module Entry.Events = T.Events and
     module Entry.Data = T.Data and
     module Or_error = T.Or_error =
-  struct include T let find _ = failwith("nyi") end
-  module Model_kernel = struct
-    module K = Prob_cache_common.Model_kernel.Make
+  struct
+    module Entry : Entry.S with module Events = Events and module Data = Data and module Or_error = Or_error =
+    struct
+      module I = Entry.Make(Events)(Data)(Or_error)
+      module Events = Events
+      module Data = Data
+      module Or_error = Or_error
+      include (I : module type of I with
+        module Events := Events and
+        module Data := Data and
+        module Or_error := Or_error)
+    end
+    module Fold : Fold.S with module Entry = Entry and module Or_error = Or_error =
+    struct
+      module I = Fold.Make(Entry)(Or_error)
+      include I
+      let compare _ = failwith("nyi")
+    end
+    include T
+    let fold _ = failwith("nyi")
+  end
+  module Model_kernel =
+  struct
+    module K = Model_kernel.Make
     (Events)
     (Create_fun)
     (Data_fun)
@@ -112,7 +140,7 @@ struct
     include (K:module type of K with module Events := Events and module Data := Data)
   end
 
-  module Decorated = Prob_cache_common.Model_decorator.Make(Model_kernel)
+  module Decorated = Model_decorator.Make(Model_kernel)
   module Events = Events
   module Event = Events.Event
   module Data = Data
@@ -136,13 +164,13 @@ struct
        let show t = to_list t |> List.map Event.show |> String.concat " & "
        let pp formatter t = Format.fprintf formatter "%s" (show t)
        let join = union
-       let subsets t = List.map of_list (Powerset.generate (to_list t))
+       let subsets t = List.map of_list (Prob_cache_powerset.generate (to_list t))
        let filter f l = to_list l |> CCList.filter f |> of_list
        let fold f t acc = to_list t |> fun t -> CCList.fold_right f t acc
        let iter f t = iter t @@ fun _ e -> f e 
      end
   include Multiset
-  module Events_multiset = Events_common.Make(Multiset)
+  module Events_multiset = Events.Make(Multiset)
   include (Events_multiset :
     module type of Events_multiset with module Event := Event)
 end
@@ -174,7 +202,7 @@ struct
   let pp formatter t = Format.fprintf formatter "%s" (show t)
     end
   include OrdList
-  module Events = Events_common.Make(OrdList)
+  module Events = Events.Make(OrdList)
   include (Events : module type of Events with module Event := Event)
 end
 end
