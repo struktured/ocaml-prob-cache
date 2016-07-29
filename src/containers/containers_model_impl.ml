@@ -17,7 +17,7 @@ module type S_KERNEL = Model_intf.S_KERNEL
 module Data = Model_intf.Data
 module Fun = CCFun
 
-module Make(Events:EVENTS)(Or_error:OR_ERROR) =
+module Make (Events:EVENTS) (Or_error:OR_ERROR) =
   (*S with module Events = Events and module Or_error = Or_error =*)
 struct
   module Cache = CCMap.Make(Events)
@@ -62,7 +62,10 @@ struct
   end
 
   module Data_fun : DATA_FUN with
-    type t = T.t and module Events = T.Events and module Data = T.Data and module Or_error = T.Or_error =
+    type t = T.t and
+    module Events = T.Events and
+    module Data = T.Data and
+    module Or_error = T.Or_error =
   struct
     include T
     let data (events:Events.t) (t:t) : Data.t Or_error.t =
@@ -71,19 +74,6 @@ struct
         | None -> Or_error.return Data.empty
   end
 
-  (* let count (events:Events.t) (t:t) : int =
-    CCOpt.get_lazy (fun () -> t.prior_count events) (CCOpt.map (fun d -> Data.count d) (Cache.get events t.cache))
-  let descriptive_stat ?cond (events:Events.t) t prior_fn stat_fn =
-      CCOpt.get_lazy (fun () -> prior_fn events) (CCOpt.map stat_fn (data ?cond events t))
-  let prob ?(cond=Events.empty) (events:Events.t) (t:t) =
-   let cond_count = count cond t in
-    (* (a) If the conditional probability is zero then is so must been the whole probability
-       (b) If the conditional (possibly empty) events have been observed then we normalize by its frequency count
-     *)
-    if (cond_count = 0) then (Float.of_int 0) else
-    let joined_events_count = count (Events.join cond events) t in
-    (Float.of_int joined_events_count) /. (Float.of_int cond_count)
-*)
   module Observe_data_fun : OBSERVE_DATA_FUN with
    type t = T.t and
    module Events = T.Events and
@@ -107,24 +97,28 @@ struct
     module Entry.Data = T.Data and
     module Or_error = T.Or_error =
   struct
-    module Entry : Entry.S with module Events = Events and module Data = Data and module Or_error = Or_error =
+    include T
+    module Entry : Entry.S with
+      module Events = Events and module Data = Data =
     struct
-      module I = Entry.Make(Events)(Data)(Or_error)
+      module I = Entry.Make(Events)(Data)
       module Events = Events
       module Data = Data
-      module Or_error = Or_error
       include (I : module type of I with
         module Events := Events and
-        module Data := Data and
-        module Or_error := Or_error)
+        module Data := Data)
     end
-    module Fold : Fold.S with module Entry = Entry and module Or_error = Or_error =
+    module Fold : Fold.S with
+      module Entry = Entry and module Or_error = T.Or_error =
     struct
       module I = Fold.Make(Entry)(Or_error)
-      include I
+      module Entry = Entry
+      module Or_error = T.Or_error
+      include (I : module type of I with
+        module Entry := Entry and
+        module Or_error := Or_error)
       let compare _ = failwith("nyi")
     end
-    include T
     let fold _ = failwith("nyi")
   end
   module Model_kernel =
@@ -192,7 +186,7 @@ struct
         List.fold_left
          (fun ((accum: t list), (l:t)) e -> let l' = l@[e] in (l'::accum, l'))
          ([], []) l in []::accum
-     let iter  = List.iter 
+     let iter  = List.iter
      let fold = CCList.fold_right
      let filter = CCList.filter
      let remove (t:t) x = CCList.remove ~x t

@@ -1,20 +1,21 @@
 open Prob_cache_events
 module Data = Prob_cache_data
 open Or_errors.Std
+
 module type S_BASE =
 sig
   type t
   module Events : EVENTS
   module Data : Data.S
-  module Or_error : OR_ERROR
-  val data : t -> Data.t Or_error.t
-  val events : t -> Events.t Or_error.t
+  val data : t -> Data.t
+  val events : t -> Events.t
 end
 
 module Predicate =
 struct
   module type ENTRY = S_BASE
-  module type S = sig
+  module type S =
+  sig
     module Entry : ENTRY
     type 'state t = 'state -> Entry.t -> bool
   end
@@ -37,11 +38,10 @@ sig
     module Entry.Data = Data
 end
 
-module Make (Events : EVENTS) (Data : Data.S) (Or_error : OR_ERROR) :
+module Make (Events : EVENTS) (Data : Data.S) :
     S with
     module Events = Events and
-    module Data = Data and
-    module Or_error = Or_error =
+    module Data = Data =
 struct
   module I =
   struct
@@ -49,8 +49,8 @@ struct
     module Events = Events
     module Data = Data
     module Or_error = Or_error
-    let data t = Or_error.return t.data
-    let events t = Or_error.return t.events
+    let data t = t.data
+    let events t = t.events
   end
   include I
   module Predicate = Predicate.Make(I)
