@@ -50,32 +50,48 @@ sig
   val observe : observe
   (* Observe a new data instance given [cond], possibly the empty events. *)
 
+
+  module Sequences :
+  sig
+     module Sequence : module type of Sequence
+     val scan : t ->
+      state:'f ->
+      init:'acc ->
+      f:('f, 'acc) Fold.t ->
+      'acc Sequence.t Or_error.t
+  end
+
   (** Floating point style computations over the model *)
   module Floats :
   sig
-    module Vec = Lacaml_D.Vec
-    module Mat = Lacaml_D.Mat
-    type 'p predicate = 'p Entry.Predicate.t
-    type 'state fold = ('state, float) Fold.t
+    type 'f fold = ('f, float) Fold.t
 
-    val to_vector : t -> 
-      init:float Or_error.t ->
-      ?pred:'p predicate option ->
-      f:('state fold) ->
-      Vec.t Or_error.t
+    module Arrays :
+    sig
+      module Array : module type of Array
+      val scan : t ->
+        state:'f ->
+        init:float ->
+        f:('f fold) ->
+        float array Or_error.t
+    end
 
-    val to_array : t ->
-      init:float Or_error.t ->
-      ?pred:'p predicate option ->
-      f:('state, 'float) Fold.t ->
-      float array Or_error.t
+    module Vecs :
+    sig
+      module Vec : module type of Lacaml_D.Vec
+      val scan : t ->
+        state:'f ->
+        init:float ->
+        f:('f fold) ->
+        Vec.t Or_error.t
+    end
 
     (* TODO
     val to_matrix : t ->
       ?x_pred:'x_p predicate option ->
       ?y_pred:(x:Entry.t -> 'y_p predicate) option ->
       f:(x:Entry.t -> 'state fold) -> (* <- todo not right does not account for x *)
-      Mat.t Or_error.t *) 
+      Mat.t Or_error.t *)
     (* TODO
     val dot : t ->
       ?x_pred:'x_p predicate option ->
@@ -140,34 +156,40 @@ struct
      observe_data
       (Data.create ~cnt ~exp) events t
 
+   module Sequences =
+   struct
+    module Sequence = Sequence
+    let scan t
+      ~(state:'f)
+      ~(init:'acc) ~f =
+      let f' ~state ((seq:'acc Sequence.t), (acc:'acc)) e =
+        f ~state acc e |>
+          Fold.Return.map ~f:(fun acc' ->
+            let seq' = Sequence.append seq (Sequence.return acc') in
+            seq', acc') in
+      fold t ~state ~init:((Sequence.empty: 'acc Sequence.t), (init:'acc)) ~f:f'
+      |> Or_error.map ~f:(fun (seq,_) -> seq)
+    end
+
    module Floats =
    struct
-    module Vec = Lacaml_D.Vec
-    module Mat = Lacaml_D.Mat
-    type 'p predicate = 'p Entry.Predicate.t
-    type 'state fold = ('state, float) Fold.t
+    type 'f fold = ('f, float) Fold.t
+    module Arrays =
+    struct
+      module Array = Array
+      let scan t ~(state:'f) ~(init:'acc) ~f =
+        Sequences.scan t ~state ~init ~f |>
+        Or_error.map ~f:Sequence.to_array
+    end
 
-    let to_vector t ~init ?pred ~f = failwith("nyi")
-
-    let to_array t 
-      ~init
-      ?pred
-      ~f = failwith("nyi")
-
-    (* TODO
-    val to_matrix : t ->
-      ?x_pred:'x_p predicate option ->
-      ?y_pred:(x:Entry.t -> 'y_p predicate) option ->
-      f:(x:Entry.t -> 'state fold) -> (* <- todo not right does not account for x *)
-      Mat.t Or_error.t *) 
-    (* TODO
-    val dot : t ->
-      ?x_pred:'x_p predicate option ->
-      x_f:'x_s fold ->
-      ?y_pred:'y_p predicate option ->
-      y_f:'y_s fold ->
-      float Or_error.t *)
-
+    module Vecs =
+    struct
+      module Vec = Lacaml_D.Vec
+      let scan t ~(state:'f) ~(init:'acc) ~f =
+        Arrays.scan t ~state ~init ~f |>
+        Or_error.map ~f:Vec.of_array
+    end
    end
+
 end
 

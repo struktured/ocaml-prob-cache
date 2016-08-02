@@ -17,13 +17,13 @@ sig
   module Entry : Prob_cache_entry.S
 
   (** Contains the signature for user provided fold functions *)
-  module Fold : Fold.S with module Entry = Entry and module Or_error = Or_error
+  module Fold : Fold.S with module Entry = Entry (* and module Or_error = Or_error *)
 
   val fold : t ->
-    f:('state, 'accum) Fold.t ->
-    state:'state ->
-    init:'accum Or_error.t ->
-    'accum Or_error.t
+    state:'f ->
+    init:'acc ->
+    f:('f, 'acc) Fold.t ->
+    'acc Or_error.t
   (** Fold over the cache [t] given the fold function [f] with
         state [state] and initial value [init]. Return the
         accumulated value or error. *)

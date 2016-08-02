@@ -109,14 +109,12 @@ struct
         module Data := Data)
     end
     module Fold : Fold.S with
-      module Entry = Entry and module Or_error = T.Or_error =
+      module Entry = Entry  =
     struct
-      module I = Fold.Make(Entry)(Or_error)
+      module I = Fold.Make(Entry)
       module Entry = Entry
-      module Or_error = T.Or_error
       include (I : module type of I with
-        module Entry := Entry and
-        module Or_error := Or_error)
+        module Entry := Entry)
       let compare _ = failwith("nyi")
     end
     let fold _ = failwith("nyi")
