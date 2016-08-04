@@ -59,13 +59,13 @@
 *)
 
 (** The event type for each element of a sequence. *)
-module type EVENT = Model_intf.EVENT
+module type EVENT = Riak_model_intf.EVENT
 
 (** The type holding a sequence of events *)
-module type EVENTS = Model_intf.EVENTS
+module type EVENTS = Riak_model_intf.EVENTS
 
 (** Represents a polymoprhic cache of sequences mapped to probabilities and expectations *)
-module type S = Model_intf.S
+module type S = Riak_model_intf.S
 
 (** Creates a concrete instance of a sequence model cache for a given Event type *)
 module Make : functor(Event:EVENT) -> S with type Events.Event.t = Event.t and module Events.Event = Event

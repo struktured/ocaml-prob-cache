@@ -1,7 +1,7 @@
 (** A abstract model, defining the type of events and data structures 
 to maintain their probabilities and expectations.
 *)
-open Prob_cache_common
+open Prob_cache.Std
 module OldList = List
 open Core.Std
 
@@ -15,7 +15,7 @@ module Result = Deferred.Result
 module type EVENT =
 sig
   type t [@@deriving protobuf, show, ord]
-  include Events_common.EVENT with type t := t
+  include Events.EVENT with type t := t
 end
 
 (** Represents an abstract collection of events, must be protobuf capable and pretty printable *)
@@ -23,7 +23,7 @@ module type EVENTS =
 sig
   type t [@@deriving protobuf, show]
   module Event : EVENT
-  include Events_common.EVENTS with module Event := Event and type t := t
+  include Events.EVENTS with module Event := Event and type t := t
 end
 
 module Data = struct

@@ -1,25 +1,26 @@
-open Prob_cache_common
+open Prob_cache.Std
 module OldList = List
 module OldSequence = Sequence
 open Core.Std
 module Float = CCFloat (* for pretty printing, ord, etc *)
 module CoreList = List
 module List = CCList
+module Hashset = Prob_cache_hashset
 open Async.Std
 module Result = Deferred.Result
 module Sequence = OldSequence
 module Fun = CCFun
 
 (** Represents a single event- must be protobuf capable, comparable, and pretty printable *)
-module type EVENT = Model_intf.EVENT
+module type EVENT = Riak_model_intf.EVENT
 
 (** Represents an abstract collection of events, must be protobuf capable and pretty printable *)
-module type EVENTS = Model_intf.EVENTS
+module type EVENTS = Riak_model_intf.EVENTS
 
-module Data = Model_intf.Data
+module Data = Riak_model_intf.Data
 
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
-module type S =  Model_intf.S
+module type S = Riak_model_intf.S
 
 module Make_for_events (Events:EVENTS) : S with module Events = Events =
 struct
@@ -37,7 +38,7 @@ struct
     name : string;
     cache : Cache.t;
     prior_count : prior_count;
-    prior_exp : prior_exp; 
+    prior_exp : prior_exp;
     update_rule : update_rule }
 
   let default_prior_count (e:Events.t) = 0
@@ -169,7 +170,7 @@ module Make_event_set(Event:EVENT) :
   let is_empty t = Hashset.cardinal t = 0
 
   let subsets (t:t) : t list =
-    List.map of_list (Powerset.generate (to_list t))
+    List.map of_list (Prob_cache_powerset.generate (to_list t))
 
   let to_protobuf t e = event_list_to_protobuf (to_list t) e
   let from_protobuf d = of_list (event_list_from_protobuf d)
@@ -183,14 +184,14 @@ module Make_event_set(Event:EVENT) :
   let show t = Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
 end
   include Set
-  include (Events_common.Make(Set) :
-    module type of Events_common.Make(Set) with module Event := Event)
+  include (Events.Make(Set) :
+    module type of Events.Make(Set) with module Event := Event)
 end
 
 module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
 struct
   module Seq =
-struct  
+struct
   module Event = Event
   module List = OldList
   type t = Event.t list [@@deriving protobuf, show]
@@ -213,6 +214,6 @@ struct
   let add t x = CCList.append t [x]
 end
   include Seq
-  include (Events_common.Make(Seq) :
-    module type of Events_common.Make(Seq) with module Event := Event)
+  include (Events.Make(Seq) :
+    module type of Events.Make(Seq) with module Event := Event)
 end

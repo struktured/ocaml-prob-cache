@@ -26,7 +26,8 @@ Flag riak_examples
 Library "prob_cache"
   Path:               src/core
   Pack:               false
-  Modules:            Prob_cache_update_rules, Prob_cache_running, Prob_cache_data, Prob_cache_events, Prob_cache_entry,
+  Modules:            Prob_cache_phashtable, Prob_cache_hashset, Prob_cache_update_rules,
+                        Prob_cache_running, Prob_cache_data, Prob_cache_events, Prob_cache_entry,
                         Prob_cache_calculus, Prob_cache_create_fun, Prob_cache_observe_data_fun,
                         Prob_cache_data_fun, Prob_cache_fold, Prob_cache_fold_fun, Prob_cache_model_primitives,
                         Prob_cache_model_kernel, Prob_cache_model_decorator, Prob_cache_model, Prob_cache
@@ -55,8 +56,8 @@ Library "riak"
   Path:               src/riak
   FindLibParent:      prob_cache
   Pack:               false
-  Modules:            Model_intf, Set_model, Sequence_model
-  InternalModules:    Model_impl
+  Modules:            Riak_model_intf, Riak_set_model, Riak_sequence_model
+  InternalModules:    Riak_model_impl
   BuildDepends:       threads, containers, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter,
                         ppx_deriving_protobuf, prob_cache, core, async, bitstring, riakc_ppx, or_errors_async
 
@@ -67,7 +68,7 @@ Executable containers_sprinkler
   else
     Build: false
   Path:               src/examples
-  MainIs:             sprinkler.ml 
+  MainIs:             sprinkler.ml
   BuildDepends:       prob_cache.containers
 
 Executable containers_coin_flip
@@ -76,7 +77,7 @@ Executable containers_coin_flip
   else
     Build: false
   Path:               src/examples
-  MainIs:             coin_flip.ml 
+  MainIs:             coin_flip.ml
   BuildDepends:       prob_cache.containers
 
 Executable riak_sprinkler

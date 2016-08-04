@@ -1,8 +1,8 @@
 #require "prob_cache_containers";;
-open Prob_cache_common;;
-open Prob_cache_containers;;
+open Prob_cache.Std;;
+open Prob_cache_containers.Std;;
 
-module Example = 
+module Example =
   struct
     module E = struct type t = R|B|G [@@deriving show, ord] end
     module C = Set_model.Make(E)
