@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: b9f8e757e5ec0933d75d0122cd86890c) *)
+(* DO NOT EDIT (digest: 1f47350148b60671a8318ef7cf38eaf5) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -770,6 +770,7 @@ let package_default =
      MyOCamlbuildBase.lib_ocaml =
        [
           ("prob_cache", ["src/core"], []);
+          ("examples", ["src/examples"], []);
           ("containers", ["src/containers"], []);
           ("riak", ["src/riak"], [])
        ];
@@ -777,9 +778,10 @@ let package_default =
      flags = [];
      includes =
        [
-          ("src/riak_examples", ["src/riak"]);
+          ("src/riak_examples", ["src/examples"; "src/riak"]);
           ("src/riak", ["src/core"]);
-          ("src/examples", ["src/containers"]);
+          ("src/examples", ["src/core"]);
+          ("src/containers_examples", ["src/containers"; "src/examples"]);
           ("src/containers", ["src/core"])
        ]
   }
@@ -789,6 +791,6 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 793 "myocamlbuild.ml"
+# 795 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
