@@ -15,6 +15,9 @@ Flag containers
   Description: Enable/Disable containers cache backend
   Default: true
 
+Flag examples
+  Description: Enable/Disable example support library
+  Default: true
 Flag containers_examples
   Description: Enable/Disable containers api examples
   Default: true
@@ -34,6 +37,17 @@ Library "prob_cache"
   InternalModules:    Prob_cache_powerset
   BuildDepends:       lacaml, containers, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.make, ppx_deriving.ord,
                         ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, or_errors
+
+Library "examples"
+  if flag(examples)
+    Build: true
+  else
+    Build: false
+  Path:               src/examples
+  FindLibParent:      prob_cache
+  Pack:               false
+  Modules:            Prob_cache_coin_flip, Prob_cache_sprinkler
+  BuildDepends:       prob_cache
 
 Library "containers"
   if flag(containers)
@@ -56,9 +70,9 @@ Library "riak"
   Path:               src/riak
   FindLibParent:      prob_cache
   Pack:               false
-  Modules:            Riak_model_intf, Riak_set_model, Riak_sequence_model
+  Modules:            Riak_model_intf, Riak_set_model, Riak_sequence_model, Prob_cache_riak
   InternalModules:    Riak_model_impl
-  BuildDepends:       threads, containers, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter,
+  BuildDepends:       prob_cache, threads, ppx_deriving, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter,
                         ppx_deriving_protobuf, prob_cache, core, async, bitstring, riakc_ppx, or_errors_async
 
 
@@ -67,18 +81,18 @@ Executable containers_sprinkler
     Build: true
   else
     Build: false
-  Path:               src/examples
-  MainIs:             sprinkler.ml
-  BuildDepends:       prob_cache.containers
+  Path:               src/containers_examples
+  MainIs:             containers_sprinkler.ml
+  BuildDepends:       prob_cache.containers, prob_cache.examples
 
 Executable containers_coin_flip
   if flag(containers_examples)
     Build: true
   else
     Build: false
-  Path:               src/examples
-  MainIs:             coin_flip.ml
-  BuildDepends:       prob_cache.containers
+  Path:               src/containers_examples
+  MainIs:             containers_coin_flip.ml
+  BuildDepends:       prob_cache.containers, prob_cache.examples
 
 Executable riak_sprinkler
   if flag(riak_examples)
@@ -87,7 +101,7 @@ Executable riak_sprinkler
     Build: false
   Path:               src/riak_examples
   MainIs:             riak_sprinkler.ml
-  BuildDepends:       prob_cache.riak
+  BuildDepends:       prob_cache.riak, prob_cache.examples
 
 Executable riak_coin_flip
   if flag(riak_examples)
@@ -96,7 +110,7 @@ Executable riak_coin_flip
     Build: false
   Path:               src/riak_examples
   MainIs:             riak_coin_flip.ml
-  BuildDepends:       prob_cache.riak
+  BuildDepends:       prob_cache.riak, prob_cache.examples
 
 
 AlphaFeatures : ocamlbuild_more_args
@@ -111,6 +125,16 @@ Document "prob_cache"
   XOCamlbuildLibraries: prob_cache
 
 
+Document "prob_cache_examples"
+  Type: ocamlbuild (0.4)
+  BuildTools: ocamldoc
+  Title: Probability Cache Examples Support API
+  XOCamlbuildPath: src/examples
+  XOCamlbuildExtraArgs:
+    "-docflags '-colorize-code -html -short-functors -charset utf-8'"
+  XOCamlbuildLibraries: prob_cache.examples
+
+
 Document "prob_cache_containers"
   Type: ocamlbuild (0.4)
   BuildTools: ocamldoc
@@ -123,8 +147,8 @@ Document "prob_cache_containers"
 Document "prob_cache_riak"
   Type: ocamlbuild (0.4)
   BuildTools: ocamldoc
-  Title: Probability Riak Cache API 
+  Title: Probability Riak Cache API
   XOCamlbuildPath: src/riak
   XOCamlbuildExtraArgs:
-    "-docflags '-colorize-code -html -short-functors -charset utf-8'"
+    "-docflags '-colorize-code -html -short-functors -charset utf-8'"
   XOCamlbuildLibraries: prob_cache.riak

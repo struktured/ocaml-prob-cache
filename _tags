@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 94e1fe5f03237ffeb8e05fb90c754a05)
+# DO NOT EDIT (digest: aea796ceca55d8ef624d14ecea67e564)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -28,6 +28,21 @@ true: annot, bin_annot
 <src/core/*.ml{,i,y}>: pkg_ppx_deriving.show
 <src/core/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
 <src/core/*.ml{,i,y}>: pkg_sequence
+# Library examples
+"src/examples/examples.cmxs": use_examples
+<src/examples/*.ml{,i,y}>: pkg_containers
+<src/examples/*.ml{,i,y}>: pkg_containers.advanced
+<src/examples/*.ml{,i,y}>: pkg_containers.data
+<src/examples/*.ml{,i,y}>: pkg_lacaml
+<src/examples/*.ml{,i,y}>: pkg_or_errors
+<src/examples/*.ml{,i,y}>: pkg_ppx_deriving
+<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.iter
+<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.make
+<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.ord
+<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.show
+<src/examples/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
+<src/examples/*.ml{,i,y}>: pkg_sequence
+<src/examples/*.ml{,i,y}>: use_prob_cache
 # Library containers
 "src/containers/containers.cmxs": use_containers
 <src/containers/*.ml{,i,y}>: pkg_containers
@@ -66,52 +81,55 @@ true: annot, bin_annot
 <src/riak/*.ml{,i,y}>: pkg_threads
 <src/riak/*.ml{,i,y}>: use_prob_cache
 # Executable containers_sprinkler
-"src/examples/sprinkler.byte": pkg_containers
-"src/examples/sprinkler.byte": pkg_containers.advanced
-"src/examples/sprinkler.byte": pkg_containers.data
-"src/examples/sprinkler.byte": pkg_lacaml
-"src/examples/sprinkler.byte": pkg_or_errors
-"src/examples/sprinkler.byte": pkg_or_errors_containers
-"src/examples/sprinkler.byte": pkg_ppx_deriving
-"src/examples/sprinkler.byte": pkg_ppx_deriving.iter
-"src/examples/sprinkler.byte": pkg_ppx_deriving.make
-"src/examples/sprinkler.byte": pkg_ppx_deriving.ord
-"src/examples/sprinkler.byte": pkg_ppx_deriving.show
-"src/examples/sprinkler.byte": pkg_ppx_deriving_protobuf
-"src/examples/sprinkler.byte": pkg_sequence
-"src/examples/sprinkler.byte": use_containers
-"src/examples/sprinkler.byte": use_prob_cache
+"src/containers_examples/containers_sprinkler.byte": pkg_containers
+"src/containers_examples/containers_sprinkler.byte": pkg_containers.advanced
+"src/containers_examples/containers_sprinkler.byte": pkg_containers.data
+"src/containers_examples/containers_sprinkler.byte": pkg_lacaml
+"src/containers_examples/containers_sprinkler.byte": pkg_or_errors
+"src/containers_examples/containers_sprinkler.byte": pkg_or_errors_containers
+"src/containers_examples/containers_sprinkler.byte": pkg_ppx_deriving
+"src/containers_examples/containers_sprinkler.byte": pkg_ppx_deriving.iter
+"src/containers_examples/containers_sprinkler.byte": pkg_ppx_deriving.make
+"src/containers_examples/containers_sprinkler.byte": pkg_ppx_deriving.ord
+"src/containers_examples/containers_sprinkler.byte": pkg_ppx_deriving.show
+"src/containers_examples/containers_sprinkler.byte": pkg_ppx_deriving_protobuf
+"src/containers_examples/containers_sprinkler.byte": pkg_sequence
+"src/containers_examples/containers_sprinkler.byte": use_containers
+"src/containers_examples/containers_sprinkler.byte": use_examples
+"src/containers_examples/containers_sprinkler.byte": use_prob_cache
 # Executable containers_coin_flip
-"src/examples/coin_flip.byte": pkg_containers
-"src/examples/coin_flip.byte": pkg_containers.advanced
-"src/examples/coin_flip.byte": pkg_containers.data
-"src/examples/coin_flip.byte": pkg_lacaml
-"src/examples/coin_flip.byte": pkg_or_errors
-"src/examples/coin_flip.byte": pkg_or_errors_containers
-"src/examples/coin_flip.byte": pkg_ppx_deriving
-"src/examples/coin_flip.byte": pkg_ppx_deriving.iter
-"src/examples/coin_flip.byte": pkg_ppx_deriving.make
-"src/examples/coin_flip.byte": pkg_ppx_deriving.ord
-"src/examples/coin_flip.byte": pkg_ppx_deriving.show
-"src/examples/coin_flip.byte": pkg_ppx_deriving_protobuf
-"src/examples/coin_flip.byte": pkg_sequence
-"src/examples/coin_flip.byte": use_containers
-"src/examples/coin_flip.byte": use_prob_cache
-<src/examples/*.ml{,i,y}>: pkg_containers
-<src/examples/*.ml{,i,y}>: pkg_containers.advanced
-<src/examples/*.ml{,i,y}>: pkg_containers.data
-<src/examples/*.ml{,i,y}>: pkg_lacaml
-<src/examples/*.ml{,i,y}>: pkg_or_errors
-<src/examples/*.ml{,i,y}>: pkg_or_errors_containers
-<src/examples/*.ml{,i,y}>: pkg_ppx_deriving
-<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.iter
-<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.make
-<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.ord
-<src/examples/*.ml{,i,y}>: pkg_ppx_deriving.show
-<src/examples/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
-<src/examples/*.ml{,i,y}>: pkg_sequence
-<src/examples/*.ml{,i,y}>: use_containers
-<src/examples/*.ml{,i,y}>: use_prob_cache
+"src/containers_examples/containers_coin_flip.byte": pkg_containers
+"src/containers_examples/containers_coin_flip.byte": pkg_containers.advanced
+"src/containers_examples/containers_coin_flip.byte": pkg_containers.data
+"src/containers_examples/containers_coin_flip.byte": pkg_lacaml
+"src/containers_examples/containers_coin_flip.byte": pkg_or_errors
+"src/containers_examples/containers_coin_flip.byte": pkg_or_errors_containers
+"src/containers_examples/containers_coin_flip.byte": pkg_ppx_deriving
+"src/containers_examples/containers_coin_flip.byte": pkg_ppx_deriving.iter
+"src/containers_examples/containers_coin_flip.byte": pkg_ppx_deriving.make
+"src/containers_examples/containers_coin_flip.byte": pkg_ppx_deriving.ord
+"src/containers_examples/containers_coin_flip.byte": pkg_ppx_deriving.show
+"src/containers_examples/containers_coin_flip.byte": pkg_ppx_deriving_protobuf
+"src/containers_examples/containers_coin_flip.byte": pkg_sequence
+"src/containers_examples/containers_coin_flip.byte": use_containers
+"src/containers_examples/containers_coin_flip.byte": use_examples
+"src/containers_examples/containers_coin_flip.byte": use_prob_cache
+<src/containers_examples/*.ml{,i,y}>: pkg_containers
+<src/containers_examples/*.ml{,i,y}>: pkg_containers.advanced
+<src/containers_examples/*.ml{,i,y}>: pkg_containers.data
+<src/containers_examples/*.ml{,i,y}>: pkg_lacaml
+<src/containers_examples/*.ml{,i,y}>: pkg_or_errors
+<src/containers_examples/*.ml{,i,y}>: pkg_or_errors_containers
+<src/containers_examples/*.ml{,i,y}>: pkg_ppx_deriving
+<src/containers_examples/*.ml{,i,y}>: pkg_ppx_deriving.iter
+<src/containers_examples/*.ml{,i,y}>: pkg_ppx_deriving.make
+<src/containers_examples/*.ml{,i,y}>: pkg_ppx_deriving.ord
+<src/containers_examples/*.ml{,i,y}>: pkg_ppx_deriving.show
+<src/containers_examples/*.ml{,i,y}>: pkg_ppx_deriving_protobuf
+<src/containers_examples/*.ml{,i,y}>: pkg_sequence
+<src/containers_examples/*.ml{,i,y}>: use_containers
+<src/containers_examples/*.ml{,i,y}>: use_examples
+<src/containers_examples/*.ml{,i,y}>: use_prob_cache
 # Executable riak_sprinkler
 "src/riak_examples/riak_sprinkler.byte": pkg_async
 "src/riak_examples/riak_sprinkler.byte": pkg_bitstring
@@ -131,6 +149,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_sprinkler.byte": pkg_riakc_ppx
 "src/riak_examples/riak_sprinkler.byte": pkg_sequence
 "src/riak_examples/riak_sprinkler.byte": pkg_threads
+"src/riak_examples/riak_sprinkler.byte": use_examples
 "src/riak_examples/riak_sprinkler.byte": use_prob_cache
 "src/riak_examples/riak_sprinkler.byte": use_riak
 # Executable riak_coin_flip
@@ -152,6 +171,7 @@ true: annot, bin_annot
 "src/riak_examples/riak_coin_flip.byte": pkg_riakc_ppx
 "src/riak_examples/riak_coin_flip.byte": pkg_sequence
 "src/riak_examples/riak_coin_flip.byte": pkg_threads
+"src/riak_examples/riak_coin_flip.byte": use_examples
 "src/riak_examples/riak_coin_flip.byte": use_prob_cache
 "src/riak_examples/riak_coin_flip.byte": use_riak
 <src/riak_examples/*.ml{,i,y}>: pkg_async
@@ -172,6 +192,7 @@ true: annot, bin_annot
 <src/riak_examples/*.ml{,i,y}>: pkg_riakc_ppx
 <src/riak_examples/*.ml{,i,y}>: pkg_sequence
 <src/riak_examples/*.ml{,i,y}>: pkg_threads
+<src/riak_examples/*.ml{,i,y}>: use_examples
 <src/riak_examples/*.ml{,i,y}>: use_prob_cache
 <src/riak_examples/*.ml{,i,y}>: use_riak
 # OASIS_STOP

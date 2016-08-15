@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 09bbe68bfeb435340dca89d5bb378749)
+# DO NOT EDIT (digest: e04a6621b034083a1d7cc2fa5778445f)
 version = "0.1"
 description = "Probability cache library for OCaml"
 requires =
@@ -13,12 +13,23 @@ package "riak" (
  version = "0.1"
  description = "Probability cache library for OCaml"
  requires =
- "threads containers ppx_deriving ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf prob_cache core async bitstring riakc_ppx or_errors_async"
+ "prob_cache threads ppx_deriving ppx_deriving.ord ppx_deriving.show ppx_deriving.iter ppx_deriving_protobuf prob_cache core async bitstring riakc_ppx or_errors_async"
  archive(byte) = "riak.cma"
  archive(byte, plugin) = "riak.cma"
  archive(native) = "riak.cmxa"
  archive(native, plugin) = "riak.cmxs"
  exists_if = "riak.cma"
+)
+
+package "examples" (
+ version = "0.1"
+ description = "Probability cache library for OCaml"
+ requires = "prob_cache"
+ archive(byte) = "examples.cma"
+ archive(byte, plugin) = "examples.cma"
+ archive(native) = "examples.cmxa"
+ archive(native, plugin) = "examples.cmxs"
+ exists_if = "examples.cma"
 )
 
 package "containers" (

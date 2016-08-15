@@ -1,6 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: d849ce7d977c31dbad322a74b783ced4)
+# DO NOT EDIT (digest: a0faa1277b1dee41bb9876cb621a2df3)
 Riak_model_intf
 Riak_set_model
 Riak_sequence_model
+Prob_cache_riak
 # OASIS_STOP

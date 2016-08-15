@@ -148,11 +148,11 @@ struct
 
   let name t = t.name
 end
-
-module Make_event_set(Event:EVENT) :
+module Set = struct
+module Make(Event:EVENT) :
   EVENTS with module Event = Event =
     struct
-  module Set =
+  module EventSet =
     struct
       module Event = Event
       type t = Event.t Hashset.t
@@ -183,12 +183,15 @@ module Make_event_set(Event:EVENT) :
   let pp (f:Format.formatter) t = Hashset.iter (Event.pp f) t
   let show t = Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
 end
-  include Set
-  include (Events.Make(Set) :
-    module type of Events.Make(Set) with module Event := Event)
+  include EventSet
+  include (Events.Make(EventSet) :
+    module type of Events.Make(EventSet) with module Event := Event)
+end
 end
 
-module Make_event_sequence(Event:EVENT) : EVENTS with module Event = Event =
+module Sequence =
+struct
+module Make(Event:EVENT) : EVENTS with module Event = Event =
 struct
   module Seq =
 struct
@@ -216,4 +219,5 @@ end
   include Seq
   include (Events.Make(Seq) :
     module type of Events.Make(Seq) with module Event := Event)
+end
 end
