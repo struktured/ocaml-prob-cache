@@ -24,6 +24,8 @@ sig
 
   type last = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
+  type count = ?cond:Events.t -> Events.t -> t -> int Or_error.t
+
   type observe = ?cnt: int -> ?exp:float -> Events.t -> t -> t Or_error.t
 
   val prob : prob
@@ -46,6 +48,9 @@ sig
 
   val last : last
   (** Observed last value of events given [cond], possibly the empty events *)
+
+  val count : count
+  (** Observed total number of itmes of events given [cond], possibly 0. *)
 
   val observe : observe
   (* Observe a new data instance given [cond], possibly the empty events. *)
@@ -127,6 +132,8 @@ struct
 
   type last = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
+  type count = ?cond:Events.t -> Events.t -> t -> int Or_error.t
+
   type observe = ?cnt: int -> ?exp:float -> Events.t -> t -> t Or_error.t
 
   let prob ?(cond:Events.t option) (events:Events.t) (t:t) = failwith("NYI")
@@ -151,6 +158,9 @@ struct
 
    let last ?cond events t =
      _data_map ?cond events t Data.last
+
+   let count ?cond events t =
+     _data_map ?cond events t Data.count
 
    let observe ?(cnt=1) ?(exp=1.0) events t =
      observe_data
