@@ -1,9 +1,10 @@
 open Prob_cache.Std
+open Or_errors.Std
+open Or_errors_async.Std
 module OldList = List
 module OldSequence = Sequence
-open Core.Std
 module Float = CCFloat (* for pretty printing, ord, etc *)
-module CoreList = List
+module CoreList = Core.Std.List
 module List = CCList
 module Hashset = Prob_cache_hashset
 open Async.Std
@@ -22,7 +23,7 @@ module Data = Riak_model_intf.Data
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
 module type S = Riak_model_intf.S
 
-module Make_for_events (Events:EVENTS) : S with module Events = Events =
+module Make(Events:EVENTS) : S with module Events = Events =
 struct
   module Events = Events
   module Event = Events.Event
@@ -52,6 +53,7 @@ struct
       {cache;prior_count;prior_exp;update_rule;name=Cache.get_bucket cache}
 
   let _data events t =
+   let open Core.Std in
    let open Cache.Robj in Cache.get t.cache events >>| function
     | Ok robj ->
         (match robj.contents with
@@ -64,44 +66,6 @@ struct
   let data ?(cond=Events.empty) events t =
    let joined_events = Events.join cond events in
    _data joined_events t
-
-  let count (events:Events.t) t : (int, [> Opts.Get.error]) Result.t =
-  let open Cache.Robj in data events t >>| function
-    | Ok (Some data) -> Ok (Data.count data)
-    | Ok None -> Ok (t.prior_count events)
-    | Error e -> Error e
-
-  let descriptive_stat ?cond events prior_fn stat_fn t =
-    let open Result.Monad_infix in
-    data ?cond events t >>| fun d -> CCOpt.get_lazy (fun () -> prior_fn events) (CCOpt.map stat_fn d)
-
-  let exp ?(cond=Events.empty) (events:Events.t) t =
-    descriptive_stat ~cond events t.prior_exp Data.expect t
-
-  let var ?(cond=Events.empty) (events:Events.t) t =
-    descriptive_stat ~cond events (Fun.const 0.0) Data.var t
-
-  let max ?(cond=Events.empty) (events:Events.t) t =
-    descriptive_stat ~cond events t.prior_exp Data.max t
-
-  let min ?(cond=Events.empty) (events:Events.t) t =
-    descriptive_stat ~cond events t.prior_exp Data.min t
-
-  let last ?(cond=Events.empty) (events:Events.t) t =
-    descriptive_stat ~cond events t.prior_exp Data.last t
-
-  let sum ?(cond=Events.empty) (events:Events.t) t =
-    descriptive_stat ~cond events (Fun.const 0.0) Data.sum t
-
-  let prob ?(cond=Events.empty) (events:Events.t) t : (Core.Std.Float.t, [> Opts.Get.error]) Result.t =
-    let open Result.Monad_infix in
-    count (Events.join events cond) t >>=
-    fun event_count -> count cond t >>=
-    fun given_cond_count -> (if given_cond_count = 0 && (not (Events.is_empty cond))
-                             then count Events.empty t else Deferred.return (Ok given_cond_count))
-    >>| fun cond_count -> if (cond_count = 0) then Float.of_int 0 else
-      (Float.of_int event_count) /. (Float.of_int cond_count)
-
 
   let update ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
     let open Result.Monad_infix in
