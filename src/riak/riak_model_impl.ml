@@ -37,7 +37,7 @@ struct
     type prior_exp = Events.t -> float
 
     type update_rule = Events.t Data.update_rule and t = {
-      name : string;
+      (*name : string; *)
       cache : Cache.t;
       prior_count : prior_count;
       prior_exp : prior_exp;
@@ -57,9 +57,20 @@ struct
     module Or_error = T.Or_error =
   struct
   include T
-  let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
-    ?(prior_exp=default_prior_exp) cache =
-      {cache;prior_count;prior_exp;update_rule;name=Cache.get_bucket cache}
+  let of_cache
+      ?(update_rule=default_update_rule) 
+      ?(prior_count=default_prior_count)
+      ?(prior_exp=default_prior_exp) cache = Or_error.return
+        {cache;prior_count;prior_exp;update_rule}
+  let name t = (*let open T in *) Cache.get_bucket t.cache
+  let update_rule t = t.update_rule
+  let create
+      ?update_rule
+      ?prior_count
+      ?prior_exp
+      ~(name:string) = 
+    of_cache ?update_rule ?prior_count ?prior_exp ~name
+ 
   end
 
   module Data_fun : DATA_FUN with
@@ -170,6 +181,7 @@ struct
     module Data = Data
     include (K:module type of K with module Events := Events and module Data := Data)
   end
+
 
   module Decorated = Model_decorator.Make(Model_kernel)
   module Event = Events.Event
