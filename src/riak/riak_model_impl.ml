@@ -25,18 +25,18 @@ module type S = Riak_model_intf.S
 
 module Make(Events:EVENTS) : S with module Events = Events =
 struct
-  module Event = Events.Event
   module Cache = Cache.Make(Events)(Data)
+  module Int = Core.Std.Int
+
   module T =
   struct
     module Events = Events
-    module Or_error = struct include Or_error
+    module Or_error = Or_error
     module Data = Data
-    module Int = CCInt
-    type prior_count = Events.t -> int
+      type prior_count = Events.t -> int
     type prior_exp = Events.t -> float
-    type update_rule = Events.t Update_rules.Update_fn.t
-    and t = {
+
+    type update_rule = Events.t Data.update_rule and t = {
       name : string;
       cache : Cache.t;
       prior_count : prior_count;
@@ -62,12 +62,13 @@ struct
       {cache;prior_count;prior_exp;update_rule;name=Cache.get_bucket cache}
   end
 
-  module Data_fun : DATA_FUN with 
+  module Data_fun : DATA_FUN with
     type t = T.t and
     module Events = T.Events and
     module Data = T.Data and
     module Or_error = T.Or_error =
   struct
+  include T
   let _data events t =
    let open Core.Std in
    let open Cache.Robj in Cache.get t.cache events >>| function
@@ -84,6 +85,13 @@ struct
    _data joined_events t
   end
 
+  module Observe_data_fun : OBSERVE_DATA_FUN with
+    type t = T.t and
+    module Events = T.Events and
+    module Data = T.Data and
+    module Or_error = T.Or_error =
+  struct
+  include Data_fun
   let update ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
     let open Result.Monad_infix in
     let open Cache.Robj in data events t >>=
@@ -97,19 +105,13 @@ struct
 
   let join_data data (events:Events.t) (t:t) =
     let open Result.Monad_infix in
-    _data events t >>= fun data_opt ->
+    data events t >>= fun data_opt ->
       let data = CCOpt.maybe (fun orig -> Data.join
         ~obs:events ~update_rule:t.update_rule orig data) data data_opt in
         Cache.put t.cache ~k:events (Cache.Robj.of_value data) >>|
         Fun.const t
 
-  module Observe_dat_fun : OBSERVE_DATA_FUN with 
-    type t = T.t and
-    module Events = T.Events and
-    module Data = T.Data and
-    module Or_error = T.Or_error =
-  struct
-   include T
+
    let observe_data data events t =
     let open Result.Monad_infix in
     let subsets = Events.subsets events in
@@ -126,8 +128,58 @@ struct
       Cache.with_cache ~host ~port ~bucket:name (fun c ->
         let (m:t) = create ?prior_count ?update_rule ?prior_exp c in f m)
 
+
+  module Fold_fun : FOLD_FUN with
+    type t = T.t and
+    module Entry.Events = T.Events and
+    module Entry.Data = T.Data and
+    module Or_error = T.Or_error =
+  struct
+    include T
+    module Entry : Entry.S with
+      module Events = Events and module Data = Data =
+    struct
+      module I = Entry.Make(Events)(Data)
+      module Events = Events
+      module Data = Data
+      include (I : module type of I with
+        module Events := Events and
+        module Data := Data)
+    end
+    module Fold : Fold.S with
+      module Entry = Entry  =
+    struct
+      module I = Fold.Make(Entry)
+      module Entry = Entry
+      include (I : module type of I with
+        module Entry := Entry)
+      let compare _ = failwith("nyi")
+    end
+    let fold _ = failwith("nyi")
+  end
   
-  let name t = t.name
+  module Model_kernel =
+  struct
+    module K = Model_kernel.Make
+    (Events)
+    (Create_fun)
+    (Data_fun)
+    (Observe_data_fun)
+    (Fold_fun)
+    module Events = Events
+    module Data = Data
+    include (K:module type of K with module Events := Events and module Data := Data)
+  end
+
+  module Decorated = Model_decorator.Make(Model_kernel)
+  module Event = Events.Event
+  module Data = Data
+  include (Decorated :
+            module type of Decorated with
+            module Events := Events and
+            module Event := Event and
+            module Data := Data and
+            module Or_error := Or_error)
 end
 
 module Set = struct
@@ -201,6 +253,5 @@ end
   include Seq
   include (Events.Make(Seq) :
     module type of Events.Make(Seq) with module Event := Event)
-end
 end
 end

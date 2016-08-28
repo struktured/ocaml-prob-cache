@@ -29,14 +29,13 @@ struct
     type prior_exp = Events.t -> float
     module Or_error = Model_intf.Or_error
     module Data = Data
-    type update_rule = Events.t Data.update_rule
-  and t = {
-    name : string;
-    cache : Data.t Cache.t;
-    prior_count : prior_count;
-    prior_exp : prior_exp;
-    update_rule : update_rule }
-
+    type update_rule = Events.t Data.update_rule and
+      t = {
+        name : string;
+        cache : Data.t Cache.t;
+        prior_count : prior_count;
+        prior_exp : prior_exp;
+        update_rule : update_rule }
     let default_prior_count (e:Events.t) = 0
 
   let default_prior_exp (e:Events.t) = 0.0
