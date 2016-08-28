@@ -25,33 +25,49 @@ module type S = Riak_model_intf.S
 
 module Make(Events:EVENTS) : S with module Events = Events =
 struct
-  module Events = Events
   module Event = Events.Event
   module Cache = Cache.Make(Events)(Data)
-  module Int = CCInt
+  module T =
+  struct
+    module Events = Events
+    module Or_error = struct include Or_error
+    module Data = Data
+    module Int = CCInt
+    type prior_count = Events.t -> int
+    type prior_exp = Events.t -> float
+    type update_rule = Events.t Update_rules.Update_fn.t
+    and t = {
+      name : string;
+      cache : Cache.t;
+      prior_count : prior_count;
+      prior_exp : prior_exp;
+      update_rule : update_rule }
 
-  type prior_count = Events.t -> int
-  type prior_exp = Events.t -> float
+    let default_prior_count (e:Events.t) = 0
 
-  type update_rule = Events.t Update_rules.Update_fn.t
+    let default_prior_exp (e:Events.t) = 0.
 
-  and t = {
-    name : string;
-    cache : Cache.t;
-    prior_count : prior_count;
-    prior_exp : prior_exp;
-    update_rule : update_rule }
+    let default_update_rule : update_rule = Update_rules.mean
+  end
 
-  let default_prior_count (e:Events.t) = 0
-
-  let default_prior_exp (e:Events.t) = 0.
-
-  let default_update_rule : update_rule = Update_rules.mean
-
+  module Create_fun : CREATE_FUN with 
+    type t = T.t and
+    module Events = T.Events and
+    module Data = T.Data and
+    module Or_error = T.Or_error =
+  struct
+  include T
   let create ?(update_rule=default_update_rule) ?(prior_count=default_prior_count)
     ?(prior_exp=default_prior_exp) cache =
       {cache;prior_count;prior_exp;update_rule;name=Cache.get_bucket cache}
+  end
 
+  module Data_fun : DATA_FUN with 
+    type t = T.t and
+    module Events = T.Events and
+    module Data = T.Data and
+    module Or_error = T.Or_error =
+  struct
   let _data events t =
    let open Core.Std in
    let open Cache.Robj in Cache.get t.cache events >>| function
@@ -66,6 +82,7 @@ struct
   let data ?(cond=Events.empty) events t =
    let joined_events = Events.join cond events in
    _data joined_events t
+  end
 
   let update ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
     let open Result.Monad_infix in
@@ -86,16 +103,14 @@ struct
         Cache.put t.cache ~k:events (Cache.Robj.of_value data) >>|
         Fun.const t
 
-  let observe ?(cnt=1) ?(exp=1.0) (events:Events.t) t =
-    let open Result.Monad_infix in
-    let subsets = Events.subsets events in
-    List.fold_right
-    (fun e d -> Result.ignore @@
-    Result.bind d (Fun.const @@ update ~cnt ~exp e t))
-    subsets (Result.return ())
-    >>| Fun.const t
-
-  let observe_data data events t =
+  module Observe_dat_fun : OBSERVE_DATA_FUN with 
+    type t = T.t and
+    module Events = T.Events and
+    module Data = T.Data and
+    module Or_error = T.Or_error =
+  struct
+   include T
+   let observe_data data events t =
     let open Result.Monad_infix in
     let subsets = Events.subsets events in
     List.fold_right
@@ -103,6 +118,7 @@ struct
     Result.bind d (Fun.const @@ join_data data e t))
     subsets (Result.return ())
     >>| Fun.const t
+  end
 
   let with_model ?update_rule ?prior_count
     ?prior_exp ~host ~port ~(name:string) f =
@@ -110,8 +126,10 @@ struct
       Cache.with_cache ~host ~port ~bucket:name (fun c ->
         let (m:t) = create ?prior_count ?update_rule ?prior_exp c in f m)
 
+  
   let name t = t.name
 end
+
 module Set = struct
 module Make(Event:EVENT) :
   EVENTS with module Event = Event =
@@ -157,7 +175,7 @@ module Sequence =
 struct
 module Make(Event:EVENT) : EVENTS with module Event = Event =
 struct
-  module Seq =
+module Seq =
 struct
   module Event = Event
   module List = OldList
@@ -183,5 +201,6 @@ end
   include Seq
   include (Events.Make(Seq) :
     module type of Events.Make(Seq) with module Event := Event)
+end
 end
 end
