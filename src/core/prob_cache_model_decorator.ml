@@ -200,6 +200,4 @@ struct
         Or_error.map ~f:Vec.of_array
     end
    end
-
 end
-
