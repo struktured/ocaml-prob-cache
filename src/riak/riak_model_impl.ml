@@ -50,7 +50,7 @@ struct
     let default_update_rule : update_rule = Update_rules.mean
   end
 
-  module Create_fun : CREATE_FUN with 
+  module Create_fun : CREATE_FUN with
     type t = T.t and
     module Events = T.Events and
     module Data = T.Data and
@@ -58,7 +58,7 @@ struct
   struct
   include T
   let of_cache
-      ?(update_rule=default_update_rule) 
+      ?(update_rule=default_update_rule)
       ?(prior_count=default_prior_count)
       ?(prior_exp=default_prior_exp) cache = Or_error.return
         {cache;prior_count;prior_exp;update_rule}
@@ -68,9 +68,9 @@ struct
       ?update_rule
       ?prior_count
       ?prior_exp
-      ~(name:string) = 
+      ~(name:string) =
     of_cache ?update_rule ?prior_count ?prior_exp ~name
- 
+
   end
 
   module Data_fun : DATA_FUN with

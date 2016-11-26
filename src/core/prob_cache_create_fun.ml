@@ -3,10 +3,14 @@ open Prob_cache_events
 module Data = Prob_cache_data
 module type DATA = Data.S
 
-
+(** Creation function signature for all probability cache implementations *)
 module type S =
   sig
-type t
+
+  (** The type of the probability cache *)
+  type t
+
+  (** Or_error module implementation for this cache *)
   module Or_error : OR_ERROR
 
   (** The module type representing a collection of events *)
@@ -15,10 +19,10 @@ type t
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  (* Defines a prior function in terms of counts with the observed events as input. *)
+  (** Defines a prior function in terms of counts with the observed events as input. *)
   type prior_count = Events.t -> int
 
-  (* Define a prior function in terms of real values with the observed events as input. *)
+  (** Define a prior function in terms of real values with the observed events as input. *)
   type prior_exp = Events.t -> float
 
   (** Defines the update rule for expectations *)
@@ -26,7 +30,7 @@ type t
   val update_rule : t -> update_rule
 
   val create :
-      ?update_rule:update_rule -> 
+      ?update_rule:update_rule ->
       ?prior_count:prior_count ->
       ?prior_exp:prior_exp ->
       name:string ->
@@ -41,7 +45,9 @@ end
 
 module Create_error_converter
   (Error_in : ERROR)
-  (Error_out : sig include ERROR val of_create : Error_in.t -> t end) : ERROR_CONVERTER with 
+  (Error_out :
+   sig include ERROR val of_create : Error_in.t -> t end) :
+  ERROR_CONVERTER with
     module Error_in = Error_in and
     module Error_out = Error_out =
   struct
