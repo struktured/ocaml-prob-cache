@@ -26,7 +26,7 @@ Flag riak_examples
   Default: true
 
 
-Library "prob_cache"
+Library prob_cache
   Path:               src/core
   Pack:               false
   Modules:            Prob_cache_phashtbl, Prob_cache_hashset, Prob_cache_update_rules,
@@ -35,10 +35,10 @@ Library "prob_cache"
                         Prob_cache_data_fun, Prob_cache_fold, Prob_cache_fold_fun, Prob_cache_model_primitives,
                         Prob_cache_model_kernel, Prob_cache_model_decorator, Prob_cache_model, Prob_cache
   InternalModules:    Prob_cache_powerset
-  BuildDepends:       lacaml, containers, containers.data, containers.advanced, sequence, ppx_deriving, ppx_deriving.make, ppx_deriving.ord,
-                        ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, or_errors
+  BuildDepends:       lacaml, containers, containers.data, containers.advanced, sequence, ppx_deriving,
+                        ppx_deriving.make, ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, or_errors
 
-Library "examples"
+Library examples
   if flag(examples)
     Build: true
   else
@@ -49,7 +49,7 @@ Library "examples"
   Modules:            Prob_cache_coin_flip, Prob_cache_sprinkler
   BuildDepends:       prob_cache
 
-Library "containers"
+Library containers
   if flag(containers)
     Build: true
   else
@@ -62,7 +62,7 @@ Library "containers"
   BuildDepends:       prob_cache, containers, containers.data, containers.advanced, sequence, ppx_deriving,
                         ppx_deriving.ord, ppx_deriving.show, ppx_deriving.iter, ppx_deriving_protobuf, or_errors_containers
 
-Library "riak"
+Library riak
   if flag(riak)
     Build: true
   else
