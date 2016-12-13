@@ -50,12 +50,17 @@ struct
     module Or_error = T.Or_error =
   struct
     include T
-    let create
+    module Options = Prob_cache_options.Make(Events)(Data)
+    let create ?(opt=Options.default) (*
         ?(update_rule=default_update_rule)
         ?(prior_count=default_prior_count)
         ?(prior_exp=default_prior_exp)
-        ~(name:string) = Or_error.return
-          {name;cache=Cache.empty;prior_count;prior_exp;update_rule}
+        ~(name:string) *) () = Or_error.return
+          {name=opt#cache_name;
+           cache=Cache.empty;
+           prior_count=opt#prior_count;
+           prior_exp=opt#prior_exp;
+           update_rule=failwith("nyi")}
     let name t = t.name
     let update_rule t = t.update_rule
   end

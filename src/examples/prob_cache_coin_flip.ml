@@ -19,7 +19,7 @@ let heads_tails = Model.Events.of_list [HEADS;TAILS]
 
 let run() =
   let open Model.Or_error.Monad_infix in
-  Model.create "coin-flips" >>| fun m ->
+  Model.create () >>| fun m ->
   Model.observe events m >>| fun m ->
   Model.count events m >>| fun cnt ->
   Model.exp events m >>| fun exp ->

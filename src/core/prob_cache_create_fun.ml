@@ -2,7 +2,7 @@ open Or_errors.Std
 open Prob_cache_events
 module Data = Prob_cache_data
 module type DATA = Data.S
-
+module M = Prob_cache_options.Make
 (** Creation function signature for all probability cache implementations *)
 module type S =
   sig
@@ -29,12 +29,11 @@ module type S =
   type update_rule = Events.t Data.update_rule
   val update_rule : t -> update_rule
 
-  val create :
-      ?update_rule:update_rule ->
-      ?prior_count:prior_count ->
-      ?prior_exp:prior_exp ->
-      name:string ->
+  module Options : module type of Prob_cache_options.Make(Events)(Data)
+
+  val create : ?opt:Options.t -> unit ->
       t Or_error.t
+
   (** Creates a new model cache labeled by the given string. By default, expectations are updated
      using a mean value estimator and all priors are value 0. *)
 
