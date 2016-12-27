@@ -52,23 +52,28 @@ struct
     include T
     module Options =
     struct
+      module Cache_name = Prob_cache_options.Cache_name
       module Prior =  Prob_cache_prior.Make(Events)(Data)
       module Update = Prob_cache_update_rule_option.Make(Events)(Data)
-      class options(prior:Prior.t)(update:Update.t) = 
+      class options(name:string)(prior:Prior.t)(update:Update.t) =
       object
-        include Prior.t
+          inherit Prob_cache_options.Traits.cache_name(name)
+          inherit Prior.prior(prior#prior_exp)(prior#prior_count)
+          inherit Update.update(update#update)
       end
+      type t = options
+      let default = new options Cache_name.default#cache_name Prior.default Update.default
     end
-    let create ?(opt=Options.default) (*
+    let with_cache ?(opt=Options.default) (*
         ?(update_rule=default_update_rule)
         ?(prior_count=default_prior_count)
         ?(prior_exp=default_prior_exp)
-        ~(name:string) *) () = Or_error.return
+        ~(name:string) *) f = f
           {name=opt#cache_name;
            cache=Cache.empty;
            prior_count=opt#prior_count;
            prior_exp=opt#prior_exp;
-           update_rule=failwith("nyi")}
+           update_rule=opt#update}
     let name t = t.name
     let update_rule t = t.update_rule
   end
