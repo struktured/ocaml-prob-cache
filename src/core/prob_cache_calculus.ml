@@ -123,7 +123,7 @@ module Or =
           fun joined -> part ?obs:None joined x_and_xs_data
 
     let data m : t -> Data.t Or_error.t =
-      let update_rule = Model.update_rule m in 
+      let update_rule = failwith "nyi" (* Model.update_rule m in  *) in
       let join = Data.join ~update_rule in
       let part = Data.part ~update_rule in
       let empty = Data.empty in
@@ -152,7 +152,7 @@ module Given =
     (** [E|P]((A * B) + (B * C) || C+D) where lhs of 1st is lhs of given, 2nd is rhs *)
     type t = Or.t * Or.t [@@deriving show]
     let empty : t = (Or.empty, Or.empty)
-        
+
     let create x given_y = (x, given_y)
     let none o : t = (o, Or.empty)
 

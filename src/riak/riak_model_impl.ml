@@ -64,12 +64,10 @@ struct
         {cache;prior_count;prior_exp;update_rule}
   let name t = (*let open T in *) Cache.get_bucket t.cache
   let update_rule t = t.update_rule
-  let create
-      ?update_rule
-      ?prior_count
-      ?prior_exp
-      ~(name:string) =
-    of_cache ?update_rule ?prior_count ?prior_exp ~name
+
+  module Options = Prob_cache_options.Options_with_prior.Make(Events)(Data)
+  let create ?(opt=Options.default) () : t Or_error.t =  failwith("nyi")
+(*    of_cache ~update_rule:opt# ?prior_count ?prior_exp ~name *)
 
   end
 

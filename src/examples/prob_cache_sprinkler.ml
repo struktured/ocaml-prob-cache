@@ -21,7 +21,7 @@ let ground_wet = Model.Events.of_list [GROUND_IS_WET]
 let ground_not_wet_sprinkler_on = Model.Events.of_list [SPRINKLER_ON]
 
 open Model.Or_error.Monad_infix
-let run () = Model.create () >>| fun m ->
+let run () = Model.with_cache ?opt:None @@ fun m ->
   Model.observe ground_wet_raining m >>| fun m ->
   Model.observe ground_wet_sprinkler_on m >>| fun m ->
   Model.observe ground_wet m >>| fun m ->

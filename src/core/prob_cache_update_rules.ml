@@ -21,15 +21,15 @@ struct
   let weight ?orig ?obs ~exp ~cnt = 1.0 /. (Float.of_int cnt)
 end
 
-module Constant_weight_provider(Weight:WEIGHT) : WEIGHT_PROVIDER = 
+module Constant_weight_provider(Weight:WEIGHT) : WEIGHT_PROVIDER =
 struct
   let weight ?orig ?obs ~exp ~cnt = Weight.value
 end
 
-module Make_weighted(Weight_provider:WEIGHT_PROVIDER) = 
+module Make_weighted(Weight_provider:WEIGHT_PROVIDER) =
 struct
   module Weight_provider = Weight_provider
-  let update ?(orig=0.) ?obs ~exp ~cnt = 
+  let update ?(orig=0.) ?obs ~exp ~cnt =
     if (cnt = 0) then exp else
       orig +. (exp -. orig) *. Weight_provider.weight ~orig ?obs ~exp ~cnt
 end
@@ -41,3 +41,6 @@ let constant v =
   let module C = Constant(struct let value = v end) in C.update
 
 let mean = Mean.update
+
+
+

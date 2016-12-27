@@ -25,4 +25,5 @@ struct
   module Model = Prob_cache_model
   module Running = Data.Running
   module Update_rules = Prob_cache_update_rules
+  module Options = Prob_cache_options
 end

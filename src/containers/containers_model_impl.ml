@@ -50,7 +50,15 @@ struct
     module Or_error = T.Or_error =
   struct
     include T
-    module Options = Prob_cache_options.Make(Events)(Data)
+    module Options =
+    struct
+      module Prior =  Prob_cache_prior.Make(Events)(Data)
+      module Update = Prob_cache_update_rule_option.Make(Events)(Data)
+      class options(prior:Prior.t)(update:Update.t) = 
+      object
+        include Prior.t
+      end
+    end
     let create ?(opt=Options.default) (*
         ?(update_rule=default_update_rule)
         ?(prior_count=default_prior_count)

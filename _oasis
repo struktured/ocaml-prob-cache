@@ -29,8 +29,8 @@ Flag riak_examples
 Library prob_cache
   Path:               src/core
   Pack:               false
-  Modules:            Prob_cache_phashtbl, Prob_cache_hashset, Prob_cache_update_rules, Prob_cache_options,
-                        Prob_cache_running, Prob_cache_data, Prob_cache_events, Prob_cache_entry,
+  Modules:            Prob_cache_phashtbl, Prob_cache_hashset, Prob_cache_update_rules, Prob_cache_options, Prob_cache_update_rule_option,
+                        Prob_cache_running, Prob_cache_data, Prob_cache_events, Prob_cache_prior, Prob_cache_entry,
                         Prob_cache_calculus, Prob_cache_create_fun, Prob_cache_observe_data_fun,
                         Prob_cache_data_fun, Prob_cache_fold, Prob_cache_fold_fun, Prob_cache_model_primitives,
                         Prob_cache_model_kernel, Prob_cache_model_decorator, Prob_cache_model, Prob_cache

@@ -18,8 +18,9 @@ let tails = Model.Events.of_list [TAILS]
 let heads_tails = Model.Events.of_list [HEADS;TAILS]
 
 let run() =
+  let open Model in
   let open Model.Or_error.Monad_infix in
-  Model.create () >>| fun m ->
+  Model.with_cache ?opt:None @@ fun (m:t) ->
   Model.observe events m >>| fun m ->
   Model.count events m >>| fun cnt ->
   Model.exp events m >>| fun exp ->
@@ -28,5 +29,6 @@ let run() =
   Model.prob heads_tails m >>| fun c -> (* c = 1. *)
   print_endline ("P(HEADS) = " ^ (CCFloat.to_string a));
   print_endline ("P(TAILS) = " ^ (CCFloat.to_string b));
-  print_endline ("P([HEADS, TAILS]) = " ^ (CCFloat.to_string c))
+  print_endline ("P([HEADS, TAILS]) = " ^ (CCFloat.to_string c));
+  Model.Or_error.return ()
 end
