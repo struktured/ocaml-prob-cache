@@ -115,16 +115,24 @@ struct
     module Or_error = T.Or_error =
   struct
   include T
-  let _data events t =
-   let open Core.Std in
-   let open Cache.Robj in Cache.get t.cache events >>| function
-    | Ok robj ->
-        (match robj.contents with
-      | [] -> Ok None
-      | [d] -> Ok (Some (Content.value d))
-      | l -> failwith "should only be one content value")
-    | Error `Notfound -> Ok None
-    | Error e -> Error e
+
+
+  exception Data_not_found
+  exception Data_assertion of string
+  exception Data_exception of exn
+
+
+  let _data events t (* Value.t option Or_error.t *) =
+   let open Cache.Robj in Cache.get t.cache events |> fun b ->
+       Result.map_error b ~f:(function
+          | `Notfound -> Error.of_exn Data_not_found
+          | _ -> Error.of_exn (Data_assertion "unchecked riak cache case"))
+      |> fun b -> Or_error.of_result b |> fun b -> Or_error.bind b
+        (fun robj -> match robj.contents with
+      | [] -> Or_error.return None
+      | [d] -> Or_error.return (Some (Content.value d))
+      | l ->  Or_error.fail
+          (Error.of_exn (Data_assertion "should only be one content value")))
 
   let data ?(cond=Events.empty) events t =
    let joined_events = Events.join cond events in
@@ -203,7 +211,7 @@ struct
     end
     let fold _ = failwith("nyi")
   end
-  
+
   module Model_kernel =
   struct
     module K = Model_kernel.Make
