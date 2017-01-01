@@ -27,13 +27,12 @@ module Make(Events:EVENTS) : S with module Events = Events =
 struct
   module Cache = Cache.Make(Events)(Data)
   module Int = Core.Std.Int
-
   module T =
   struct
     module Events = Events
     module Or_error = Or_error
     module Data = Data
-      type prior_count = Events.t -> int
+    type prior_count = Events.t -> int
     type prior_exp = Events.t -> float
 
     type update_rule = Events.t Data.update_rule and t = {
@@ -60,14 +59,52 @@ struct
   let of_cache
       ?(update_rule=default_update_rule)
       ?(prior_count=default_prior_count)
-      ?(prior_exp=default_prior_exp) cache = Or_error.return
+      ?(prior_exp=default_prior_exp) cache = 
         {cache;prior_count;prior_exp;update_rule}
   let name t = (*let open T in *) Cache.get_bucket t.cache
   let update_rule t = t.update_rule
 
-  module Options = Prob_cache_options.Options_with_prior.Make(Events)(Data)
-  let create ?(opt=Options.default) () : t Or_error.t =  failwith("nyi")
-(*    of_cache ~update_rule:opt# ?prior_count ?prior_exp ~name *)
+  module Options =
+    struct
+      module Cache_name = Prob_cache_options.Cache_name
+      module Prior =  Prob_cache_prior.Make(Events)(Data)
+      module Update = Prob_cache_update_rule_option.Make(Events)(Data)
+
+      class options(name:string)(prior:Prior.t)(update:Update.t)
+          (host:string) (port:int) =
+      object
+          inherit Prob_cache_options.Traits.cache_name(name)
+          inherit Prior.prior(prior#prior_exp)(prior#prior_count)
+          inherit Update.update(update#update)
+          method host = host
+          method port = port
+      end
+      type t = options
+      let default_host = "localhost"
+      let default_port = 0
+      let default = new options
+        Cache_name.default#cache_name
+        Prior.default
+        Update.default
+        default_host
+        default_port
+    end
+
+  exception Connection_error of string
+
+  let with_cache ?(opt=Options.default) (f:t -> 'a Or_error.t) : 'a Or_error.t =
+    let open Or_error.Monad_infix in
+    let of_cache = of_cache
+      ~update_rule:opt#update
+      ~prior_count:opt#prior_count
+      ~prior_exp:opt#prior_exp in
+    Cache.with_cache ~host:opt#host ~bucket:opt#cache_name ~port:opt#port
+    (fun c -> Deferred.Result.return @@ f (of_cache c)) |> fun r ->
+    Deferred.Result.map_error r
+        ~f:(function | `Bad_conn | `Conn_error ->
+        Connection_error (Format.sprintf "host/port: %s:%d" opt#host opt#port))
+   |> Deferred.Or_error.of_exn_result
+   |> Deferred.Or_error.join
 
   end
 

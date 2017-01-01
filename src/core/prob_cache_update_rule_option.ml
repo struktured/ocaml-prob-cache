@@ -13,7 +13,10 @@ sig
   (** Container for the descriptive statistics **)
   module Data : DATA
 
-  type t = <update:Events.t Update_fn.t>
+  class update : Events.t Update_fn.t ->
+    object method update : Events.t Update_fn.t end
+  type t = update
+
   include Options.S with type t := t
 end
 
