@@ -122,21 +122,24 @@ struct
   exception Data_exception of exn
 
 
-  let _data events t (* Value.t option Or_error.t *) =
+  let data events t : Data.t Or_error.t  =
    let open Cache.Robj in Cache.get t.cache events |> fun b ->
        Result.map_error b ~f:(function
           | `Notfound -> Error.of_exn Data_not_found
           | _ -> Error.of_exn (Data_assertion "unchecked riak cache case"))
       |> fun b -> Or_error.of_result b |> fun b -> Or_error.bind b
         (fun robj -> match robj.contents with
-      | [] -> Or_error.return None
-      | [d] -> Or_error.return (Some (Content.value d))
-      | l ->  Or_error.fail
-          (Error.of_exn (Data_assertion "should only be one content value")))
-
+     | [] -> Or_error.return Data.empty
+      | [d] -> Or_error.return (Content.value d)
+      | l ->  Or_error.return (List.fold_right (fun c ->
+              Data.join ~obs:events ~update_rule:t.update_rule
+                (Content.value c)) l Data.empty))
+(*Or_error.fail
+          (Error.of_exn (Data_assertion "should only be one content value")) *)
+(*
   let data ?(cond=Events.empty) events t =
    let joined_events = Events.join cond events in
-   _data joined_events t
+   _data joined_events t*)
   end
 
   module Observe_data_fun : OBSERVE_DATA_FUN with
@@ -146,42 +149,45 @@ struct
     module Or_error = T.Or_error =
   struct
   include Data_fun
-  let update ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) =
-    let open Result.Monad_infix in
-    let open Cache.Robj in data events t >>=
-    fun d_opt -> let d = Data.update
+(*
+  let update ?(cnt=1) ?(exp=1.0) (events:Events.t) (t:t) : Data.t =
+    let open Or_error.Monad_infix in
+    data events t >>= fun d -> let d' = Data.update
       ~cnt ~exp
-      ~update_rule:t.update_rule
-      ~prior_count:t.prior_count ~prior_exp:t.prior_exp
+      ~update_rule:t.T.update_rule
+      ~prior_count:t.T.prior_count
+      ~prior_exp:t.T.prior_exp
       events
-      d_opt in
-    Cache.put t.cache ~k:events (Cache.Robj.of_value d)
+      (Some d) in
+    let v = Cache.Robj.of_value d' in
+    let put_result = Cache.put t.T.cache ~k:events v in
+    Or_error.return d'
+*)
+  exception Data_put_error
+  let join_data to_join (events:Events.t) (t:t) (*: Data.t * Events.t option Or_error.t *)=
+    let open Or_error.Monad_infix in
+    data events t >>= fun orig -> Data.join 
+      ~obs:events ~update_rule:t.T.update_rule orig to_join |> Cache.Robj.of_value |>
+        Cache.put t.T.cache ~k:events (* (Cache.Robj.of_value data') *) |>
+        Deferred.Result.map_error ~f:
+(function
+| `Error
+| `Bad_conn
+| `Bad_payload
+| `Incomplete_payload
+| `Overflow
+| `Protobuf_encoder_error
+| `Unknown_type
+| `Wrong_type ->
+ (Error.of_exn Data_put_error)) |> Or_error.of_result
 
-  let join_data data (events:Events.t) (t:t) =
-    let open Result.Monad_infix in
-    data events t >>= fun data_opt ->
-      let data = CCOpt.maybe (fun orig -> Data.join
-        ~obs:events ~update_rule:t.update_rule orig data) data data_opt in
-        Cache.put t.cache ~k:events (Cache.Robj.of_value data) >>|
-        Fun.const t
-
-
-   let observe_data data events t =
-    let open Result.Monad_infix in
+   let observe_data data events t : t Or_error.t =
     let subsets = Events.subsets events in
-    List.fold_right
-    (fun e d -> Result.ignore @@
-    Result.bind d (Fun.const @@ join_data data e t))
-    subsets (Result.return ())
-    >>| Fun.const t
+    let iter e d = Or_error.bind d (Fun.const @@ join_data data e t) |>
+      Or_error.ignore in
+    List.fold_right iter subsets (Or_error.return ()) |>
+    Fun.const @@ (Or_error.return t)
   end
-
-  let with_model ?update_rule ?prior_count
-    ?prior_exp ~host ~port ~(name:string) f =
-      let open Result.Monad_infix in
-      Cache.with_cache ~host ~port ~bucket:name (fun c ->
-        let (m:t) = create ?prior_count ?update_rule ?prior_exp c in f m)
-
 
   module Fold_fun : FOLD_FUN with
     type t = T.t and

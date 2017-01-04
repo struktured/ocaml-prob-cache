@@ -48,7 +48,7 @@ module Data = struct
 end
 
 
-
+(** TODO do I need this interface fully redefined *)
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
 module type S =
 sig
@@ -111,11 +111,11 @@ sig
 
   val name : t -> string
   (** Gets the name of the cache *)
-
+(*
   val with_model : ?update_rule:update_rule -> ?prior_count:prior_count -> ?prior_exp:prior_exp ->
     host:string -> port:int -> name:string ->
     (t -> ('a, [> Conn.error] as 'e) Result.t) ->
-         ('a, 'e) Result.t
+         ('a, 'e) Result.t *)
   (** Execute a deferred function for the specified model where [name] corresponds to a riak bucket for
      the given [host] and [port]. Can optionally specify custom update rules or prior functions. *)
 end
