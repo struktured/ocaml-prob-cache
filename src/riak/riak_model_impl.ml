@@ -235,6 +235,8 @@ struct
   module Decorated = Model_decorator.Make(Model_kernel)
   module Event = Events.Event
   module Data = Data
+  module Events = Events
+  module Or_error = Or_error
   include (Decorated :
             module type of Decorated with
             module Events := Events and
