@@ -9,7 +9,7 @@ module Model_kernel = Prob_cache_model_kernel
 module type S =
 sig
   include Prob_cache_model_kernel.S
-  module Event = Events.Event
+(*  module Event = Events.Event *)
   type prob = ?cond:Events.t -> Events.t -> t -> float Or_error.t
 
   type exp = ?cond:Events.t -> Events.t -> t -> float Or_error.t

@@ -157,7 +157,7 @@ struct
   include (Decorated :
             module type of Decorated with
             module Events := Events and
-            module Event := Event and
+           (* module Event := Event and*)
             module Data := Data and
             module Or_error := Or_error)
 end

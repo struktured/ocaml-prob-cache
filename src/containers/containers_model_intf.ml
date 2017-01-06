@@ -104,6 +104,6 @@ module type S =
     module Or_error : module type of Or_error
     include Model_decorator.S with
       module Events := Events and
-      module Event := Event and
+      (*module Event := Event and*)
       module Or_error := Or_error
   end

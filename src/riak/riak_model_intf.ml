@@ -38,7 +38,7 @@ struct
       ; sum_sq : (float [@key 6])    (** Sum of squares. *)
       ; mean : (float [@key 7])      (** Mean. *)
       ; var : (float [@key 8])      (** _Unbiased_ variance. *)
-      } [@@deriving show, protobuf]
+      } [@@deriving show, protobuf, ord]
     end
 
   include Data.Make(Proto_T)
@@ -58,10 +58,10 @@ end
 module type S =
 sig
     module Events : EVENTS
-    module Event = Events.Event
+    (*module Event = Events.Event*)
     module Or_error : module type of Or_error
     include Model_decorator.S with
       module Events := Events and
-      module Event := Event and
+(*      module Event := Event and*)
       module Or_error := Or_error
 end

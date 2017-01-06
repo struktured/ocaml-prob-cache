@@ -9,7 +9,7 @@ module List = CCList
 module Hashset = Prob_cache_hashset
 open Async.Std
 module Result = Deferred.Result
-module Sequence = OldSequence
+(*module Sequence = OldSequence*)
 module Fun = CCFun
 
 (** Represents a single event- must be protobuf capable, comparable, and pretty printable *)
@@ -23,7 +23,8 @@ module Data = Riak_model_intf.Data
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
 module type S = Riak_model_intf.S
 
-module Make(Events:EVENTS) : S with module Events = Events =
+module Make(Events:EVENTS) : S with module Events = Events 
+  (*and module Event = Events.Event *) =
 struct
   module Cache = Cache.Make(Events)(Data)
   module Int = Core.Std.Int
@@ -240,7 +241,7 @@ struct
   include (Decorated :
             module type of Decorated with
             module Events := Events and
-            module Event := Event and
+            (*module Event := Event  and *)
             module Data := Data and
             module Or_error := Or_error)
 end
