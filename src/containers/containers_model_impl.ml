@@ -1,7 +1,7 @@
 open Prob_cache.Std
 open Or_errors.Std
 open Or_errors_containers.Std
-module Float = CCFloat
+module Float = Model_primitives.Float
 module Model_intf = Containers_model_intf
 (** Represents a single event- must be comparable and showable *)
 module type EVENT = Model_intf.EVENT
@@ -157,7 +157,6 @@ struct
   include (Decorated :
             module type of Decorated with
             module Events := Events and
-           (* module Event := Event and*)
             module Data := Data and
             module Or_error := Or_error)
 end

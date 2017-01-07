@@ -9,6 +9,8 @@ module Float = CCFloat (* for pretty printing, ord, etc *)
 module CoreList = List
 module List = CCList
 open Async.Std
+module Or_error = Or_errors_async.Std.Or_error
+
 open Or_errors_async.Std
 (** Represents a single event- must be protobuf capable, comparable, and pretty printable *)
 module type EVENT =
@@ -58,7 +60,7 @@ end
 module type S =
 sig
     module Events : EVENTS
-    (*module Event = Events.Event*)
+    module Event = Events.Event
     module Or_error : module type of Or_error
     include Model_decorator.S with
       module Events := Events and

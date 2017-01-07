@@ -23,7 +23,8 @@ sig
   include Events.EVENTS with module Event := Event and type t := t
 end
 
-module Data = struct
+module Data =
+struct
   module Ord_t =
     struct
       (** Compute running statitics using recurrence equations. *)

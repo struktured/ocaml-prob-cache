@@ -3,7 +3,7 @@ open Or_errors.Std
 open Or_errors_async.Std
 module OldList = List
 module OldSequence = Sequence
-module Float = CCFloat (* for pretty printing, ord, etc *)
+module Float = Model_primitives.Float
 module CoreList = Core.Std.List
 module List = CCList
 module Hashset = Prob_cache_hashset
@@ -23,7 +23,7 @@ module Data = Riak_model_intf.Data
 (** A module type provided polymorphic probability model caches. Uses in distributed models backed by riak *)
 module type S = Riak_model_intf.S
 
-module Make(Events:EVENTS) : S with module Events = Events 
+module Make(Events:EVENTS) (*: S with module Events = Events *)
   (*and module Event = Events.Event *) =
 struct
   module Cache = Cache.Make(Events)(Data)
@@ -234,19 +234,19 @@ struct
 
 
   module Decorated = Model_decorator.Make(Model_kernel)
-  module Event = Events.Event
   module Data = Data
   module Events = Events
+  module Event = Events.Event
   module Or_error = Or_error
   include (Decorated :
             module type of Decorated with
             module Events := Events and
-            (*module Event := Event  and *)
             module Data := Data and
             module Or_error := Or_error)
 end
 
-module Set = struct
+module Set =
+ struct
 module Make(Event:EVENT) :
   EVENTS with module Event = Event =
     struct
@@ -282,8 +282,9 @@ module Make(Event:EVENT) :
   let show t = Hashset.fold (fun acc e -> (Event.show e) ^ ";" ^ acc) "" t
 end
   include EventSet
-  include (Events.Make(EventSet) :
-    module type of Events.Make(EventSet) with module Event := Event)
+  module Events_set = Events.Make(EventSet)
+  include (Events_set :
+    module type of Events_set with module Event := Event)
 end
 end
 
@@ -315,7 +316,8 @@ struct
   let add t x = CCList.append t [x]
 end
   include Seq
-  include (Events.Make(Seq) :
-    module type of Events.Make(Seq) with module Event := Event)
+  module Events = Events.Make(Seq)
+  include (Events :
+    module type of Events with module Event := Event)
 end
 end

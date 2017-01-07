@@ -1,8 +1,8 @@
 (** A containers backed cache for set oriented probability models *)
-(** 
+(**
   The event type is polymorphic but depends on order semantics. (as well as show).
   Use \[\@\@deriving show,ord\] to easily support this with your own types.
- 
+
   Suppose we observe co-occurences of events A, B, C, and we want to estimate joint
   or conditional probabilities among them.
 
@@ -13,11 +13,11 @@
    P(RED) = 1
 
    P(RED|GREEN) = 1
-   
+
    P(BLUE) = 1/3
-   
+
    P(RED|BLUE) = 1
-   
+
    P(BLUE|GREEN) = 0
 
    Complexity Overview:
